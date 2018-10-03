@@ -1,0 +1,80 @@
+#include "Renderer/Backends/Vulkan/VulkanQueue.h"
+
+namespace {
+void LogQueueDetails(const Renderer::Backends::Vulkan::VulkanQueueFamilyIndices& indices,
+                     const std::vector<VkQueueFamilyProperties>& details) {
+    Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "Queue Family:");
+    for(int i = 0; i < details.size(); i++) {
+        Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "  {}: {}", i, details[i]);
+    }
+
+    Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "Graphics Index: {}", indices.graphics);
+    Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "Compute Index: {}", indices.compute);
+    Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "Transfer Index: {}", indices.transfer);
+    Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "Present Index: {}", indices.present);
+}
+}    // namespace
+
+namespace Renderer::Backends::Vulkan {
+std::optional<const VulkanQueueFamilyIndices> VulkanQueueFamilyIndices::Find(VkPhysicalDevice device,
+                                                                             VkSurfaceKHR surface) {
+    uint32_t queueFamilyCount = 0;
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+
+    std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+
+    std::optional<uint32_t> graphicsIndex;
+    std::optional<uint32_t> computeIndex;
+    std::optional<uint32_t> transferIndex;
+    std::optional<uint32_t> presentIndex;
+
+    for(uint32_t i = 0; i < queueFamilies.size() && (!graphicsIndex || !transferIndex || !presentIndex); i++) {
+        if(queueFamilies[i].queueCount > 0) {
+            // We would prefer graphics and present queues to be in the same family if possible.
+            if(!graphicsIndex || !computeIndex || !presentIndex) {
+                if((queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
+                    graphicsIndex = i;
+                }
+
+                if((queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT) != 0) {
+                    computeIndex = i;
+                }
+
+                VkBool32 presentSupport = false;
+                VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport));
+                if(presentSupport) {
+                    presentIndex = i;
+                }
+            }
+
+            if((queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT) != 0) {
+                // We would prefer the transfer queue to be in a separate family from the graphics queue
+                if(!transferIndex || (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) {
+                    transferIndex = i;
+                }
+            }
+        }
+    }
+
+    if(graphicsIndex && computeIndex && transferIndex && presentIndex) {
+        VulkanQueueFamilyIndices value{*graphicsIndex, *computeIndex, *presentIndex, *transferIndex, device, surface};
+        LogQueueDetails(value, queueFamilies);
+        return value;
+    }
+
+    return std::nullopt;
+}
+
+VulkanQueue::VulkanQueue() = default;
+VulkanQueue::VulkanQueue(VkDevice device, uint32_t familyIndex) : familyIndex(familyIndex) {
+    vkGetDeviceQueue(device, familyIndex, 0, &queue);
+}
+
+VulkanQueues::VulkanQueues() = default;
+VulkanQueues::VulkanQueues(VkDevice device, const VulkanQueueFamilyIndices& familyIndices)
+  : graphics(device, familyIndices.graphics),
+    compute(device, familyIndices.compute),
+    present(device, familyIndices.present),
+    transfer(device, familyIndices.transfer) {}
+}    // namespace Renderer::Backends::Vulkan
