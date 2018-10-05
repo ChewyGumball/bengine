@@ -12,6 +12,17 @@ bool Contains(const T& container, const U& value) {
     return std::find(std::begin(container), std::end(container), value) != std::end(container);
 }
 
+template <typename T, typename U>
+bool ContainsAll(const T& container, const U& elements) {
+    for (const auto& element : elements) {
+        if (!Contains(container, element)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 template <typename T, typename U = typename T::value_type>
 std::optional<std::reference_wrapper<const U>> Find(T& container, const U& value) {
     auto found = std::find(std::begin(container), std::end(container), value);

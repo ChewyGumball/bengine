@@ -8,12 +8,13 @@
 namespace Renderer::Backends::Vulkan {
 
 VulkanLogicalDevice VulkanLogicalDevice::Create(const VulkanQueueFamilyIndices& queueIndices,
-                                 const std::vector<std::string>& deviceExtensions,
-                                 const std::vector<std::string>& validationLayers) {
-    float queuePriority        = 1.0f;
+                                                const std::vector<std::string>& deviceExtensions,
+                                                const std::vector<std::string>& validationLayers) {
+    float queuePriority = 1.0f;
 
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = {queueIndices.graphics, queueIndices.compute, queueIndices.present, queueIndices.transfer};
+    std::set<uint32_t> uniqueQueueFamilies = {
+          queueIndices.graphics, queueIndices.compute, queueIndices.present, queueIndices.transfer};
 
     for(uint32_t queueFamily : uniqueQueueFamilies) {
         VkDeviceQueueCreateInfo queueCreateInfo = {};
@@ -44,12 +45,13 @@ VulkanLogicalDevice VulkanLogicalDevice::Create(const VulkanQueueFamilyIndices& 
     createInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensionNames.size());
     createInfo.ppEnabledExtensionNames = deviceExtensionNames.data();
 
-    VulkanLogicalDevice result;
-    VK_CHECK(vkCreateDevice(queueIndices.physicalDevice, &createInfo, nullptr, &result.device));
+    VulkanLogicalDevice logicalDevice;
+    VK_CHECK(vkCreateDevice(queueIndices.physicalDevice, &createInfo, nullptr, &logicalDevice.object));
 
-    return result;
+    return logicalDevice;
 }
+
 void VulkanLogicalDevice::Destroy(const VulkanLogicalDevice& device) {
-    
-}    // namespace Renderer::Backends::Vulkan
+    vkDestroyDevice(device, nullptr);
+} 
 }    // namespace Renderer::Backends::Vulkan

@@ -12,8 +12,7 @@ void DebugPrintAvailableExtensions() {
 
     Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "Vulkan Extension Count: {}", extensionCount);
     for(const auto& extension : availableExtensions) {
-        Core::Log::Debug(
-              Renderer::Backends::Vulkan::Vulkan, "- {} v{}", extension.extensionName, extension.specVersion);
+        Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "- {} v{}", extension.extensionName, extension.specVersion);
     }
 }
 
@@ -32,8 +31,7 @@ std::vector<std::string> FilterValidationLayers(const std::vector<std::string>& 
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
     std::vector<std::string> availableLayerNames;
-    Core::Algorithms::Map(
-          availableLayers, availableLayerNames, [](const auto& layer) { return std::string(layer.layerName); });
+    Core::Algorithms::Map(availableLayers, availableLayerNames, [](const auto& layer) { return std::string(layer.layerName); });
 
     std::vector<std::string> unsupportedLayerNames;
 
@@ -44,11 +42,12 @@ std::vector<std::string> FilterValidationLayers(const std::vector<std::string>& 
             unsupportedLayerNames.push_back(layerName);
         }
     }
-
-    Core::Log::Warning(Vulkan, "Requested validation layers are not supported!");
-    Core::Log::Debug(Vulkan, "Unsupported Validation Layer Count: {}", unsupportedLayerNames.size());
-    for(const auto& layer : unsupportedLayerNames) {
-        Core::Log::Debug(Vulkan, "- {}", layer);
+    if(!unsupportedLayerNames.empty()) {
+        Core::Log::Warning(Vulkan, "Requested validation layers are not supported!");
+        Core::Log::Debug(Vulkan, "Unsupported Validation Layer Count: {}", unsupportedLayerNames.size());
+        for(const auto& layer : unsupportedLayerNames) {
+            Core::Log::Debug(Vulkan, "- {}", layer);
+        }
     }
 
     return filteredLayers;
@@ -110,26 +109,23 @@ void CreateInstance(const std::string& applicationName,
 VkDebugUtilsMessengerEXT CreateDebugCallback(VkInstance instance) {
     using Renderer::Backends::Vulkan::Vulkan;
 
-    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    auto func                               = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     VkDebugUtilsMessengerEXT callbackHandle = nullptr;
-    
+
     if(func != nullptr) {
         VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
 
-        createInfo.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-                                     VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                                     VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        createInfo.messageSeverity =
+              VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        createInfo.messageType =
+              VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         createInfo.pfnUserCallback = debugCallback;
         createInfo.pUserData       = nullptr;    // Optional
 
         VK_CHECK(func(instance, &createInfo, nullptr, &callbackHandle));
     } else {
-        Core::Log::Warning(
-              Vulkan, "vkCreateDebugUtilsMessengerEXT function pointer was missing! Debug callback was not created.");
+        Core::Log::Warning(Vulkan, "vkCreateDebugUtilsMessengerEXT function pointer was missing! Debug callback was not created.");
         VK_CHECK(VK_ERROR_EXTENSION_NOT_PRESENT);
     }
 
@@ -157,7 +153,7 @@ VulkanInstance VulkanInstance::Create(const std::string& ApplicationName,
     std::vector<const char*> validationLayerNames;
     Core::Algorithms::Map(activeValidationLayers, validationLayerNames, Core::Algorithms::Mappers::StringToChar());
 
-    CreateInstance(ApplicationName, requiredExtensionNames, validationLayerNames, instance.instance);
+    CreateInstance(ApplicationName, requiredExtensionNames, validationLayerNames, instance.object);
 
 
     if(!activeValidationLayers.empty()) {
@@ -173,6 +169,5 @@ void VulkanInstance::Destroy(const VulkanInstance& instance) {
         func(instance, instance.debugCallback, nullptr);
     }
     vkDestroyInstance(instance, nullptr);
-
 }
 }    // namespace Renderer::Backends::Vulkan

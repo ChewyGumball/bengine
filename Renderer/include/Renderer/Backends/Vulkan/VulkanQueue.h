@@ -2,8 +2,6 @@
 
 #include "VulkanCore.h"
 
-#include "Renderer/DllExport.h"
-
 #include <optional>
 
 namespace Renderer::Backends::Vulkan {
@@ -20,13 +18,8 @@ struct RENDERER_API VulkanQueueFamilyIndices {
     static std::optional<const VulkanQueueFamilyIndices> Find(VkPhysicalDevice device, VkSurfaceKHR surface);
 };
 
-struct RENDERER_API VulkanQueue {
-    VkQueue queue;
+struct RENDERER_API VulkanQueue : public VulkanObject<VkQueue> {
     uint32_t familyIndex;
-
-    inline operator VkQueue() const {
-        return queue;
-    }
 
     VulkanQueue();
     VulkanQueue(VkDevice device, uint32_t familyIndex);

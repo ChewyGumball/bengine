@@ -29,22 +29,25 @@ std::optional<const VulkanQueueFamilyIndices> VulkanQueueFamilyIndices::Find(VkP
     std::optional<uint32_t> transferIndex;
     std::optional<uint32_t> presentIndex;
 
-    for(uint32_t i = 0; i < queueFamilies.size() && (!graphicsIndex || !transferIndex || !presentIndex); i++) {
+    for(uint32_t i = 0; i < queueFamilies.size(); i++) {
         if(queueFamilies[i].queueCount > 0) {
             // We would prefer graphics and present queues to be in the same family if possible.
-            if(!graphicsIndex || !computeIndex || !presentIndex) {
+            if(!graphicsIndex || !presentIndex) {
                 if((queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
                     graphicsIndex = i;
-                }
-
-                if((queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT) != 0) {
-                    computeIndex = i;
                 }
 
                 VkBool32 presentSupport = false;
                 VK_CHECK(vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport));
                 if(presentSupport) {
                     presentIndex = i;
+                }
+            }
+
+            if((queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT) != 0) {
+                // We would prefer the compute queue to be in a separate family from the graphics queue
+                if(!computeIndex || (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) {
+                    computeIndex = i;
                 }
             }
 
@@ -68,7 +71,7 @@ std::optional<const VulkanQueueFamilyIndices> VulkanQueueFamilyIndices::Find(VkP
 
 VulkanQueue::VulkanQueue() = default;
 VulkanQueue::VulkanQueue(VkDevice device, uint32_t familyIndex) : familyIndex(familyIndex) {
-    vkGetDeviceQueue(device, familyIndex, 0, &queue);
+    vkGetDeviceQueue(device, familyIndex, 0, &object);
 }
 
 VulkanQueues::VulkanQueues() = default;

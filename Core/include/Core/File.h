@@ -10,6 +10,8 @@ namespace Core::File {
 CORE_API std::optional<std::string> ReadTextFile(const std::filesystem::path& file);
 CORE_API std::optional<std::vector<std::byte>> ReadBinaryFile(const std::filesystem::path& file);
 
+#pragma warning(push)
+#pragma warning(disable : 4251)
 class CORE_API Stream {
 private:
     std::ifstream stream;
@@ -31,4 +33,5 @@ public:
         return values;
     }
 };
+#pragma warning(pop)
 }    // namespace Core::File

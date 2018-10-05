@@ -4,10 +4,20 @@
 
 #include <Core/Logging/Logger.h>
 
+#include "Renderer/DllExport.h"
+
 namespace Renderer::Backends::Vulkan {
 
 constexpr Core::LogCategory Vulkan("Vulkan");
 
+template<typename T>
+struct VulkanObject {
+    T object;
+
+    inline operator T() const {
+        return object;
+    }
+};
 
 }    // namespace Renderer::Backends::Vulkan
 
