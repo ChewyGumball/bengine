@@ -74,6 +74,40 @@ VulkanQueue::VulkanQueue(VkDevice device, uint32_t familyIndex) : familyIndex(fa
     vkGetDeviceQueue(device, familyIndex, 0, &object);
 }
 
+void VulkanQueue::submit(const VkCommandBuffer& commandBuffer, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, VkFence fence) {
+    VkSubmitInfo submitInfo = {};
+    submitInfo.sType        = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+    VkSemaphore waitSemaphores[]      = {waitSemaphore};
+    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    submitInfo.waitSemaphoreCount     = 1;
+    submitInfo.pWaitSemaphores        = waitSemaphores;
+    submitInfo.pWaitDstStageMask      = waitStages;
+    submitInfo.commandBufferCount     = 1;
+    submitInfo.pCommandBuffers        = &commandBuffer;
+
+    VkSemaphore signalSemaphores[]  = {signalSemaphore};
+    submitInfo.signalSemaphoreCount = 1;
+    submitInfo.pSignalSemaphores    = signalSemaphores;
+
+    VK_CHECK(vkQueueSubmit(object, 1, &submitInfo, fence));
+}
+void VulkanQueue::present(VkSwapchainKHR swapChain, VkSemaphore waitSemaphore, uint32_t imageIndex) {
+    VkSwapchainKHR swapChains[]  = {swapChain};
+    VkSemaphore waitSemaphores[] = {waitSemaphore};
+
+    VkPresentInfoKHR presentInfo   = {};
+    presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount = 1;
+    presentInfo.pWaitSemaphores    = waitSemaphores;
+    presentInfo.swapchainCount     = 1;
+    presentInfo.pSwapchains        = swapChains;
+    presentInfo.pImageIndices      = &imageIndex;
+    presentInfo.pResults           = nullptr;    // Optional
+
+    VK_CHECK(vkQueuePresentKHR(object, &presentInfo));
+}
+
 VulkanQueues::VulkanQueues() = default;
 VulkanQueues::VulkanQueues(VkDevice device, const VulkanQueueFamilyIndices& familyIndices)
   : graphics(device, familyIndices.graphics),

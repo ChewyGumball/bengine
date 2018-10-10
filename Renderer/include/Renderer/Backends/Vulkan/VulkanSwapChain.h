@@ -32,6 +32,8 @@ struct RENDERER_API VulkanSwapChain : public VulkanObject<VkSwapchainKHR> {
 
     static VulkanSwapChain Create(VkDevice device, const VulkanSwapChainDetails& details, const VulkanQueues& queues, VkRenderPass renderPass);
     static void Destroy(VkDevice device, const VulkanSwapChain& swapChain);
+
+    uint32_t aquireNextImage(VkDevice device, VkSemaphore waitSemaphore);
 };
 #pragma warning(pop)
 }    // namespace Renderer::Backends::Vulkan

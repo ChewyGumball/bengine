@@ -86,7 +86,6 @@ VulkanSwapChainDetails VulkanSwapChainDetails::Find(VkPhysicalDevice physicalDev
     return details;
 }
 VulkanSwapChain VulkanSwapChain::Create(VkDevice device, const VulkanSwapChainDetails& details, const VulkanQueues& queues, VkRenderPass renderPass) {
-
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType                    = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface                  = details.surface;
@@ -145,5 +144,10 @@ void VulkanSwapChain::Destroy(VkDevice device, const VulkanSwapChain& swapChain)
         vkDestroyImageView(device, imageView, nullptr);
     }
     vkDestroySwapchainKHR(device, swapChain, nullptr);
+}
+uint32_t VulkanSwapChain::aquireNextImage(VkDevice device, VkSemaphore waitSemaphore) {
+    uint32_t imageIndex;
+    VK_CHECK(vkAcquireNextImageKHR(device, object, std::numeric_limits<uint64_t>::max(), waitSemaphore, VK_NULL_HANDLE, &imageIndex));
+    return imageIndex;
 }
 }    // namespace Renderer::Backends::Vulkan

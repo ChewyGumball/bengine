@@ -23,6 +23,9 @@ struct RENDERER_API VulkanQueue : public VulkanObject<VkQueue> {
 
     VulkanQueue();
     VulkanQueue(VkDevice device, uint32_t familyIndex);
+
+    void submit(const VkCommandBuffer& commandBuffer, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, VkFence fence);
+    void present(VkSwapchainKHR swapChain, VkSemaphore waitSemaphore, uint32_t imageIndex);
 };
 
 struct RENDERER_API VulkanQueues {

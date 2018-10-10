@@ -53,6 +53,7 @@ std::vector<std::string> FilterValidationLayers(const std::vector<std::string>& 
     return filteredLayers;
 }
 
+constexpr Core::LogCategory VulkanValidation("Vulkan Validation");
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
                                                     VkDebugUtilsMessageTypeFlagsEXT messageType,
                                                     const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
@@ -69,11 +70,11 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
     }
 
     if(messageType == VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT) {
-        Core::Log::Log(Vulkan, level, "Validation Message: {}", pCallbackData->pMessage);
+        Core::Log::Log(VulkanValidation, level, "Validation Message: {}", pCallbackData->pMessage);
     } else if(messageType == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) {
-        Core::Log::Log(Vulkan, level, "Validation Error: {}", pCallbackData->pMessage);
+        Core::Log::Log(VulkanValidation, level, "Validation Error: {}", pCallbackData->pMessage);
     } else if(messageType == VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT) {
-        Core::Log::Log(Vulkan, level, "Validation Performance Warning: {}", pCallbackData->pMessage);
+        Core::Log::Log(VulkanValidation, level, "Validation Performance Warning: {}", pCallbackData->pMessage);
     }
 
     return VK_FALSE;
