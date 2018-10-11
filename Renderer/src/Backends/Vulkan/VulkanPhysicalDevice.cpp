@@ -44,7 +44,8 @@ bool deviceSupportsRequiredExtensions(VkPhysicalDevice deviceToCheck, const std:
 
 namespace Renderer::Backends::Vulkan {
 
-std::optional<VulkanPhysicalDevice> VulkanPhysicalDevice::Find(VkInstance instance, VkSurfaceKHR surface, const std::vector<std::string>& requiredExtensions) {
+std::optional<VulkanPhysicalDevice>
+VulkanPhysicalDevice::Find(VkInstance instance, VkSurfaceKHR surface, const std::vector<std::string>& requiredExtensions, VkExtent2D windowSize) {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
     if(deviceCount == 0) {
@@ -72,7 +73,7 @@ std::optional<VulkanPhysicalDevice> VulkanPhysicalDevice::Find(VkInstance instan
 
         std::optional<VulkanQueueFamilyIndices> indices = VulkanQueueFamilyIndices::Find(device, surface);
         if(indices && swapChainAdequate) {
-            physicalDevice = {device, *indices, VulkanSwapChainDetails::Find(device, surface)};
+            physicalDevice = {device, *indices, VulkanSwapChainDetails::Find(device, surface, windowSize)};
             break;
         }
     }

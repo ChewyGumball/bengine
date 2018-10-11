@@ -92,7 +92,7 @@ void VulkanQueue::submit(const VkCommandBuffer& commandBuffer, VkSemaphore waitS
 
     VK_CHECK(vkQueueSubmit(object, 1, &submitInfo, fence));
 }
-void VulkanQueue::present(VkSwapchainKHR swapChain, VkSemaphore waitSemaphore, uint32_t imageIndex) {
+VkResult VulkanQueue::present(VkSwapchainKHR swapChain, VkSemaphore waitSemaphore, uint32_t imageIndex) {
     VkSwapchainKHR swapChains[]  = {swapChain};
     VkSemaphore waitSemaphores[] = {waitSemaphore};
 
@@ -105,7 +105,7 @@ void VulkanQueue::present(VkSwapchainKHR swapChain, VkSemaphore waitSemaphore, u
     presentInfo.pImageIndices      = &imageIndex;
     presentInfo.pResults           = nullptr;    // Optional
 
-    VK_CHECK(vkQueuePresentKHR(object, &presentInfo));
+    return vkQueuePresentKHR(object, &presentInfo);
 }
 
 VulkanQueues::VulkanQueues() = default;

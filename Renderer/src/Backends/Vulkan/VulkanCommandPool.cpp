@@ -3,7 +3,7 @@
 namespace Renderer::Backends::Vulkan {
 
 
-std::vector<VkCommandBuffer> VulkanCommandPool::AllocateBuffers(const VkDevice device, uint32_t count) {
+std::vector<VkCommandBuffer> VulkanCommandPool::allocateBuffers(const VkDevice device, uint32_t count) const {
     std::vector<VkCommandBuffer> buffers(count);
 
     VkCommandBufferAllocateInfo allocInfo = {};
@@ -15,6 +15,10 @@ std::vector<VkCommandBuffer> VulkanCommandPool::AllocateBuffers(const VkDevice d
     VK_CHECK(vkAllocateCommandBuffers(device, &allocInfo, buffers.data()));
 
     return buffers;
+}
+
+void VulkanCommandPool::freeBuffers(const VkDevice device, const std::vector<VkCommandBuffer>& buffers) const {
+    vkFreeCommandBuffers(device, object, static_cast<uint32_t>(buffers.size()), buffers.data());
 }
 
 VulkanCommandPool VulkanCommandPool::Create(VkDevice device, uint32_t familyIndex) {

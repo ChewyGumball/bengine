@@ -52,11 +52,11 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& avai
     return Core::Algorithms::Find(availablePresentModes, VK_PRESENT_MODE_IMMEDIATE_KHR).value_or(fallbackMode);
 }
 
-VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
+VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, VkExtent2D windowSize) {
     if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     } else {
-        VkExtent2D actualExtent = {800, 600};
+        VkExtent2D actualExtent = windowSize;
 
         actualExtent.width  = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
         actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
@@ -68,14 +68,14 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
 
 namespace Renderer::Backends::Vulkan {
 
-VulkanSwapChainDetails VulkanSwapChainDetails::Find(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
+VulkanSwapChainDetails VulkanSwapChainDetails::Find(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkExtent2D windowSize) {
     SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice, surface);
 
     VulkanSwapChainDetails details;
     details.surface           = surface;
     details.format            = chooseSwapSurfaceFormat(swapChainSupport.formats);
     details.presentMode       = chooseSwapPresentMode(swapChainSupport.presentModes);
-    details.extent            = chooseSwapExtent(swapChainSupport.capabilities);
+    details.extent            = chooseSwapExtent(swapChainSupport.capabilities, windowSize);
     details.desiredImageCount = swapChainSupport.capabilities.minImageCount + 1;
     // maxImageCount == 0 means only limited by memory
     if(swapChainSupport.capabilities.maxImageCount > 0 && details.desiredImageCount > swapChainSupport.capabilities.maxImageCount) {
@@ -145,9 +145,9 @@ void VulkanSwapChain::Destroy(VkDevice device, const VulkanSwapChain& swapChain)
     }
     vkDestroySwapchainKHR(device, swapChain, nullptr);
 }
-uint32_t VulkanSwapChain::aquireNextImage(VkDevice device, VkSemaphore waitSemaphore) {
-    uint32_t imageIndex;
-    VK_CHECK(vkAcquireNextImageKHR(device, object, std::numeric_limits<uint64_t>::max(), waitSemaphore, VK_NULL_HANDLE, &imageIndex));
-    return imageIndex;
+VulkanSwapChainImageAcquisitionResult VulkanSwapChain::acquireNextImage(VkDevice device, VkSemaphore waitSemaphore) {
+    VulkanSwapChainImageAcquisitionResult result;
+    result.result = vkAcquireNextImageKHR(device, object, std::numeric_limits<uint64_t>::max(), waitSemaphore, VK_NULL_HANDLE, &result.imageIndex);
+    return result;
 }
 }    // namespace Renderer::Backends::Vulkan

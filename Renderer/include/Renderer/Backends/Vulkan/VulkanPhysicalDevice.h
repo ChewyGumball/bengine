@@ -12,6 +12,7 @@ struct RENDERER_API VulkanPhysicalDevice : VulkanObject<VkPhysicalDevice> {
     VulkanQueueFamilyIndices queueIndices;
     VulkanSwapChainDetails swapChainDetails;
 
-    static std::optional<VulkanPhysicalDevice> Find(VkInstance instance, VkSurfaceKHR surface, const std::vector<std::string>& requiredExtensions);
+    static std::optional<VulkanPhysicalDevice>
+    Find(VkInstance instance, VkSurfaceKHR surface, const std::vector<std::string>& requiredExtensions, VkExtent2D windowSize);
 };
 }    // namespace Renderer::Backends::Vulkan

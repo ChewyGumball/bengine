@@ -9,7 +9,7 @@
 
 namespace Renderer::Backends::Vulkan {
 
-struct VulkanSwapChainDetails {
+struct RENDERER_API VulkanSwapChainDetails {
     VkSurfaceKHR surface;
     VkSurfaceFormatKHR format;
     VkPresentModeKHR presentMode;
@@ -17,7 +17,16 @@ struct VulkanSwapChainDetails {
     uint32_t desiredImageCount;
     VkSurfaceTransformFlagBitsKHR transform;
 
-    static VulkanSwapChainDetails Find(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
+    static VulkanSwapChainDetails Find(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkExtent2D windowSize);
+};
+
+struct VulkanSwapChainImageAcquisitionResult {
+    VkResult result;
+    uint32_t imageIndex;
+
+    operator bool() const {
+        return result == VK_SUCCESS;
+    }
 };
 
 #pragma warning ( push )
@@ -33,7 +42,7 @@ struct RENDERER_API VulkanSwapChain : public VulkanObject<VkSwapchainKHR> {
     static VulkanSwapChain Create(VkDevice device, const VulkanSwapChainDetails& details, const VulkanQueues& queues, VkRenderPass renderPass);
     static void Destroy(VkDevice device, const VulkanSwapChain& swapChain);
 
-    uint32_t aquireNextImage(VkDevice device, VkSemaphore waitSemaphore);
+    VulkanSwapChainImageAcquisitionResult acquireNextImage(VkDevice device, VkSemaphore waitSemaphore);
 };
 #pragma warning(pop)
 }    // namespace Renderer::Backends::Vulkan
