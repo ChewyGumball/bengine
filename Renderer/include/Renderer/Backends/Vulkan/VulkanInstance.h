@@ -6,10 +6,9 @@ namespace Renderer::Backends::Vulkan {
 struct RENDERER_API VulkanInstance : public VulkanObject<VkInstance> {
     VkDebugUtilsMessengerEXT debugCallback;
 
-    static VulkanInstance Create(const std::string& ApplicationName,
-                                                const std::vector<std::string>& RequiredExtensions,
-                                                const std::vector<std::string>& RequestedValidationLayers);
+    static VulkanInstance
+    Create(const std::string& applicationName, const std::vector<std::string>& requiredExtensions, const std::vector<std::string>& requestedValidationLayers);
 
-    static void Destroy(const VulkanInstance& instance);
+    static void Destroy(VulkanInstance& instance);
 };
 }    // namespace Renderer::Backends::Vulkan

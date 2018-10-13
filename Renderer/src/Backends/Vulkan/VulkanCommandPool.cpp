@@ -21,11 +21,20 @@ void VulkanCommandPool::freeBuffers(const VkDevice device, const std::vector<VkC
     vkFreeCommandBuffers(device, object, static_cast<uint32_t>(buffers.size()), buffers.data());
 }
 
-VulkanCommandPool VulkanCommandPool::Create(VkDevice device, uint32_t familyIndex) {
+VulkanCommandPool
+VulkanCommandPool::Create(VkDevice device, uint32_t familyIndex, VulkanCommandBufferLifetime lifetime, VulkanCommandBufferResetType resetType) {
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex        = familyIndex;
-    poolInfo.flags                   = 0;    // Optional
+    poolInfo.flags                   = 0;
+
+    if (lifetime == VulkanCommandBufferLifetime::Transient) {
+        poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+    }
+
+    if(resetType == VulkanCommandBufferResetType::Resettable) {
+        poolInfo.flags |= VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    }
 
     VulkanCommandPool commandPool;
     commandPool.family = familyIndex;
@@ -33,7 +42,7 @@ VulkanCommandPool VulkanCommandPool::Create(VkDevice device, uint32_t familyInde
     return commandPool;
 }
 
-void VulkanCommandPool::Destroy(VkDevice device, const VulkanCommandPool& commandPool) {
+void VulkanCommandPool::Destroy(VkDevice device, VulkanCommandPool& commandPool) {
     vkDestroyCommandPool(device, commandPool, nullptr);
 }
 }    // namespace Renderer::Backends::Vulkan

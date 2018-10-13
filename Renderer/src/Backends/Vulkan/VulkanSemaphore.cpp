@@ -10,7 +10,7 @@ VulkanSemaphore VulkanSemaphore::Create(VkDevice device) {
     return semaphore;
 }
 
-void VulkanSemaphore::Destroy(VkDevice device, const VulkanSemaphore& semaphore) {
+void VulkanSemaphore::Destroy(VkDevice device, VulkanSemaphore& semaphore) {
     vkDestroySemaphore(device, semaphore, nullptr);
 }
 }    // namespace Renderer::Backends::Vulkan

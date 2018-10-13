@@ -51,7 +51,7 @@ VulkanLogicalDevice VulkanLogicalDevice::Create(const VulkanQueueFamilyIndices& 
     return logicalDevice;
 }
 
-void VulkanLogicalDevice::Destroy(const VulkanLogicalDevice& device) {
+void VulkanLogicalDevice::Destroy(VulkanLogicalDevice& device) {
     vkDestroyDevice(device, nullptr);
 } 
 }    // namespace Renderer::Backends::Vulkan

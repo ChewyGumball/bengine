@@ -12,6 +12,6 @@ struct RENDERER_API VulkanFence : public VulkanObject<VkFence> {
     bool waitAndReset(VkDevice device, uint64_t timeout = std::numeric_limits<uint64_t>::max()) const;
 
     static VulkanFence Create(VkDevice device, VulkanFenceState initialState = VulkanFenceState::NotSignaled);
-    static void Destroy(VkDevice device, const VulkanFence& fence);
+    static void Destroy(VkDevice device, VulkanFence& fence);
 };
 }    // namespace Renderer::Backends::Vulkan

@@ -15,7 +15,7 @@ VulkanFramebuffer VulkanFramebuffer::Create(VkDevice device, VkRenderPass render
     VK_CHECK(vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffer.object));
     return framebuffer;
 }
-void VulkanFramebuffer::Destroy(VkDevice device, const VulkanFramebuffer& framebuffer) {
+void VulkanFramebuffer::Destroy(VkDevice device, VulkanFramebuffer& framebuffer) {
     vkDestroyFramebuffer(device, framebuffer, nullptr);
 }
 }    // namespace Renderer::Backends::Vulkan

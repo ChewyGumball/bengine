@@ -13,7 +13,7 @@ VulkanPipelineLayout VulkanPipelineLayout::Create(VkDevice device) {
     VK_CHECK(vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &layout.object));
     return layout;
 }
-void VulkanPipelineLayout::Destroy(VkDevice device, const VulkanPipelineLayout& layout) {
+void VulkanPipelineLayout::Destroy(VkDevice device, VulkanPipelineLayout& layout) {
     vkDestroyPipelineLayout(device, layout, nullptr);
 }
 }    // namespace Renderer::Backends::Vulkan

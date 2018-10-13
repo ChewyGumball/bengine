@@ -26,7 +26,7 @@ VulkanShaderModule VulkanShaderModule::Create(VkDevice device, const std::string
     return Create(device, *vertexShaderCode);
 }
 
-void VulkanShaderModule::Destroy(VkDevice device, const VulkanShaderModule& shaderModule) {
+void VulkanShaderModule::Destroy(VkDevice device, VulkanShaderModule& shaderModule) {
     vkDestroyShaderModule(device, shaderModule, nullptr);
 }
 }    // namespace Renderer::Backends::Vulkan

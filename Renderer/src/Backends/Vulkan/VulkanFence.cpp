@@ -28,7 +28,7 @@ VulkanFence VulkanFence::Create(VkDevice device, VulkanFenceState initialState) 
     return fence;
 }
 
-void VulkanFence::Destroy(VkDevice device, const VulkanFence& fence) {
+void VulkanFence::Destroy(VkDevice device, VulkanFence& fence) {
     vkDestroyFence(device, fence, nullptr);
 }
 }    // namespace Renderer::Backends::Vulkan

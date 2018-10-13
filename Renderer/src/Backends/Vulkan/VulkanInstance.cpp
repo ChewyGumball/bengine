@@ -80,33 +80,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
     return VK_FALSE;
 }
 
-void CreateInstance(const std::string& applicationName,
-                    const std::vector<const char*>& extensions,
-                    const std::vector<const char*>& validationLayers,
-                    VkInstance& instance) {
-    VkApplicationInfo applicationInfo  = {};
-    applicationInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    applicationInfo.pApplicationName   = applicationName.c_str();
-    applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    applicationInfo.pEngineName        = "BENgine";
-    applicationInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
-    applicationInfo.apiVersion         = VK_API_VERSION_1_0;
-
-
-    VkInstanceCreateInfo createInfo    = {};
-    createInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.pApplicationInfo        = &applicationInfo;
-    createInfo.enabledExtensionCount   = static_cast<uint32_t>(extensions.size());
-    createInfo.ppEnabledExtensionNames = extensions.data();
-
-    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-    if(!validationLayers.empty()) {
-        createInfo.ppEnabledLayerNames = validationLayers.data();
-    }
-
-    VK_CHECK(vkCreateInstance(&createInfo, nullptr, &instance));
-}
-
 VkDebugUtilsMessengerEXT CreateDebugCallback(VkInstance instance) {
     using Renderer::Backends::Vulkan::Vulkan;
 
@@ -136,16 +109,16 @@ VkDebugUtilsMessengerEXT CreateDebugCallback(VkInstance instance) {
 
 namespace Renderer::Backends::Vulkan {
 
-VulkanInstance VulkanInstance::Create(const std::string& ApplicationName,
-                                      const std::vector<std::string>& RequiredExtensions,
-                                      const std::vector<std::string>& RequestedValidationLayers) {
+VulkanInstance VulkanInstance::Create(const std::string& applicationName,
+                                      const std::vector<std::string>& requiredExtensions,
+                                      const std::vector<std::string>& requestedValidationLayers) {
     VulkanInstance instance;
 
     std::vector<const char*> requiredExtensionNames;
-    Core::Algorithms::Map(RequiredExtensions, requiredExtensionNames, Core::Algorithms::Mappers::StringToChar());
+    Core::Algorithms::Map(requiredExtensions, requiredExtensionNames, Core::Algorithms::Mappers::StringToChar());
 
 
-    std::vector<std::string> activeValidationLayers = FilterValidationLayers(RequestedValidationLayers);
+    std::vector<std::string> activeValidationLayers = FilterValidationLayers(requestedValidationLayers);
     Core::Log::Debug(Vulkan, "Supported Validation Layer Count: {}", activeValidationLayers.size());
     for(const auto& layer : activeValidationLayers) {
         Core::Log::Debug(Vulkan, "- {}", layer);
@@ -153,8 +126,28 @@ VulkanInstance VulkanInstance::Create(const std::string& ApplicationName,
 
     std::vector<const char*> validationLayerNames;
     Core::Algorithms::Map(activeValidationLayers, validationLayerNames, Core::Algorithms::Mappers::StringToChar());
+    
+    VkApplicationInfo applicationInfo  = {};
+    applicationInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    applicationInfo.pApplicationName   = applicationName.c_str();
+    applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    applicationInfo.pEngineName        = "BENgine";
+    applicationInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
+    applicationInfo.apiVersion         = VK_API_VERSION_1_0;
 
-    CreateInstance(ApplicationName, requiredExtensionNames, validationLayerNames, instance.object);
+
+    VkInstanceCreateInfo createInfo    = {};
+    createInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    createInfo.pApplicationInfo        = &applicationInfo;
+    createInfo.enabledExtensionCount   = static_cast<uint32_t>(requiredExtensionNames.size());
+    createInfo.ppEnabledExtensionNames = requiredExtensionNames.data();
+
+    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayerNames.size());
+    if(!validationLayerNames.empty()) {
+        createInfo.ppEnabledLayerNames = validationLayerNames.data();
+    }
+
+    VK_CHECK(vkCreateInstance(&createInfo, nullptr, &instance.object));
 
 
     if(!activeValidationLayers.empty()) {
@@ -164,7 +157,7 @@ VulkanInstance VulkanInstance::Create(const std::string& ApplicationName,
     return instance;
 }
 
-void VulkanInstance::Destroy(const VulkanInstance& instance) {
+void VulkanInstance::Destroy(VulkanInstance& instance) {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
     if(func != nullptr) {
         func(instance, instance.debugCallback, nullptr);

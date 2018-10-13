@@ -1,8 +1,7 @@
 #include "Renderer/Backends/Vulkan/VulkanQueue.h"
 
 namespace {
-void LogQueueDetails(const Renderer::Backends::Vulkan::VulkanQueueFamilyIndices& indices,
-                     const std::vector<VkQueueFamilyProperties>& details) {
+void LogQueueDetails(const Renderer::Backends::Vulkan::VulkanQueueFamilyIndices& indices, const std::vector<VkQueueFamilyProperties>& details) {
     Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "Queue Family:");
     for(int i = 0; i < details.size(); i++) {
         Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "  {}: {}", i, details[i]);
@@ -16,8 +15,7 @@ void LogQueueDetails(const Renderer::Backends::Vulkan::VulkanQueueFamilyIndices&
 }    // namespace
 
 namespace Renderer::Backends::Vulkan {
-std::optional<const VulkanQueueFamilyIndices> VulkanQueueFamilyIndices::Find(VkPhysicalDevice device,
-                                                                             VkSurfaceKHR surface) {
+std::optional<const VulkanQueueFamilyIndices> VulkanQueueFamilyIndices::Find(VkPhysicalDevice device, VkSurfaceKHR surface) {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
@@ -74,21 +72,28 @@ VulkanQueue::VulkanQueue(VkDevice device, uint32_t familyIndex) : familyIndex(fa
     vkGetDeviceQueue(device, familyIndex, 0, &object);
 }
 
-void VulkanQueue::submit(const VkCommandBuffer& commandBuffer, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, VkFence fence) {
+void VulkanQueue::submit(const VkCommandBuffer& commandBuffer, VulkanQueueSubmitType type, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, VkFence fence) {
     VkSubmitInfo submitInfo = {};
     submitInfo.sType        = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-    VkSemaphore waitSemaphores[]      = {waitSemaphore};
-    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-    submitInfo.waitSemaphoreCount     = 1;
-    submitInfo.pWaitSemaphores        = waitSemaphores;
-    submitInfo.pWaitDstStageMask      = waitStages;
     submitInfo.commandBufferCount     = 1;
     submitInfo.pCommandBuffers        = &commandBuffer;
 
-    VkSemaphore signalSemaphores[]  = {signalSemaphore};
-    submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores    = signalSemaphores;
+    if(type == VulkanQueueSubmitType::Graphics) {
+        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+        submitInfo.pWaitDstStageMask      = waitStages;
+    }
+
+    VkSemaphore waitSemaphores[] = {waitSemaphore};
+    if(waitSemaphore != VK_NULL_HANDLE) {
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores    = waitSemaphores;
+    }
+
+    VkSemaphore signalSemaphores[] = {signalSemaphore};
+    if(signalSemaphore != VK_NULL_HANDLE) {
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores    = signalSemaphores;
+    }
 
     VK_CHECK(vkQueueSubmit(object, 1, &submitInfo, fence));
 }

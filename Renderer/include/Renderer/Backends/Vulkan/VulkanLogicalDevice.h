@@ -9,6 +9,6 @@ struct RENDERER_API VulkanLogicalDevice : public VulkanObject<VkDevice> {
     static VulkanLogicalDevice Create(const VulkanQueueFamilyIndices& queueIndices,
                                       const std::vector<std::string>& deviceExtensions,
                                       const std::vector<std::string>& validationLayers);
-    static void Destroy(const VulkanLogicalDevice& device);
+    static void Destroy(VulkanLogicalDevice& device);
 };
 }    // namespace Renderer::Backends::Vulkan

@@ -136,7 +136,7 @@ VulkanSwapChain VulkanSwapChain::Create(VkDevice device, const VulkanSwapChainDe
     return swapChain;
 }
 
-void VulkanSwapChain::Destroy(VkDevice device, const VulkanSwapChain& swapChain) {
+void VulkanSwapChain::Destroy(VkDevice device, VulkanSwapChain& swapChain) {
     for(auto framebuffer : swapChain.framebuffers) {
         vkDestroyFramebuffer(device, framebuffer, nullptr);
     }

@@ -18,13 +18,19 @@ struct RENDERER_API VulkanQueueFamilyIndices {
     static std::optional<const VulkanQueueFamilyIndices> Find(VkPhysicalDevice device, VkSurfaceKHR surface);
 };
 
+enum class VulkanQueueSubmitType { Graphics, Transfer };
+
 struct RENDERER_API VulkanQueue : public VulkanObject<VkQueue> {
     uint32_t familyIndex;
 
     VulkanQueue();
     VulkanQueue(VkDevice device, uint32_t familyIndex);
 
-    void submit(const VkCommandBuffer& commandBuffer, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, VkFence fence);
+    void submit(const VkCommandBuffer& commandBuffer,
+                VulkanQueueSubmitType type,
+                VkSemaphore waitSemaphore   = VK_NULL_HANDLE,
+                VkSemaphore signalSemaphore = VK_NULL_HANDLE,
+                VkFence fence               = VK_NULL_HANDLE);
     VkResult present(VkSwapchainKHR swapChain, VkSemaphore waitSemaphore, uint32_t imageIndex);
 };
 

@@ -104,7 +104,7 @@ VulkanGraphicsPipeline VulkanGraphicsPipeline::Create(VkDevice device, const Vul
     return pipeline;
 }
 
-void VulkanGraphicsPipeline::Destroy(VkDevice device, const VulkanGraphicsPipeline& pipeline) {
+void VulkanGraphicsPipeline::Destroy(VkDevice device, VulkanGraphicsPipeline& pipeline) {
     vkDestroyPipeline(device, pipeline, nullptr);
 }
 }    // namespace Renderer::Backends::Vulkan

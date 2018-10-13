@@ -148,6 +148,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanBuffer.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanCommandPool.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanCore.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanFence.h" />
@@ -172,6 +173,7 @@
     <None Include=".clang-format" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Backends\Vulkan\VulkanBuffer.cpp" />
     <ClCompile Include="src\Backends\Vulkan\VulkanCommandPool.cpp" />
     <ClCompile Include="src\Backends\Vulkan\VulkanCore.cpp" />
     <ClCompile Include="src\Backends\Vulkan\VulkanFence.cpp" />

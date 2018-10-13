@@ -15,6 +15,47 @@ std::string vendorNameFromID(uint32_t vendorID) {
     }
 }
 
+VkBufferUsageFlags translateBufferType(Renderer::Backends::Vulkan::VulkanBufferUsageType usageType,
+                                       Renderer::Backends::Vulkan::VulkanBufferTransferType transferType) {
+    using namespace Renderer::Backends::Vulkan;
+
+    VkBufferUsageFlags flags = 0;
+
+    if(usageType == VulkanBufferUsageType::Vertex) {
+        flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+    }
+    if(usageType == VulkanBufferUsageType::Index) {
+        flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+    }
+    if(usageType == VulkanBufferUsageType::Storage) {
+        flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+    }
+
+    if(transferType == VulkanBufferTransferType::Source) {
+        flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+    }
+    if(transferType == VulkanBufferTransferType::Destination) {
+        flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    }
+
+    return flags;
+}
+
+VkMemoryPropertyFlags translateMemoryType(Renderer::Backends::Vulkan::VulkanBufferDeviceVisibility visibility) {
+    using namespace Renderer::Backends::Vulkan;
+
+    VkMemoryPropertyFlags flags = 0;
+
+    if(visibility == VulkanBufferDeviceVisibility::Device) {
+        flags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+    }
+    if(visibility == VulkanBufferDeviceVisibility::Host) {
+        flags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+    }
+
+    return flags;
+}
+
 std::string deviceTypeNameFromEnum(VkPhysicalDeviceType type) {
     switch(type) {
         case VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_CPU: return "CPU";
@@ -40,9 +81,69 @@ bool deviceSupportsRequiredExtensions(VkPhysicalDevice deviceToCheck, const std:
 
     return extensions.empty();
 }
+std::optional<uint32_t>
+findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags desiredProperties, const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties) {
+    for(uint32_t i = 0; i < deviceMemoryProperties.memoryTypeCount; i++) {
+        uint32_t memoryType = (1 << i);
+
+        bool isCorrectType        = (typeFilter & memoryType) != 0;
+        bool hasDesiredProperties = (deviceMemoryProperties.memoryTypes[i].propertyFlags & desiredProperties) == desiredProperties;
+
+        if(isCorrectType && hasDesiredProperties) {
+            return i;
+        }
+    }
+
+    return std::nullopt;
+}
 }    // namespace
 
 namespace Renderer::Backends::Vulkan {
+
+VulkanBuffer VulkanPhysicalDevice::createBuffer(VkDevice device,
+                                                uint32_t size,
+                                                VulkanBufferUsageType usageType,
+                                                VulkanBufferTransferType transferType,
+                                                VulkanBufferDeviceVisibility visibility) {
+    VkBufferCreateInfo bufferInfo = {};
+    bufferInfo.sType              = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size               = size;
+    bufferInfo.usage              = translateBufferType(usageType, transferType);
+    bufferInfo.sharingMode        = VK_SHARING_MODE_EXCLUSIVE;
+
+    VulkanBuffer buffer;
+    buffer.size         = size;
+    buffer.usageType    = usageType;
+    buffer.transferType = transferType;
+    buffer.visibility   = visibility;
+    buffer.mappedData   = std::nullopt;
+    VK_CHECK(vkCreateBuffer(device, &bufferInfo, nullptr, &buffer.object));
+
+    VkMemoryRequirements memoryRequirements;
+    vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
+
+    auto memoryType = findMemoryType(memoryRequirements.memoryTypeBits, translateMemoryType(visibility), memoryProperties);
+
+    if(!memoryType) {
+        VK_CHECK(VK_ERROR_OUT_OF_DEVICE_MEMORY);
+    }
+
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize       = memoryRequirements.size;
+    allocInfo.memoryTypeIndex      = *memoryType;
+
+    VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &buffer.memory));
+    VK_CHECK(vkBindBufferMemory(device, buffer, buffer.memory, 0));
+
+    return buffer;
+}
+
+void VulkanPhysicalDevice::destroyBuffer(VkDevice device, VulkanBuffer& buffer) {
+    buffer.Unmap(device);
+    vkFreeMemory(device, buffer.memory, nullptr);
+    vkDestroyBuffer(device, buffer, nullptr);
+}
 
 std::optional<VulkanPhysicalDevice>
 VulkanPhysicalDevice::Find(VkInstance instance, VkSurfaceKHR surface, const std::vector<std::string>& requiredExtensions, VkExtent2D windowSize) {
@@ -73,7 +174,11 @@ VulkanPhysicalDevice::Find(VkInstance instance, VkSurfaceKHR surface, const std:
 
         std::optional<VulkanQueueFamilyIndices> indices = VulkanQueueFamilyIndices::Find(device, surface);
         if(indices && swapChainAdequate) {
-            physicalDevice = {device, *indices, VulkanSwapChainDetails::Find(device, surface, windowSize)};
+            VkPhysicalDeviceMemoryProperties memoryProperties;
+            vkGetPhysicalDeviceMemoryProperties(device, &memoryProperties);
+
+
+            physicalDevice = {device, *indices, VulkanSwapChainDetails::Find(device, surface, windowSize), memoryProperties};
             break;
         }
     }

@@ -44,7 +44,7 @@ VulkanRenderPass VulkanRenderPass::Create(const VkDevice device, const VkFormat 
 
     return renderPass;
 }
-void VulkanRenderPass::Destroy(const VkDevice device, const VulkanRenderPass& pass) {
+void VulkanRenderPass::Destroy(const VkDevice device, VulkanRenderPass& pass) {
     vkDestroyRenderPass(device, pass, nullptr);
 }
 }    // namespace Renderer::Backends::Vulkan

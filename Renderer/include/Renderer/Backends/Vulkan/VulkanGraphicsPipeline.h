@@ -27,7 +27,7 @@ struct RENDERER_API VulkanGraphicsPipelineInfo {
 
 struct RENDERER_API VulkanGraphicsPipeline : public VulkanObject<VkPipeline> {
     static VulkanGraphicsPipeline Create(VkDevice device, const VulkanGraphicsPipelineInfo& pipelineInfo);
-    static void Destroy(VkDevice device, const VulkanGraphicsPipeline& pipeline);
+    static void Destroy(VkDevice device, VulkanGraphicsPipeline& pipeline);
 };
 
 }    // namespace Renderer::Backends::Vulkan
