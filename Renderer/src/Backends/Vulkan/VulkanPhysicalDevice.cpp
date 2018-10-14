@@ -27,6 +27,9 @@ VkBufferUsageFlags translateBufferType(Renderer::Backends::Vulkan::VulkanBufferU
     if(usageType == VulkanBufferUsageType::Index) {
         flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
     }
+    if(usageType == VulkanBufferUsageType::Uniform) {
+        flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+    }
     if(usageType == VulkanBufferUsageType::Storage) {
         flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
     }

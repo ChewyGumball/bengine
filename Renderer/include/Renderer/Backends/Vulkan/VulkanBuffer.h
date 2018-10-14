@@ -6,7 +6,7 @@
 
 namespace Renderer::Backends::Vulkan {
 
-enum class VulkanBufferUsageType { Vertex, Index, Storage, None };
+enum class VulkanBufferUsageType { Vertex, Index, Uniform, Storage, None };
 enum class VulkanBufferTransferType { Source, Destination, None };
 enum class VulkanBufferDeviceVisibility { Host, Device };
 

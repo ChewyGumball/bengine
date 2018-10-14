@@ -146,11 +146,17 @@
     <ClInclude Include="include\Core\File.h" />
     <ClInclude Include="include\Core\Logging\LogCategory.h" />
     <ClInclude Include="include\Core\Logging\Logger.h" />
+    <ClInclude Include="include\Core\Time\Clock.h" />
+    <ClInclude Include="include\Core\Time\SystemClockTicker.h" />
+    <ClInclude Include="include\Core\Time\Timer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Algorithms\Strings.cpp" />
     <ClCompile Include="src\File.cpp" />
     <ClCompile Include="src\Logging\Logger.cpp" />
+    <ClCompile Include="src\Time\Clock.cpp" />
+    <ClCompile Include="src\Time\SystemClockTicker.cpp" />
+    <ClCompile Include="src\Time\Timer.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
