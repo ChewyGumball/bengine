@@ -10,25 +10,45 @@ std::vector<VkCommandBuffer> VulkanCommandPool::allocateBuffers(const VkDevice d
     allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool                 = object;
     allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount          = (uint32_t)buffers.size();
+    allocInfo.commandBufferCount          = static_cast<uint32_t>(buffers.size());
 
     VK_CHECK(vkAllocateCommandBuffers(device, &allocInfo, buffers.data()));
 
     return buffers;
+}
+VkCommandBuffer VulkanCommandPool::allocateSingleUseBuffer(const VkDevice device) const {
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.commandPool                 = object;
+    allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandBufferCount          = 1;
+
+    VkCommandBuffer buffer;
+    VK_CHECK(vkAllocateCommandBuffers(device, &allocInfo, &buffer));
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    VK_CHECK(vkBeginCommandBuffer(buffer, &beginInfo));
+
+    return buffer;
 }
 
 void VulkanCommandPool::freeBuffers(const VkDevice device, const std::vector<VkCommandBuffer>& buffers) const {
     vkFreeCommandBuffers(device, object, static_cast<uint32_t>(buffers.size()), buffers.data());
 }
 
-VulkanCommandPool
-VulkanCommandPool::Create(VkDevice device, uint32_t familyIndex, VulkanCommandBufferLifetime lifetime, VulkanCommandBufferResetType resetType) {
+VulkanCommandPool VulkanCommandPool::Create(VkDevice device,
+                                            uint32_t familyIndex,
+                                            VulkanCommandBufferLifetime lifetime,
+                                            VulkanCommandBufferResetType resetType) {
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType                   = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex        = familyIndex;
     poolInfo.flags                   = 0;
 
-    if (lifetime == VulkanCommandBufferLifetime::Transient) {
+    if(lifetime == VulkanCommandBufferLifetime::Transient) {
         poolInfo.flags |= VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
     }
 

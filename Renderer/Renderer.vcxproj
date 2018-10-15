@@ -155,6 +155,7 @@
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanFence.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanFramebuffer.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanGraphicsPipeline.h" />
+    <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanImage.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanImageView.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanInstance.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanLogicalDevice.h" />

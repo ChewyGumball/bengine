@@ -28,4 +28,9 @@
     <CopyFileToFolders Include="Content\Shaders\triangle\frag.spv" />
     <CopyFileToFolders Include="Content\Shaders\triangle\vert.spv" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="Content\Textures\texture.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

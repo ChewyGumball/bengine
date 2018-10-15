@@ -2,7 +2,7 @@
 
 
 namespace Renderer::Backends::Vulkan {
-std::byte* VulkanBuffer::Map(VkDevice device) {
+std::byte* VulkanBuffer::map(VkDevice device) {
     if(!mappedData) {
         void* data;
         vkMapMemory(device, memory, 0, size, 0, &data);
@@ -11,10 +11,16 @@ std::byte* VulkanBuffer::Map(VkDevice device) {
 
     return mappedData.value();
 }
-void VulkanBuffer::Unmap(VkDevice device) {
+void VulkanBuffer::unmap(VkDevice device) {
     if(mappedData) {
         vkUnmapMemory(device, memory);
         mappedData = std::nullopt;
     }
+}
+
+void VulkanBuffer::upload(VkDevice device, const void* data, uint64_t size) {
+    std::byte* destination = map(device);
+    std::memcpy(destination, data, size);
+    unmap(device);
 }
 }    // namespace Renderer::Backends::Vulkan

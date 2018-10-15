@@ -78,6 +78,9 @@
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanDescriptorPool.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanImage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
