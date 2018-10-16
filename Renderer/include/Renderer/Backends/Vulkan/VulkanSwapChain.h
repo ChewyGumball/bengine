@@ -4,21 +4,12 @@
 
 #include "VulkanCore.h"
 #include "VulkanFramebuffer.h"
+#include "VulkanImage.h"
 #include "VulkanImageView.h"
+#include "VulkanPhysicalDevice.h"
 #include "VulkanQueue.h"
 
 namespace Renderer::Backends::Vulkan {
-
-struct RENDERER_API VulkanSwapChainDetails {
-    VkSurfaceKHR surface;
-    VkSurfaceFormatKHR format;
-    VkPresentModeKHR presentMode;
-    VkExtent2D extent;
-    uint32_t desiredImageCount;
-    VkSurfaceTransformFlagBitsKHR transform;
-
-    static VulkanSwapChainDetails Find(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkExtent2D windowSize);
-};
 
 struct VulkanSwapChainImageAcquisitionResult {
     VkResult result;
@@ -38,8 +29,10 @@ struct RENDERER_API VulkanSwapChain : public VulkanObject<VkSwapchainKHR> {
     std::vector<VulkanImageView> imageViews;
     std::vector<VulkanFramebuffer> framebuffers;
 
+    VulkanImage depthImage;
+    VulkanImageView depthView;
 
-    static VulkanSwapChain Create(VkDevice device, const VulkanSwapChainDetails& details, const VulkanQueues& queues, VkRenderPass renderPass);
+    static VulkanSwapChain Create(VkDevice device, const VulkanPhysicalDevice& physicalDevice, const VulkanQueues& queues, VkRenderPass renderPass);
     static void Destroy(VkDevice device, VulkanSwapChain& swapChain);
 
     VulkanSwapChainImageAcquisitionResult acquireNextImage(VkDevice device, VkSemaphore waitSemaphore);

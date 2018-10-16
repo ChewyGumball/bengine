@@ -6,7 +6,7 @@
 #include "VulkanCore.h"
 #include "VulkanImage.h"
 #include "VulkanQueue.h"
-#include "VulkanSwapChain.h"
+#include "VulkanSwapChainDetails.h"
 
 namespace Renderer::Backends::Vulkan {
 
@@ -20,15 +20,16 @@ struct RENDERER_API VulkanPhysicalDevice : public VulkanObject<VkPhysicalDevice>
                               uint64_t size,
                               VulkanBufferUsageType usageType,
                               VulkanBufferTransferType transferType = VulkanBufferTransferType::None,
-                              VulkanMemoryVisibility visibility     = VulkanMemoryVisibility::Host);
-    void destroyBuffer(VkDevice device, VulkanBuffer& buffer);
+                              VulkanMemoryVisibility visibility     = VulkanMemoryVisibility::Host) const;
+    static void DestroyBuffer(VkDevice device, VulkanBuffer& buffer);
 
     VulkanImage createImage(VkDevice device,
                             VkExtent2D dimensions,
+                            VkFormat format,
                             VulkanImageUsageType usageType,
                             VulkanImageTransferType transferType = VulkanImageTransferType::None,
-                            VulkanMemoryVisibility visibility    = VulkanMemoryVisibility::Host);
-    void destroyImage(VkDevice device, VulkanImage& image);
+                            VulkanMemoryVisibility visibility    = VulkanMemoryVisibility::Host) const;
+    static void DestroyImage(VkDevice device, VulkanImage& image);
 
     static std::optional<VulkanPhysicalDevice> Find(VkInstance instance,
                                                     VkSurfaceKHR surface,

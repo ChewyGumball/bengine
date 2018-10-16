@@ -146,7 +146,7 @@ VulkanBuffer VulkanPhysicalDevice::createBuffer(VkDevice device,
                                                 uint64_t size,
                                                 VulkanBufferUsageType usageType,
                                                 VulkanBufferTransferType transferType,
-                                                VulkanMemoryVisibility visibility) {
+                                                VulkanMemoryVisibility visibility) const {
     VkBufferCreateInfo bufferInfo = {};
     bufferInfo.sType              = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
     bufferInfo.size               = size;
@@ -182,7 +182,7 @@ VulkanBuffer VulkanPhysicalDevice::createBuffer(VkDevice device,
     return buffer;
 }
 
-void VulkanPhysicalDevice::destroyBuffer(VkDevice device, VulkanBuffer& buffer) {
+void VulkanPhysicalDevice::DestroyBuffer(VkDevice device, VulkanBuffer& buffer) {
     buffer.unmap(device);
     vkFreeMemory(device, buffer.memory, nullptr);
     vkDestroyBuffer(device, buffer, nullptr);
@@ -190,9 +190,10 @@ void VulkanPhysicalDevice::destroyBuffer(VkDevice device, VulkanBuffer& buffer) 
 
 VulkanImage VulkanPhysicalDevice::createImage(VkDevice device,
                                               VkExtent2D dimensions,
+                                              VkFormat format,
                                               VulkanImageUsageType usageType,
                                               VulkanImageTransferType transferType,
-                                              VulkanMemoryVisibility visibility) {
+                                              VulkanMemoryVisibility visibility) const {
     VkImageCreateInfo imageInfo = {};
     imageInfo.sType             = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType         = VK_IMAGE_TYPE_2D;
@@ -201,7 +202,7 @@ VulkanImage VulkanPhysicalDevice::createImage(VkDevice device,
     imageInfo.extent.depth      = 1;
     imageInfo.mipLevels         = 1;
     imageInfo.arrayLayers       = 1;
-    imageInfo.format            = VK_FORMAT_R8G8B8A8_UNORM;
+    imageInfo.format            = format;
     imageInfo.tiling            = VK_IMAGE_TILING_OPTIMAL;
     imageInfo.initialLayout     = VK_IMAGE_LAYOUT_UNDEFINED;
     imageInfo.usage             = translateImageType(usageType, transferType);
@@ -210,7 +211,7 @@ VulkanImage VulkanPhysicalDevice::createImage(VkDevice device,
     imageInfo.flags             = 0;    // Optional
 
     VulkanImage image;
-    image.format        = VK_FORMAT_R8G8B8A8_UNORM;
+    image.format        = format;
     image.size          = dimensions.width * dimensions.height * sizeof(uint32_t);
     image.extent.width  = dimensions.width;
     image.extent.height = dimensions.height;
@@ -243,7 +244,7 @@ VulkanImage VulkanPhysicalDevice::createImage(VkDevice device,
     return image;
 }
 
-void VulkanPhysicalDevice::destroyImage(VkDevice device, VulkanImage& image) {
+void VulkanPhysicalDevice::DestroyImage(VkDevice device, VulkanImage& image) {
     vkFreeMemory(device, image.memory, nullptr);
     vkDestroyImage(device, image, nullptr);
 }
@@ -285,7 +286,6 @@ std::optional<VulkanPhysicalDevice> VulkanPhysicalDevice::Find(VkInstance instan
         if(indices && swapChainAdequate && supportedFeatures.samplerAnisotropy) {
             VkPhysicalDeviceMemoryProperties memoryProperties;
             vkGetPhysicalDeviceMemoryProperties(device, &memoryProperties);
-
 
             physicalDevice = {
                   device, *indices, VulkanSwapChainDetails::Find(device, surface, windowSize), memoryProperties};

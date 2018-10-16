@@ -16,6 +16,7 @@ struct RENDERER_API VulkanGraphicsPipelineInfo {
     VkPipelineViewportStateCreateInfo viewportState;
     VkPipelineRasterizationStateCreateInfo rasterizer;
     VkPipelineMultisampleStateCreateInfo multisampling;
+    VkPipelineDepthStencilStateCreateInfo depthStencil; 
     VkPipelineColorBlendAttachmentState colourBlendAttachment;
     VkPipelineColorBlendStateCreateInfo colourBlending;
     VkPipelineLayout pipelineLayout;

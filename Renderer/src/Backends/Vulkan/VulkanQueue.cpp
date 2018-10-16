@@ -1,7 +1,8 @@
 #include "Renderer/Backends/Vulkan/VulkanQueue.h"
 
 namespace {
-void LogQueueDetails(const Renderer::Backends::Vulkan::VulkanQueueFamilyIndices& indices, const std::vector<VkQueueFamilyProperties>& details) {
+void LogQueueDetails(const Renderer::Backends::Vulkan::VulkanQueueFamilyIndices& indices,
+                     const std::vector<VkQueueFamilyProperties>& details) {
     Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "Queue Family:");
     for(int i = 0; i < details.size(); i++) {
         Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "  {}: {}", i, details[i]);
@@ -15,7 +16,8 @@ void LogQueueDetails(const Renderer::Backends::Vulkan::VulkanQueueFamilyIndices&
 }    // namespace
 
 namespace Renderer::Backends::Vulkan {
-std::optional<const VulkanQueueFamilyIndices> VulkanQueueFamilyIndices::Find(VkPhysicalDevice device, VkSurfaceKHR surface) {
+std::optional<const VulkanQueueFamilyIndices> VulkanQueueFamilyIndices::Find(VkPhysicalDevice device,
+                                                                             VkSurfaceKHR surface) {
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
@@ -67,16 +69,29 @@ std::optional<const VulkanQueueFamilyIndices> VulkanQueueFamilyIndices::Find(VkP
     return std::nullopt;
 }
 
-VulkanQueue::VulkanQueue() = default;
-VulkanQueue::VulkanQueue(VkDevice device, uint32_t familyIndex) : familyIndex(familyIndex) {
-    vkGetDeviceQueue(device, familyIndex, 0, &object);
+VulkanQueue VulkanQueue::Create(VkDevice device, uint32_t familyIndex, VulkanCommandBufferLifetime lifetime) {
+    VulkanQueue queue;
+    queue.familyIndex = familyIndex;
+    queue.pool        = VulkanCommandPool::Create(device, familyIndex, lifetime);
+
+    vkGetDeviceQueue(device, familyIndex, 0, &queue.object);
+
+    return queue;
 }
 
-void VulkanQueue::submit(const VkCommandBuffer& commandBuffer, VulkanQueueSubmitType type, VkSemaphore waitSemaphore, VkSemaphore signalSemaphore, VkFence fence) {
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType        = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount     = 1;
-    submitInfo.pCommandBuffers        = &commandBuffer;
+void VulkanQueue::Destroy(VkDevice device, VulkanQueue& queue) {
+    VulkanCommandPool::Destroy(device, queue.pool);
+}
+
+void VulkanQueue::submit(const VkCommandBuffer& commandBuffer,
+                         VulkanQueueSubmitType type,
+                         VkSemaphore waitSemaphore,
+                         VkSemaphore signalSemaphore,
+                         VkFence fence) const {
+    VkSubmitInfo submitInfo       = {};
+    submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers    = &commandBuffer;
 
     if(type == VulkanQueueSubmitType::Graphics) {
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
@@ -97,7 +112,7 @@ void VulkanQueue::submit(const VkCommandBuffer& commandBuffer, VulkanQueueSubmit
 
     VK_CHECK(vkQueueSubmit(object, 1, &submitInfo, fence));
 }
-VkResult VulkanQueue::present(VkSwapchainKHR swapChain, VkSemaphore waitSemaphore, uint32_t imageIndex) {
+VkResult VulkanQueue::present(VkSwapchainKHR swapChain, VkSemaphore waitSemaphore, uint32_t imageIndex) const {
     VkSwapchainKHR swapChains[]  = {swapChain};
     VkSemaphore waitSemaphores[] = {waitSemaphore};
 
@@ -113,10 +128,20 @@ VkResult VulkanQueue::present(VkSwapchainKHR swapChain, VkSemaphore waitSemaphor
     return vkQueuePresentKHR(object, &presentInfo);
 }
 
-VulkanQueues::VulkanQueues() = default;
-VulkanQueues::VulkanQueues(VkDevice device, const VulkanQueueFamilyIndices& familyIndices)
-  : graphics(device, familyIndices.graphics),
-    compute(device, familyIndices.compute),
-    present(device, familyIndices.present),
-    transfer(device, familyIndices.transfer) {}
+VulkanQueues VulkanQueues::Create(VkDevice device, const VulkanQueueFamilyIndices& familyIndices) {
+    VulkanQueues queues;
+    queues.graphics = VulkanQueue::Create(device, familyIndices.graphics);
+    queues.compute  = VulkanQueue::Create(device, familyIndices.compute);
+    queues.present  = VulkanQueue::Create(device, familyIndices.present);
+    queues.transfer = VulkanQueue::Create(device, familyIndices.transfer, VulkanCommandBufferLifetime::Transient);
+
+    return queues;
+}
+
+void VulkanQueues::Destroy(VkDevice device, VulkanQueues& queues) {
+    VulkanQueue::Destroy(device, queues.graphics);
+    VulkanQueue::Destroy(device, queues.compute);
+    VulkanQueue::Destroy(device, queues.present);
+    VulkanQueue::Destroy(device, queues.transfer);
+}
 }    // namespace Renderer::Backends::Vulkan

@@ -1,91 +1,14 @@
 #include "Renderer/Backends/Vulkan/VulkanSwapChain.h"
 
-#include <Core/Algorithms/Containers.h>
-
-namespace {
-
-struct SwapChainSupportDetails {
-    VkSurfaceCapabilitiesKHR capabilities;
-    std::vector<VkSurfaceFormatKHR> formats;
-    std::vector<VkPresentModeKHR> presentModes;
-};
-
-SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice deviceToCheck, VkSurfaceKHR surface) {
-    SwapChainSupportDetails details;
-    VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(deviceToCheck, surface, &details.capabilities));
-
-    uint32_t formatCount;
-    VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(deviceToCheck, surface, &formatCount, nullptr));
-
-    if(formatCount != 0) {
-        details.formats.resize(formatCount);
-        VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(deviceToCheck, surface, &formatCount, details.formats.data()));
-    }
-
-    uint32_t presentModeCount;
-    VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(deviceToCheck, surface, &presentModeCount, nullptr));
-
-    if(presentModeCount != 0) {
-        details.presentModes.resize(presentModeCount);
-        VK_CHECK(vkGetPhysicalDeviceSurfacePresentModesKHR(deviceToCheck, surface, &presentModeCount, details.presentModes.data()));
-    }
-
-    return details;
-}
-
-VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
-    if(availableFormats.size() == 1 && availableFormats[0].format == VK_FORMAT_UNDEFINED) {
-        return {VK_FORMAT_B8G8R8A8_UNORM, VK_COLOR_SPACE_SRGB_NONLINEAR_KHR};
-    }
-
-    auto predicate = [](auto f) { return f.format == VK_FORMAT_B8G8R8A8_UNORM && f.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR; };
-    return Core::Algorithms::FindIf(availableFormats, predicate).value_or(availableFormats[0]);
-}
-
-VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& availablePresentModes) {
-    auto mailbox = Core::Algorithms::Find(availablePresentModes, VK_PRESENT_MODE_MAILBOX_KHR);
-    if(mailbox) {
-        return *mailbox;
-    }
-
-    VkPresentModeKHR fallbackMode = VK_PRESENT_MODE_FIFO_KHR;
-    return Core::Algorithms::Find(availablePresentModes, VK_PRESENT_MODE_IMMEDIATE_KHR).value_or(fallbackMode);
-}
-
-VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, VkExtent2D windowSize) {
-    if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
-        return capabilities.currentExtent;
-    } else {
-        VkExtent2D actualExtent = windowSize;
-
-        actualExtent.width  = std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-        actualExtent.height = std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
-
-        return actualExtent;
-    }
-}
-}    // namespace
+#include "Renderer/Backends/Vulkan/VulkanSwapChainDetails.h"
 
 namespace Renderer::Backends::Vulkan {
+VulkanSwapChain VulkanSwapChain::Create(VkDevice device,
+                                        const VulkanPhysicalDevice& physicalDevice,
+                                        const VulkanQueues& queues,
+                                        VkRenderPass renderPass) {
+    const VulkanSwapChainDetails& details = physicalDevice.swapChainDetails;
 
-VulkanSwapChainDetails VulkanSwapChainDetails::Find(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkExtent2D windowSize) {
-    SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice, surface);
-
-    VulkanSwapChainDetails details;
-    details.surface           = surface;
-    details.format            = chooseSwapSurfaceFormat(swapChainSupport.formats);
-    details.presentMode       = chooseSwapPresentMode(swapChainSupport.presentModes);
-    details.extent            = chooseSwapExtent(swapChainSupport.capabilities, windowSize);
-    details.desiredImageCount = swapChainSupport.capabilities.minImageCount + 1;
-    // maxImageCount == 0 means only limited by memory
-    if(swapChainSupport.capabilities.maxImageCount > 0 && details.desiredImageCount > swapChainSupport.capabilities.maxImageCount) {
-        details.desiredImageCount = swapChainSupport.capabilities.maxImageCount;
-    }
-    details.transform = swapChainSupport.capabilities.currentTransform;
-
-    return details;
-}
-VulkanSwapChain VulkanSwapChain::Create(VkDevice device, const VulkanSwapChainDetails& details, const VulkanQueues& queues, VkRenderPass renderPass) {
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType                    = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface                  = details.surface;
@@ -126,12 +49,30 @@ VulkanSwapChain VulkanSwapChain::Create(VkDevice device, const VulkanSwapChainDe
     swapChain.images.resize(imageCount);
     vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChain.images.data());
 
+    swapChain.depthImage = physicalDevice.createImage(device,
+                                                      details.extent,
+                                                      details.depthFormat,
+                                                      VulkanImageUsageType::Depth,
+                                                      VulkanImageTransferType::None,
+                                                      VulkanMemoryVisibility::Device);
+    swapChain.depthView  = VulkanImageView::Create(device, swapChain.depthImage, VulkanImageViewAspect::Depth);
+
     swapChain.imageViews.resize(imageCount);
     swapChain.framebuffers.resize(imageCount);
     for(size_t i = 0; i < imageCount; i++) {
-        swapChain.imageViews[i]   = VulkanImageView::Create(device, swapChain.images[i], details.format.format);
-        swapChain.framebuffers[i] = VulkanFramebuffer::Create(device, renderPass, details.extent, {swapChain.imageViews[i]});
+        swapChain.imageViews[i] = VulkanImageView::Create(device, swapChain.images[i], details.format.format);
+        swapChain.framebuffers[i] =
+              VulkanFramebuffer::Create(device, renderPass, details.extent, {swapChain.imageViews[i], swapChain.depthView});
     }
+
+    VkCommandBuffer commandBuffer = queues.transfer.pool.allocateSingleUseBuffer(device);
+    swapChain.depthImage.transitionLayout(
+          commandBuffer, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    vkEndCommandBuffer(commandBuffer);
+    queues.transfer.submit(commandBuffer, VulkanQueueSubmitType::Transfer);
+    vkQueueWaitIdle(queues.transfer);
+    queues.transfer.pool.freeBuffers(device, {commandBuffer});
+
 
     return swapChain;
 }
@@ -143,11 +84,16 @@ void VulkanSwapChain::Destroy(VkDevice device, VulkanSwapChain& swapChain) {
     for(auto& imageView : swapChain.imageViews) {
         vkDestroyImageView(device, imageView, nullptr);
     }
+
+    VulkanImageView::Destroy(device, swapChain.depthView);
+    VulkanPhysicalDevice::DestroyImage(device, swapChain.depthImage);
+
     vkDestroySwapchainKHR(device, swapChain, nullptr);
 }
 VulkanSwapChainImageAcquisitionResult VulkanSwapChain::acquireNextImage(VkDevice device, VkSemaphore waitSemaphore) {
     VulkanSwapChainImageAcquisitionResult result;
-    result.result = vkAcquireNextImageKHR(device, object, std::numeric_limits<uint64_t>::max(), waitSemaphore, VK_NULL_HANDLE, &result.imageIndex);
+    result.result = vkAcquireNextImageKHR(
+          device, object, std::numeric_limits<uint64_t>::max(), waitSemaphore, VK_NULL_HANDLE, &result.imageIndex);
     return result;
 }
 }    // namespace Renderer::Backends::Vulkan

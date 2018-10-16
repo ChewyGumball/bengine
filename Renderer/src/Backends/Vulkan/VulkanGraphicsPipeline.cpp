@@ -1,7 +1,9 @@
 #include "Renderer/Backends/Vulkan/VulkanGraphicsPipeline.h"
 
 namespace Renderer::Backends::Vulkan {
-VulkanGraphicsPipelineInfo::VulkanGraphicsPipelineInfo(VkExtent2D outputExtent, VkPipelineLayout layout, VkRenderPass pass)
+VulkanGraphicsPipelineInfo::VulkanGraphicsPipelineInfo(VkExtent2D outputExtent,
+                                                       VkPipelineLayout layout,
+                                                       VkRenderPass pass)
   : vertexInput({}),
     inputAssembly({}),
     viewport({}),
@@ -9,6 +11,7 @@ VulkanGraphicsPipelineInfo::VulkanGraphicsPipelineInfo(VkExtent2D outputExtent, 
     viewportState({}),
     rasterizer({}),
     multisampling({}),
+    depthStencil({}),
     colourBlendAttachment({}),
     colourBlending({}),
     pipelineLayout(layout),
@@ -59,7 +62,18 @@ VulkanGraphicsPipelineInfo::VulkanGraphicsPipelineInfo(VkExtent2D outputExtent, 
     multisampling.alphaToCoverageEnable = VK_FALSE;    // Optional
     multisampling.alphaToOneEnable      = VK_FALSE;    // Optional
 
-    colourBlendAttachment.colorWriteMask      = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    depthStencil.sType                 = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    depthStencil.depthTestEnable       = VK_TRUE;
+    depthStencil.depthWriteEnable      = VK_TRUE;
+    depthStencil.depthCompareOp        = VK_COMPARE_OP_LESS;
+    depthStencil.depthBoundsTestEnable = VK_FALSE;
+    depthStencil.minDepthBounds        = 0.0f;    // Optional
+    depthStencil.maxDepthBounds        = 1.0f;    // OptionaldepthStencil.stencilTestEnable = VK_FALSE;
+    depthStencil.front                 = {};      // Optional
+    depthStencil.back                  = {};      // Optional
+
+    colourBlendAttachment.colorWriteMask =
+          VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
     colourBlendAttachment.blendEnable         = VK_FALSE;
     colourBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;     // Optional
     colourBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;    // Optional
@@ -89,7 +103,7 @@ VulkanGraphicsPipeline VulkanGraphicsPipeline::Create(VkDevice device, const Vul
     pipelineCreateInfo.pViewportState               = &pipelineInfo.viewportState;
     pipelineCreateInfo.pRasterizationState          = &pipelineInfo.rasterizer;
     pipelineCreateInfo.pMultisampleState            = &pipelineInfo.multisampling;
-    pipelineCreateInfo.pDepthStencilState           = nullptr;    // Optional
+    pipelineCreateInfo.pDepthStencilState           = &pipelineInfo.depthStencil;
     pipelineCreateInfo.pColorBlendState             = &pipelineInfo.colourBlending;
     pipelineCreateInfo.pDynamicState                = nullptr;    // Optional
     pipelineCreateInfo.layout                       = pipelineInfo.pipelineLayout;
