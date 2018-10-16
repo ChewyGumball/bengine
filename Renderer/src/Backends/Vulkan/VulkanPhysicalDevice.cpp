@@ -278,7 +278,11 @@ std::optional<VulkanPhysicalDevice> VulkanPhysicalDevice::Find(VkInstance instan
         }
 
         std::optional<VulkanQueueFamilyIndices> indices = VulkanQueueFamilyIndices::Find(device, surface);
-        if(indices && swapChainAdequate) {
+
+        VkPhysicalDeviceFeatures supportedFeatures;
+        vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+
+        if(indices && swapChainAdequate && supportedFeatures.samplerAnisotropy) {
             VkPhysicalDeviceMemoryProperties memoryProperties;
             vkGetPhysicalDeviceMemoryProperties(device, &memoryProperties);
 

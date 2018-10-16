@@ -164,6 +164,7 @@
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanPipelineShaderStage.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanQueue.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanRenderPass.h" />
+    <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanSampler.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanSemaphore.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanShaderModule.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanSwapChain.h" />
@@ -189,6 +190,7 @@
     <ClCompile Include="src\Backends\Vulkan\VulkanPipelineLayout.cpp" />
     <ClCompile Include="src\Backends\Vulkan\VulkanQueue.cpp" />
     <ClCompile Include="src\Backends\Vulkan\VulkanRenderPass.cpp" />
+    <ClCompile Include="src\Backends\Vulkan\VulkanSampler.cpp" />
     <ClCompile Include="src\Backends\Vulkan\VulkanSemaphore.cpp" />
     <ClCompile Include="src\Backends\Vulkan\VulkanShaderModule.cpp" />
     <ClCompile Include="src\Backends\Vulkan\VulkanSwapChain.cpp" />

@@ -26,6 +26,7 @@ VulkanLogicalDevice VulkanLogicalDevice::Create(const VulkanQueueFamilyIndices& 
     }
 
     VkPhysicalDeviceFeatures deviceFeatures = {};
+    deviceFeatures.samplerAnisotropy        = VK_TRUE;
 
     std::vector<const char*> validationLayerNames;
     Core::Algorithms::Map(validationLayers, validationLayerNames, Core::Algorithms::Mappers::StringToChar());

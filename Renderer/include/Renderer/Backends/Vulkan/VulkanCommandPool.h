@@ -16,7 +16,11 @@ struct RENDERER_API VulkanCommandPool : public VulkanObject<VkCommandPool> {
     VkCommandBuffer allocateSingleUseBuffer(const VkDevice device) const;
     void freeBuffers(const VkDevice device, const std::vector<VkCommandBuffer>& buffers) const;
 
-    static VulkanCommandPool Create(VkDevice device, uint32_t familyIndex, VulkanCommandBufferLifetime lifetime = VulkanCommandBufferLifetime::Permanent, VulkanCommandBufferResetType resetType = VulkanCommandBufferResetType::NotResettable);
+    static VulkanCommandPool
+    Create(VkDevice device,
+           uint32_t familyIndex,
+           VulkanCommandBufferLifetime lifetime   = VulkanCommandBufferLifetime::Permanent,
+           VulkanCommandBufferResetType resetType = VulkanCommandBufferResetType::NotResettable);
     static void Destroy(VkDevice device, VulkanCommandPool& commandPool);
 };
 #pragma warning(pop)
