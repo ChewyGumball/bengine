@@ -18,6 +18,12 @@
     <ClCompile Include="Test.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="imgui_impl_glfw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="imgui_impl_vulkan.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
@@ -27,10 +33,23 @@
   <ItemGroup>
     <CopyFileToFolders Include="Content\Shaders\triangle\frag.spv" />
     <CopyFileToFolders Include="Content\Shaders\triangle\vert.spv" />
+    <CopyFileToFolders Include="Content\Textures\texture.jpg">
+      <Filter>Resource Files</Filter>
+    </CopyFileToFolders>
+    <CopyFileToFolders Include="Content\Models\chalet.obj.model" />
+    <CopyFileToFolders Include="Content\Textures\chalet.jpg">
+      <Filter>Resource Files</Filter>
+    </CopyFileToFolders>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="Content\Textures\texture.jpg">
-      <Filter>Resource Files</Filter>
-    </Image>
+    <ClInclude Include="imgui_impl_glfw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="imgui_impl_vulkan.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Test.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -10,6 +10,7 @@ std::optional<std::string> ReadTextFile(const std::filesystem::path& file) {
         return std::nullopt;
     }
 
+    /*
     // New lines may be converted during reading, so the final size may not be the same as the file size. Using a string
     // stream is the best way to get a properly sized final string.
     std::ostringstream fileContents;
@@ -17,16 +18,22 @@ std::optional<std::string> ReadTextFile(const std::filesystem::path& file) {
     reader.close();
 
     return fileContents.str();
+    */
+    
+    uint64_t fileSize = std::filesystem::file_size(file);
+    std::string contents(fileSize, '\0');
+    reader.read(contents.data(), fileSize);
+    return contents;
 }
 
-std::optional<std::vector<std::byte>> ReadBinaryFile(const std::filesystem::path& file) {
+std::optional<Core::Array<std::byte>> ReadBinaryFile(const std::filesystem::path& file) {
     std::basic_ifstream<std::byte> reader(file, std::ios::in | std::ios::binary);
     if(!reader) {
         return std::nullopt;
     }
 
     uint64_t fileSize = std::filesystem::file_size(file);
-    std::vector<std::byte> contents(fileSize);
+    Core::Array<std::byte> contents(fileSize);
     reader.read(contents.data(), fileSize);
     return contents;
 }

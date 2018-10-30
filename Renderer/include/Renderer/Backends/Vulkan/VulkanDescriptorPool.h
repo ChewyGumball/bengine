@@ -8,9 +8,7 @@
 #include "Renderer/DllExport.h"
 
 namespace Renderer::Backends::Vulkan {
-#pragma warning(push)
-#pragma warning(disable : 4251)
-
+       
 struct RENDERER_API VulkanDescriptorSetUpdate {
     void addBuffer(uint32_t binding, const VulkanBuffer& buffer);
     void addSampledImage(uint32_t binding, const VulkanImageView& image, const VulkanSampler sampler);
@@ -21,7 +19,6 @@ private:
     std::vector<std::pair<uint32_t, VkDescriptorBufferInfo>> buffers;
     std::vector<std::pair<uint32_t, VkDescriptorImageInfo>> images;
 };
-
 
 struct RENDERER_API VulkanDescriptorPool : VulkanObject<VkDescriptorPool> {
     uint32_t size;
@@ -34,5 +31,5 @@ struct RENDERER_API VulkanDescriptorPool : VulkanObject<VkDescriptorPool> {
     static VulkanDescriptorPool Create(VkDevice device, uint32_t poolSize, std::vector<VkDescriptorType> poolTypes);
     static void Destroy(VkDevice device, VulkanDescriptorPool& pool);
 };
-#pragma warning(pop)
+
 }    // namespace Renderer::Backends::Vulkan

@@ -1,12 +1,11 @@
 #include "Core/Algorithms/Strings.h"
 
 #include <algorithm>
-#include <array>
 #include <cctype>
 #include <limits>
 
 namespace {
-constexpr std::array<double, 633> exp_table{
+constexpr Core::FixedArray<double, 633> exp_table{
       {1e308,  1e307,  1e306,  1e305,  1e304,  1e303,  1e302,  1e301,  1e300,  1e299,  1e298,  1e297,  1e296,  1e295,
        1e294,  1e293,  1e292,  1e291,  1e290,  1e289,  1e288,  1e287,  1e286,  1e285,  1e284,  1e283,  1e282,  1e281,
        1e280,  1e279,  1e278,  1e277,  1e276,  1e275,  1e274,  1e273,  1e272,  1e271,  1e270,  1e269,  1e268,  1e267,
@@ -54,7 +53,7 @@ constexpr std::array<double, 633> exp_table{
        1e-308, 1e-309, 1e-310, 1e-311, 1e-312, 1e-313, 1e-314, 1e-315, 1e-316, 1e-317, 1e-318, 1e-319, 1e-320, 1e-321,
        1e-322, 1e-323}};
 
-using exp_index_t                         = decltype(exp_table)::size_type;
+using exp_index_t                             = decltype(exp_table)::size_type;
 constexpr exp_index_t IDENTITY_EXPONENT_INDEX = 308;
 
 bool passesFilter(std::string_view s, Core::Algorithms::String::Filter filter) {
@@ -74,8 +73,8 @@ std::string_view skipWhitespace(const std::string_view string) {
 
 uint64_t InternalParseUInt64(const std::string_view string, uint64_t& continueFrom) {
     std::string_view::size_type consumedCharacters = 0;
-    for (char c : string) {
-        if (!std::isdigit(c)) {
+    for(char c : string) {
+        if(!std::isdigit(c)) {
             break;
         }
 
@@ -92,28 +91,28 @@ uint64_t InternalParseUInt64(const std::string_view string, uint64_t& continueFr
 // Adapted from https://stackoverflow.com/a/5679966
 template <typename REAL_TYPE>
 REAL_TYPE InternalParseReal(const std::string_view string) {
-    //Get rid of leading white space
+    // Get rid of leading white space
     std::string_view sanitized = skipWhitespace(string);
 
-    //If there was only whitespace, our contract is to return 0
+    // If there was only whitespace, our contract is to return 0
     if(sanitized.empty()) {
         return 0;
     }
 
-    //The algorithm implemented here is:
+    // The algorithm implemented here is:
     //  1. parse whole part as an unsigned integer into I
     //  2. continue parsing the fractional part into I as if there were no decimal point
     //      while keeping track of how many decimal places there are in D
     //  3. modify D if there is an exponent specified
     //  4. clamp D to the limits of the return type
-    //  4. multiply I by 10^-D to get a floating point value 
+    //  4. multiply I by 10^-D to get a floating point value
     //  5. multiple I by -1 if the string started with a '-' symbol
 
     bool isNegative           = 0;
     uint64_t charactersParsed = 0;
     int64_t fractionalPlaces  = 0;
 
-    //Get the whole part of the number;
+    // Get the whole part of the number;
     uint64_t integerValue = 0;
     if(sanitized[0] == '-') {
         isNegative       = true;
@@ -122,14 +121,14 @@ REAL_TYPE InternalParseReal(const std::string_view string) {
         charactersParsed = InternalParseUInt64(sanitized, integerValue);
     }
 
-    //Get the fractional part if there is one
+    // Get the fractional part if there is one
     sanitized = sanitized.substr(charactersParsed);
     if(!sanitized.empty() && sanitized[0] == '.') {
         fractionalPlaces = InternalParseUInt64(sanitized.substr(1), integerValue);
         sanitized        = sanitized.substr(fractionalPlaces + 1);
     }
 
-    //Get the exponent part if there is one
+    // Get the exponent part if there is one
     if(sanitized.size() > 1 && (sanitized[0] == 'E' || sanitized[0] == 'e')) {
         uint64_t exponent = 0;
         if(sanitized[1] == '+' || sanitized[1] == '-') {
@@ -145,13 +144,13 @@ REAL_TYPE InternalParseReal(const std::string_view string) {
         }
     }
 
-    //Clamp the expontent based on the return type
+    // Clamp the expontent based on the return type
     exp_index_t maxIndex = IDENTITY_EXPONENT_INDEX - std::numeric_limits<REAL_TYPE>::max_exponent10;
     exp_index_t minIndex = IDENTITY_EXPONENT_INDEX - std::numeric_limits<REAL_TYPE>::min_exponent10;
 
-    fractionalPlaces = std::clamp(IDENTITY_EXPONENT_INDEX - fractionalPlaces, maxIndex, minIndex);
+    fractionalPlaces = std::clamp(IDENTITY_EXPONENT_INDEX + fractionalPlaces, maxIndex, minIndex);
 
-    //Make our floating point value
+    // Make our floating point value
     REAL_TYPE realValue = static_cast<REAL_TYPE>(exp_table[fractionalPlaces]) * integerValue;
     return isNegative ? -realValue : realValue;
 }
@@ -159,8 +158,12 @@ REAL_TYPE InternalParseReal(const std::string_view string) {
 
 namespace Core::Algorithms::String {
 
-std::vector<std::string_view> Split(const std::string_view string, char delimiter, Filter filter) {
-    std::vector<std::string_view> splits;
+
+void SplitIntoBuffer(const std::string_view string,
+                     char delimiter,
+                     Core::Array<std::string_view>& buffer,
+                     Filter filter) {
+    buffer.clear();
 
     std::string_view::size_type start = 0;
     for(std::string_view::size_type current = start; current < string.size(); current++) {
@@ -168,10 +171,82 @@ std::vector<std::string_view> Split(const std::string_view string, char delimite
         if(currentChar == delimiter) {
             std::string_view chunk = string.substr(start, current - start);
             if(passesFilter(chunk, filter)) {
-                splits.push_back(chunk);
+                buffer.push_back(chunk);
             }
 
             start = current + 1;
+        }
+    }
+
+    if(start != string.size()) {
+        std::string_view chunk = string.substr(start);
+        if(passesFilter(chunk, filter)) {
+            buffer.push_back(chunk);
+        }
+    }
+}
+
+Core::Array<std::string_view> Split(const std::string_view string, char delimiter, Filter filter) {
+    Core::Array<std::string_view> splits;
+    SplitIntoBuffer(string, delimiter, splits, filter);
+    return splits;
+}
+
+
+void SplitIntoBuffer(const std::string_view string,
+                     const std::string_view delimiters,
+                     Core::Array<std::string_view>& buffer,
+                     Filter filter) {
+    buffer.clear();
+
+
+    std::string_view::size_type start = 0;
+    for(std::string_view::size_type current = start; current < string.size(); current++) {
+        char currentChar = string[current];
+        if(delimiters.find(currentChar) != std::string_view::npos) {
+            std::string_view chunk = string.substr(start, current - start);
+            if(passesFilter(chunk, filter)) {
+                buffer.push_back(chunk);
+            }
+
+            start = current + 1;
+        }
+    }
+
+    if(start != string.size()) {
+        std::string_view chunk = string.substr(start);
+        if(passesFilter(chunk, filter)) {
+            buffer.push_back(chunk);
+        }
+    }
+
+}
+
+Core::Array<std::string_view> Split(const std::string_view string, const std::string_view delimiters, Filter filter) {
+    Core::Array<std::string_view> splits;
+    SplitIntoBuffer(string, delimiters, splits, filter);
+    return splits;
+}
+
+Core::Array<std::string_view> SplitLines(const std::string_view string, Filter filter) {
+    Core::Array<std::string_view> splits;
+
+    std::string_view::size_type start = 0;
+    for(std::string_view::size_type current = start; current < string.size(); current++) {
+        char currentChar = string[current];
+        if(currentChar == '\n' || (currentChar == '\r' && current + 1 < string.size() && string[current] == '\n')) {
+            std::string_view chunk = string.substr(start, current - start);
+            if(passesFilter(chunk, filter)) {
+                splits.push_back(chunk);
+            }
+
+            if(currentChar == '\r') {
+                current += 2;
+            } else {
+                current++;
+            }
+
+            start = current;
         }
     }
 
@@ -183,7 +258,7 @@ std::vector<std::string_view> Split(const std::string_view string, char delimite
     }
 
     return splits;
-}
+}    // namespace Core::Algorithms::String
 
 int64_t ParseInt64(const std::string_view string) {
     const std::string_view sanitized = skipWhitespace(string);

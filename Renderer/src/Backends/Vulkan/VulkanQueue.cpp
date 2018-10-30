@@ -93,10 +93,12 @@ void VulkanQueue::submit(const VkCommandBuffer& commandBuffer,
     submitInfo.commandBufferCount = 1;
     submitInfo.pCommandBuffers    = &commandBuffer;
 
+    VkPipelineStageFlags mask;
     if(type == VulkanQueueSubmitType::Graphics) {
-        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        submitInfo.pWaitDstStageMask      = waitStages;
+        mask                         = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        submitInfo.pWaitDstStageMask = &mask;
     }
+
 
     VkSemaphore waitSemaphores[] = {waitSemaphore};
     if(waitSemaphore != VK_NULL_HANDLE) {

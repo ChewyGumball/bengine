@@ -5,35 +5,54 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 
 #include <thread>
-#include <unordered_map>
-#include <unordered_set>
+
+#include "Core/Containers/HashMap.h"
+#include "Core/Containers/HashSet.h"
 
 namespace {
-std::unordered_map<std::string, Core::LogLevel>* Filters;
-void InitializeFilters() {
-    if(Filters == nullptr) {
-        Filters = new std::unordered_map<std::string, Core::LogLevel>();
-    }
-}
-
-std::unordered_set<spdlog::sink_ptr>* Sinks;
-
-void InitializeSinks() {
-    if(Sinks == nullptr) {
-        Sinks = new std::unordered_set<spdlog::sink_ptr>();
-        Sinks->emplace(std::make_shared<spdlog::sinks::stdout_color_sink_mt>());
-    }
-}
 
 std::mutex* LoggerCreationMutex;
 std::mutex* FilterMutex;
 std::mutex* SinkMutex;
+std::mutex* DisplayNameMutex;
 void InitLocks() {
     if(LoggerCreationMutex == nullptr) {
         LoggerCreationMutex = new std::mutex();
         FilterMutex         = new std::mutex();
         SinkMutex           = new std::mutex();
+        DisplayNameMutex    = new std::mutex();
     }
+}
+
+Core::HashMap<std::string, Core::LogLevel>& Filters() {
+    static Core::HashMap<std::string, Core::LogLevel> FilterMap;
+    return FilterMap;
+}
+
+Core::HashSet<spdlog::sink_ptr>& Sinks() {
+    static Core::HashSet<spdlog::sink_ptr> SinkMap{std::make_shared<spdlog::sinks::stdout_color_sink_mt>()};
+    return SinkMap;
+}
+
+Core::HashMap<const Core::LogCategory*, std::string>& DisplayNames() {
+    static Core::HashMap<const Core::LogCategory*, std::string> DisplayNameMap;
+    return DisplayNameMap;
+}
+
+std::string& GetDisplayName(const Core::LogCategory* category) {
+    InitLocks();
+    std::scoped_lock lock(*DisplayNameMutex);
+    std::string& displayName = DisplayNames()[category];
+    if(displayName.empty()) {
+        const Core::LogCategory* currentCategory = category;
+
+        while(currentCategory != nullptr) {
+            displayName     = std::string(currentCategory->name) + displayName;
+            currentCategory = currentCategory->parent;
+        }
+    }
+
+    return displayName;
 }
 
 Core::LogLevel GlobalLogLevel = Core::LogLevel::Trace;
@@ -41,56 +60,37 @@ Core::LogLevel GlobalLogLevel = Core::LogLevel::Trace;
 
 namespace Core::LogManager {
 void SetGlobalMinimumLevel(LogLevel minimumLevel) {
-    if (minimumLevel == GlobalLogLevel) {
+    if(minimumLevel == GlobalLogLevel) {
         return;
     }
 
     GlobalLogLevel = minimumLevel;
-    InitLocks();
-    { 
-        std::scoped_lock lock(*FilterMutex);
-        InitializeFilters();
-
-        spdlog::level::level_enum mappedValue = MapLevel(minimumLevel);
-        spdlog::apply_all([=](auto logger) {
-            LogLevel newLevel = minimumLevel;
-            auto filterValue = Filters->find(logger->name());
-            if (filterValue != Filters->end() && filterValue->second > minimumLevel) {
-                newLevel = filterValue->second;
-            }
-
-            logger->set_level(MapLevel(newLevel));
-        });
-    }
+    spdlog::drop_all();
 }
 
 void SetCategoryLevel(const LogCategory& category, LogLevel minimumLevel) {
-    SetCategoryLevel(category.Name, minimumLevel);
+    SetCategoryLevel(GetDisplayName(&category), minimumLevel);
 }
 
 void SetCategoryLevel(const std::string& loggerName, LogLevel minimumLevel) {
     InitLocks();
     {
         std::scoped_lock lock(*FilterMutex);
-        InitializeFilters();
-
-        (*Filters)[loggerName] = minimumLevel;
+        Filters()[loggerName] = minimumLevel;
     }
 
-    std::shared_ptr<spdlog::logger> logger = spdlog::get(loggerName);
-    if(logger != nullptr) {
-        logger->set_level(MapLevel(minimumLevel));
-    }
+    // We drop all loggers so they get recreated with the filter levels
+    // since we don't know all the children of the logger that just changed
+    spdlog::drop_all();
 }
 
 void AddSinks(const std::vector<spdlog::sink_ptr>& sinks) {
     InitLocks();
     {
         std::scoped_lock lock(*SinkMutex);
-        InitializeSinks();
 
         for(auto& sink : sinks) {
-            Sinks->emplace(sink);
+            Sinks().emplace(sink);
         }
     }
 
@@ -99,33 +99,39 @@ void AddSinks(const std::vector<spdlog::sink_ptr>& sinks) {
 }
 
 std::shared_ptr<spdlog::logger> GetLogger(const LogCategory& category) {
-    std::shared_ptr<spdlog::logger> logger = spdlog::get(category.Name);
+    std::string& displayName = GetDisplayName(&category);
+
+    std::shared_ptr<spdlog::logger> logger = spdlog::get(displayName);
     if(logger == nullptr) {
         InitLocks();
         std::scoped_lock creationLock(*LoggerCreationMutex);
 
         // Check again, just in case there was a race to create the logger
-        logger = spdlog::get(category.Name);
+        logger = spdlog::get(displayName);
         if(logger != nullptr) {
             return logger;
         }
 
         {
             std::scoped_lock lock(*SinkMutex);
-            InitializeSinks();
 
-            logger = std::make_shared<spdlog::logger>(category.Name, Sinks->begin(), Sinks->end());
+            logger = std::make_shared<spdlog::logger>(displayName, Sinks().begin(), Sinks().end());
             spdlog::register_logger(logger);
         }
         {
             std::scoped_lock lock(*FilterMutex);
-            InitializeFilters();
 
             LogLevel level = GlobalLogLevel;
 
-            auto filter = Filters->find(category.Name);
-            if(filter != Filters->end() && filter->second > GlobalLogLevel) {
-                level = filter->second;
+            const LogCategory* currentCategory = &category;
+
+            while(currentCategory != nullptr) {
+                auto filter = Filters().find(GetDisplayName(currentCategory));
+                if(filter != Filters().end() && filter->second > level) {
+                    level = filter->second;
+                }
+
+                currentCategory = currentCategory->parent;
             }
 
             logger->set_level(MapLevel(level));

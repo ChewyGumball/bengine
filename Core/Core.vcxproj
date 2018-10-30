@@ -90,6 +90,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>WIN_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -101,6 +102,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>WIN_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -114,6 +116,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>WIN_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -131,6 +134,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessorDefinitions>WIN_EXPORT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <DisableSpecificWarnings>4251;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
     <Link>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
@@ -142,8 +146,17 @@
     <ClInclude Include="include\Core\Algorithms\Mappers.h" />
     <ClInclude Include="include\Core\Algorithms\Strings.h" />
     <ClInclude Include="include\Core\Asserts.h" />
+    <ClInclude Include="include\Core\Containers\Array.h" />
+    <ClInclude Include="include\Core\Containers\HashMap.h" />
+    <ClInclude Include="include\Core\Containers\OrderedMap.h" />
+    <ClInclude Include="include\Core\Containers\Queue.h" />
+    <ClInclude Include="include\Core\Containers\HashSet.h" />
     <ClInclude Include="include\Core\DllExport.h" />
     <ClInclude Include="include\Core\File.h" />
+    <ClInclude Include="include\Core\Geometry\BoundingBox.h" />
+    <ClInclude Include="include\Core\Geometry\Transform.h" />
+    <ClInclude Include="include\Core\Geometry\ViewFrustum.h" />
+    <ClInclude Include="include\Core\Geometry\Plane.h" />
     <ClInclude Include="include\Core\Logging\LogCategory.h" />
     <ClInclude Include="include\Core\Logging\Logger.h" />
     <ClInclude Include="include\Core\Time\Clock.h" />
@@ -153,6 +166,9 @@
   <ItemGroup>
     <ClCompile Include="src\Algorithms\Strings.cpp" />
     <ClCompile Include="src\File.cpp" />
+    <ClCompile Include="src\Geometry\Plane.cpp" />
+    <ClCompile Include="src\Geometry\Transform.cpp" />
+    <ClCompile Include="src\Geometry\ViewFrustum.cpp" />
     <ClCompile Include="src\Logging\Logger.cpp" />
     <ClCompile Include="src\Time\Clock.cpp" />
     <ClCompile Include="src\Time\SystemClockTicker.cpp" />

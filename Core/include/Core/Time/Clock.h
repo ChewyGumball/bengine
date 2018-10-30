@@ -6,8 +6,6 @@
 
 namespace Core {
 
-#pragma warning(push)
-#pragma warning(disable : 4251)
 class CORE_API Clock {
 public:
     using Nanoseconds = std::chrono::nanoseconds;
@@ -28,6 +26,5 @@ protected:
     Nanoseconds lastTickedTime;
     Nanoseconds elapsedTime;
 };
-#pragma warning(pop)
 
 }    // namespace Core

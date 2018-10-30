@@ -14,8 +14,8 @@ bool Contains(const T& container, const U& value) {
 
 template <typename T, typename U>
 bool ContainsAll(const T& container, const U& elements) {
-    for (const auto& element : elements) {
-        if (!Contains(container, element)) {
+    for(const auto& element : elements) {
+        if(!Contains(container, element)) {
             return false;
         }
     }
@@ -56,6 +56,11 @@ std::optional<std::reference_wrapper<const U>> Prefer(T& container, const U& fir
     }
 
     return Prefer(container, rest...);
+}
+
+template <typename T, typename U = typename T::value_type, typename N, size_t S, typename MAPPING_FUNCTION>
+void Map(const T& before, std::array<N, S> after, MAPPING_FUNCTION mapper) {
+    std::transform(std::begin(before), std::end(before), std::begin(after), mapper);
 }
 
 template <typename T,

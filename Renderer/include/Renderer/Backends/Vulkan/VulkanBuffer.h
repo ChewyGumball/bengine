@@ -9,8 +9,6 @@ namespace Renderer::Backends::Vulkan {
 enum class VulkanBufferUsageType { Vertex, Index, Uniform, Storage, None };
 enum class VulkanBufferTransferType { Source, Destination, None };
 
-#pragma warning(push)
-#pragma warning(disable : 4251)
 struct RENDERER_API VulkanBuffer : public VulkanObject<VkBuffer> {
     VkDeviceMemory memory;
     uint64_t size;
@@ -26,5 +24,5 @@ struct RENDERER_API VulkanBuffer : public VulkanObject<VkBuffer> {
 
     void upload(VkDevice device, const void* data, uint64_t size);
 };
-#pragma warning(pop)
+
 }    // namespace Renderer::Backends::Vulkan

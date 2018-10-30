@@ -5,8 +5,6 @@
 #include "Core/DllExport.h"
 
 namespace Core {
-#pragma warning(push)
-#pragma warning(disable : 4251)
 class CORE_API Timer {
 public:
     enum class StartType { STARTED, STOPPED };
@@ -27,5 +25,4 @@ private:
     Clock::Nanoseconds savedTime;
     bool running;
 };
-#pragma warning(pop)
 }    // namespace Core

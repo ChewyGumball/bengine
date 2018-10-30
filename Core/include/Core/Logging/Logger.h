@@ -1,10 +1,9 @@
 #pragma once
-#include <string_view>
 
 #include <spdlog/common.h>
 #include <spdlog/logger.h>
 
-#include <Core/DllExport.h>
+#include "Core/DllExport.h"
 
 #include "LogCategory.h"
 

@@ -3,32 +3,42 @@
 namespace Renderer::Backends::Vulkan {
 
 
-std::vector<VkCommandBuffer> VulkanCommandPool::allocateBuffers(const VkDevice device, uint32_t count) const {
+std::vector<VkCommandBuffer>
+VulkanCommandPool::allocateBuffers(const VkDevice device, uint32_t count, VulkanCommandBufferLevel level) const {
     std::vector<VkCommandBuffer> buffers(count);
 
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool                 = object;
-    allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount          = static_cast<uint32_t>(buffers.size());
+    allocInfo.level = level == VulkanCommandBufferLevel::Primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY :
+                                                                   VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+    allocInfo.commandBufferCount = static_cast<uint32_t>(buffers.size());
 
     VK_CHECK(vkAllocateCommandBuffers(device, &allocInfo, buffers.data()));
 
     return buffers;
 }
-VkCommandBuffer VulkanCommandPool::allocateSingleUseBuffer(const VkDevice device) const {
+VkCommandBuffer VulkanCommandPool::allocateSingleUseBuffer(const VkDevice device,
+                                                           VulkanCommandBufferLevel level) const {
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool                 = object;
-    allocInfo.level                       = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandBufferCount          = 1;
+    allocInfo.level = level == VulkanCommandBufferLevel::Primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY :
+                                                                   VK_COMMAND_BUFFER_LEVEL_SECONDARY;
+    allocInfo.commandBufferCount = 1;
 
     VkCommandBuffer buffer;
     VK_CHECK(vkAllocateCommandBuffers(device, &allocInfo, &buffer));
 
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    if(level == VulkanCommandBufferLevel::Primary) {
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    } else {
+        beginInfo.flags =
+              VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+    }
 
     VK_CHECK(vkBeginCommandBuffer(buffer, &beginInfo));
 

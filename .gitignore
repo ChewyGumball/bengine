@@ -30,6 +30,11 @@
 *.exe
 *.out
 *.app
+
+# Performance profiling files
+*.psess
+*.vspx
+
 /.vs/bengine/v15
 /Benchmark/x64/Debug
 /Core/Debug
@@ -51,3 +56,10 @@
 /Test/Content/s
 /Test/Content/Models
 /Test/Content/Textures
+/x64/Release
+/Test/x64/Release
+/Scene/x64/Release
+/Renderer/x64/Release
+/Core/x64/Release
+/Benchmark/x64/Release
+/Assets/x64/Release

@@ -20,8 +20,6 @@ struct VulkanSwapChainImageAcquisitionResult {
     }
 };
 
-#pragma warning ( push )
-#pragma warning ( disable : 4251 )
 struct RENDERER_API VulkanSwapChain : public VulkanObject<VkSwapchainKHR> {
     VkFormat imageFormat;
     VkExtent2D extent;
@@ -37,5 +35,5 @@ struct RENDERER_API VulkanSwapChain : public VulkanObject<VkSwapchainKHR> {
 
     VulkanSwapChainImageAcquisitionResult acquireNextImage(VkDevice device, VkSemaphore waitSemaphore);
 };
-#pragma warning(pop)
+
 }    // namespace Renderer::Backends::Vulkan

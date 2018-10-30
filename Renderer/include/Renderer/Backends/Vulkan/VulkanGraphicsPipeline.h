@@ -5,8 +5,7 @@
 #include "VulkanCore.h"
 
 namespace Renderer::Backends::Vulkan {
-#pragma warning(push)
-#pragma warning(disable : 4251)
+    
 struct RENDERER_API VulkanGraphicsPipelineInfo {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
     VkPipelineVertexInputStateCreateInfo vertexInput;
@@ -24,7 +23,6 @@ struct RENDERER_API VulkanGraphicsPipelineInfo {
 
     VulkanGraphicsPipelineInfo(VkExtent2D outputExtent, VkPipelineLayout layout, VkRenderPass pass);
 };
-#pragma warning(pop)
 
 struct RENDERER_API VulkanGraphicsPipeline : public VulkanObject<VkPipeline> {
     static VulkanGraphicsPipeline Create(VkDevice device, const VulkanGraphicsPipelineInfo& pipelineInfo);

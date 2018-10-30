@@ -4,14 +4,13 @@
 #include <fstream>
 #include <optional>
 
-#include <Core/DllExport.h>
+#include "Core/DllExport.h"
+#include "Core/Containers/Array.h"
 
 namespace Core::File {
 CORE_API std::optional<std::string> ReadTextFile(const std::filesystem::path& file);
-CORE_API std::optional<std::vector<std::byte>> ReadBinaryFile(const std::filesystem::path& file);
+CORE_API std::optional<Core::Array<std::byte>> ReadBinaryFile(const std::filesystem::path& file);
 
-#pragma warning(push)
-#pragma warning(disable : 4251)
 class CORE_API Stream {
 private:
     std::ifstream stream;
@@ -27,11 +26,10 @@ public:
     }
 
     template <typename T>
-    std::vector<T> read(size_t count) {
-        std::vector<T> values(count);
+    Core::Array<T> read(size_t count) {
+        Core::Array<T> values(count);
         stream.read(reinterpret_cast<std::byte*>(values.data()), count * sizeof(T));
         return values;
     }
 };
-#pragma warning(pop)
 }    // namespace Core::File

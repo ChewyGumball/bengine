@@ -5,8 +5,7 @@
 #include "Renderer/DllExport.h"
 
 namespace Renderer::Backends::Vulkan {
-
-
+    
 struct RENDERER_API VulkanSwapChainDetails {
     VkSurfaceKHR surface;
     VkSurfaceFormatKHR format;
