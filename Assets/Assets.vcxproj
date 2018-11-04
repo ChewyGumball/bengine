@@ -138,6 +138,7 @@
   <ItemGroup>
     <ClCompile Include="src\Importers\OBJImporter.cpp" />
     <ClCompile Include="src\Model\OBJModelCompiler.cpp" />
+    <ClCompile Include="src\Model\VertexFormat.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.vcxproj">
@@ -146,8 +147,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\AssetsCore.h" />
+    <ClInclude Include="include\Catalogs\AssetCatalog.h" />
+    <ClInclude Include="include\Catalogs\AssetTag.h" />
     <ClInclude Include="include\DllExport.h" />
     <ClInclude Include="include\Importers\OBJImporter.h" />
+    <ClInclude Include="include\Material\Shader.h" />
     <ClInclude Include="include\Model\Mesh.h" />
     <ClInclude Include="include\Model\VertexFormat.h" />
   </ItemGroup>

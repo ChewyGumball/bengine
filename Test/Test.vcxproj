@@ -76,7 +76,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>$(VULKAN_SDK)\Include;$(SolutionDir)Renderer\include;$(SolutionDir)Assets\include;$(SolutionDir)Core\include;$(IncludePath)</IncludePath>
+    <IncludePath>F:\Users\Ben\Documents\Projects\QuickOBJLoader;$(VULKAN_SDK)\Include;$(SolutionDir)Renderer\include;$(SolutionDir)Assets\include;$(SolutionDir)Core\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -84,7 +84,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VULKAN_SDK)\Include;$(SolutionDir)Renderer\include;$(SolutionDir)Assets\include;$(SolutionDir)Core\include;$(IncludePath)</IncludePath>
+    <IncludePath>F:\Users\Ben\Documents\Projects\QuickOBJLoader;$(VULKAN_SDK)\Include;$(SolutionDir)Renderer\include;$(SolutionDir)Assets\include;$(SolutionDir)Core\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>

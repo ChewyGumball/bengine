@@ -1,7 +1,7 @@
 #include "Importers/OBJImporter.h"
 
 #include <Core/Algorithms/Strings.h>
-#include <Core/File.h>
+#include <Core/FileSystem/FileSystem.h>
 #include <Core/Logging/Logger.h>
 
 #include "AssetsCore.h"
@@ -67,7 +67,7 @@ Core::LogCategory OBJImporter("OBJImporter", &Assets);
 OBJModel Import(const std::filesystem::path& filename) {
     OBJModel model;
 
-    std::optional<std::string> data = Core::File::ReadTextFile(filename);
+    std::optional<std::string> data = Core::FileSystem::ReadTextFile(filename);
     if(!data) {
         Core::Log::Error(OBJImporter, "Could not load file '{}'", filename.string());
         return model;
@@ -117,8 +117,12 @@ OBJModel Import(const std::filesystem::path& filename) {
         } else if(elements[0] == "f") {
             // We can divide by format.totalSize here, even before it is set below because we initialize it to 1.
             // See definition of VertexFormat.
-            uint32_t vertexCount =
-                  static_cast<uint32_t>(currentMesh->vertexData.size() / currentMesh->vertexFormat.elementCount);
+            uint32_t vertexCount = 1;
+            if(!currentMesh->vertexData.empty()) {
+                vertexCount =
+                      static_cast<uint32_t>(currentMesh->vertexData.size() / currentMesh->vertexFormat.elementCount());
+            }
+
 
             int faceVertices = static_cast<int>(elements.size()) - 1;
 
@@ -144,24 +148,32 @@ OBJModel Import(const std::filesystem::path& filename) {
                 }
 
                 OBJIndexFind(positions, vertexIndex).appendTo(currentMesh->vertexData);
+                auto& vertexProperty        = currentMesh->vertexFormat.properties[Assets::VertexUsage::POSITION];
+                vertexProperty.offset       = 0;
+                vertexProperty.elementCount = 3;
+
                 uint32_t currentOffset = PositionElements;
 
                 if(normalIndex) {
-                    assert(!currentMesh->vertexFormat.normalOffset ||
-                           currentMesh->vertexFormat.normalOffset.value() == currentOffset);
-                    currentMesh->vertexFormat.normalOffset = currentOffset;
+                    auto& vertexProperty = currentMesh->vertexFormat.properties[Assets::VertexUsage::NORMAL];
+                    assert(vertexProperty.elementCount == 0 || vertexProperty.offset == currentOffset);
+
+                    vertexProperty.offset       = currentOffset;
+                    vertexProperty.elementCount = 3;
+
                     OBJIndexFind(normals, *normalIndex).appendTo(currentMesh->vertexData);
                     currentOffset += NormalElements;
                 }
                 if(textureCoordinateIndex) {
-                    assert(!currentMesh->vertexFormat.textureCoordinateOffset ||
-                           currentMesh->vertexFormat.textureCoordinateOffset.value() == currentOffset);
-                    currentMesh->vertexFormat.textureCoordinateOffset = currentOffset;
+                    auto& vertexProperty = currentMesh->vertexFormat.properties[Assets::VertexUsage::TEXTURE];
+                    assert(vertexProperty.elementCount == 0 || vertexProperty.offset == currentOffset);
+
+                    vertexProperty.offset       = currentOffset;
+                    vertexProperty.elementCount = 2;
+
                     OBJIndexFind(textureCoordinates, *textureCoordinateIndex).appendTo(currentMesh->vertexData);
                     currentOffset += TextureElements;
                 }
-
-                currentMesh->vertexFormat.elementCount = currentOffset;
             }
         }
     }

@@ -1,6 +1,6 @@
 #include "Renderer/Backends/Vulkan/VulkanShaderModule.h"
 
-#include <Core/File.h>
+#include <Core/FileSystem/FileSystem.h>
 
 namespace Renderer::Backends::Vulkan {
 
@@ -15,11 +15,11 @@ VulkanShaderModule VulkanShaderModule::Create(VkDevice device, const std::vector
     return shaderModule;
 }
 
-VulkanShaderModule VulkanShaderModule::Create(VkDevice device, const std::string& filename) {
-    std::optional<std::vector<std::byte>> vertexShaderCode = Core::File::ReadBinaryFile(filename);
+VulkanShaderModule VulkanShaderModule::CreateFromFile(VkDevice device, const Core::FileSystem::Path& filename) {
+    std::optional<std::vector<std::byte>> vertexShaderCode = Core::FileSystem::ReadBinaryFile(filename);
 
     if(!vertexShaderCode) {
-        Core::Log::Always(Vulkan, "Couldn't load shader code from {}", filename);
+        Core::Log::Always(Vulkan, "Couldn't load shader code from {}", filename.path.string());
         VK_CHECK(VK_ERROR_INITIALIZATION_FAILED);
     }
 

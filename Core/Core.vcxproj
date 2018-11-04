@@ -76,10 +76,10 @@
     <IncludePath>$(ProjectDir)include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)ThirdParty/simplefilewatcher/include;$(ProjectDir)include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(ProjectDir)include;$(IncludePath)</IncludePath>
+    <IncludePath>$(ProjectDir)ThirdParty/simplefilewatcher/include;$(ProjectDir)include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -152,7 +152,11 @@
     <ClInclude Include="include\Core\Containers\Queue.h" />
     <ClInclude Include="include\Core\Containers\HashSet.h" />
     <ClInclude Include="include\Core\DllExport.h" />
-    <ClInclude Include="include\Core\File.h" />
+    <ClInclude Include="include\Core\FileSystem\FileSystem.h" />
+    <ClInclude Include="include\Core\FileSystem\FileSystemMount.h" />
+    <ClInclude Include="include\Core\FileSystem\BareFileSystemMount.h" />
+    <ClInclude Include="include\Core\FileSystem\Path.h" />
+    <ClInclude Include="include\Core\FileSystem\VirtualFileSystemMount.h" />
     <ClInclude Include="include\Core\Geometry\BoundingBox.h" />
     <ClInclude Include="include\Core\Geometry\Transform.h" />
     <ClInclude Include="include\Core\Geometry\ViewFrustum.h" />
@@ -162,10 +166,20 @@
     <ClInclude Include="include\Core\Time\Clock.h" />
     <ClInclude Include="include\Core\Time\SystemClockTicker.h" />
     <ClInclude Include="include\Core\Time\Timer.h" />
+    <ClInclude Include="include\Core\InputStream.h" />
+    <ClInclude Include="ThirdParty\simplefilewatcher\include\FileWatcher\FileWatcher.h" />
+    <ClInclude Include="ThirdParty\simplefilewatcher\include\FileWatcher\FileWatcherImpl.h" />
+    <ClInclude Include="ThirdParty\simplefilewatcher\include\FileWatcher\FileWatcherLinux.h" />
+    <ClInclude Include="ThirdParty\simplefilewatcher\include\FileWatcher\FileWatcherOSX.h" />
+    <ClInclude Include="ThirdParty\simplefilewatcher\include\FileWatcher\FileWatcherWin32.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Algorithms\Strings.cpp" />
-    <ClCompile Include="src\File.cpp" />
+    <ClCompile Include="src\FileSystem\FileSystem.cpp" />
+    <ClCompile Include="src\FileSystem\BareFileSystemMount.cpp" />
+    <ClCompile Include="src\FileSystem\FileSystemMount.cpp" />
+    <ClCompile Include="src\FileSystem\Path.cpp" />
+    <ClCompile Include="src\FileSystem\VirtualFileSystemMount.cpp" />
     <ClCompile Include="src\Geometry\Plane.cpp" />
     <ClCompile Include="src\Geometry\Transform.cpp" />
     <ClCompile Include="src\Geometry\ViewFrustum.cpp" />
@@ -173,9 +187,17 @@
     <ClCompile Include="src\Time\Clock.cpp" />
     <ClCompile Include="src\Time\SystemClockTicker.cpp" />
     <ClCompile Include="src\Time\Timer.cpp" />
+    <ClCompile Include="ThirdParty\simplefilewatcher\source\FileWatcher.cpp" />
+    <ClCompile Include="ThirdParty\simplefilewatcher\source\FileWatcherLinux.cpp" />
+    <ClCompile Include="ThirdParty\simplefilewatcher\source\FileWatcherOSX.cpp" />
+    <ClCompile Include="ThirdParty\simplefilewatcher\source\FileWatcherWin32.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".clang-format" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ThirdParty\simplefilewatcher\License.txt" />
+    <Text Include="ThirdParty\simplefilewatcher\ReadMe.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
