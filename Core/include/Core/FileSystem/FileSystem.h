@@ -28,7 +28,7 @@ public:
     void updateWatchers() const;
 };
 
-extern FileSystem DefaultFileSystem;
+extern CORE_API FileSystem DefaultFileSystem;
 
 std::optional<std::string> CORE_API ReadTextFile(const Path& file);
 std::optional<Core::Array<std::byte>> CORE_API ReadBinaryFile(const Path& file);

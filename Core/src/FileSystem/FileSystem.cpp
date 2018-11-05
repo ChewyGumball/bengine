@@ -8,7 +8,7 @@ Core::FileSystem::BareFileSystemMount DefaultMount("");
 Core::FileSystem::FileSystemMount*
 findMountPoint(const Core::FileSystem::Path& path,
                Core::HashMap<std::filesystem::path, Core::FileSystem::FileSystemMount*> mounts) {
-    std::filesystem::path pathToCheck = path.path;
+    std::filesystem::path pathToCheck = path.path.lexically_normal();
 
     //Check each level of the path for a mount
     while(pathToCheck.has_relative_path()) {
@@ -30,7 +30,7 @@ findMountPoint(const Core::FileSystem::Path& path,
 
 namespace Core::FileSystem {
 
-FileSystem DefaultFileSystem;
+FileSystem DefaultFileSystem = FileSystem();
 
 std::optional<std::string> ReadTextFile(const Path& file) {
     return DefaultFileSystem.readTextFile(file);

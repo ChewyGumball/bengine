@@ -4,15 +4,10 @@
 
 namespace Core::FileSystem {
 VirtualFileSystemMount::VirtualFileSystemMount(const std::filesystem::path& mount, const std::filesystem::path& root)
-  : BareFileSystemMount(mount), rootPath(root) {}
+  : BareFileSystemMount(mount), rootPath(root.lexically_normal()) {}
 
 std::filesystem::path VirtualFileSystemMount::translatePath(const Path& path) const {
-    std::string originalPath = path.path.string();
-    std::string mountPrefix  = mountPath.string();
-
-    assert(std::string_view(originalPath).substr(0, mountPrefix.size()) == mountPrefix);
-
-    return rootPath / originalPath.substr(mountPrefix.size());
+    return rootPath / path.path.lexically_relative(mountPath);
 }
 
 std::optional<std::string> VirtualFileSystemMount::readTextFile(const Path& file) const {
