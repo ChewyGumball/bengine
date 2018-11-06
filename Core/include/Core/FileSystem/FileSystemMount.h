@@ -8,6 +8,7 @@
 
 #include "Core/Containers/Array.h"
 #include "Core/FileSystem/Path.h"
+#include "Core/FileSystem/InputStream.h"
 
 namespace Core::FileSystem {
 struct CORE_API FileSystemMount {
@@ -17,6 +18,7 @@ struct CORE_API FileSystemMount {
 
     virtual std::filesystem::path translatePath(const Path& path) const = 0;
 
+    virtual std::optional<InputStream> openFile(const Path& file) const                  = 0;
     virtual std::optional<std::string> readTextFile(const Path& file) const              = 0;
     virtual std::optional<Core::Array<std::byte>> readBinaryFile(const Path& file) const = 0;
 

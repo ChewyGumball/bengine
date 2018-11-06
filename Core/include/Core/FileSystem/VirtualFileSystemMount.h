@@ -9,6 +9,7 @@ struct CORE_API VirtualFileSystemMount : public BareFileSystemMount {
     VirtualFileSystemMount(const std::filesystem::path& mount, const std::filesystem::path& root);
     virtual std::filesystem::path translatePath(const Path& path) const;
 
+    virtual std::optional<InputStream> openFile(const Path& file) const;
     virtual std::optional<std::string> readTextFile(const Path& file) const;
     virtual std::optional<Core::Array<std::byte>> readBinaryFile(const Path& file) const;
 

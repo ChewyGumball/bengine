@@ -57,6 +57,14 @@ std::filesystem::path FileSystem::translatePath(const Path& path) const {
     return findMountPoint(path, mounts).translatePath(path);
 }
 
+std::optional<InputStream> FileSystem::openFile(const Path& file) const {
+    if(file.type == PathType::Explicit) {
+        return DefaultMount.openFile(file);
+    } else {
+        return findMountPoint(file, mounts).openFile(file);
+    }
+}
+
 std::optional<std::string> FileSystem::readTextFile(const Path& file) const {
     if (file.type == PathType::Explicit) {
         return DefaultMount.readTextFile(file);

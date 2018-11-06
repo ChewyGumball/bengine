@@ -5,13 +5,14 @@
 
 #include "Core/Containers/Array.h"
 
-namespace Core {
+namespace Core::FileSystem {
 class InputStream {
 private:
-    std::istream* stream;
+    std::unique_ptr<std::istream> stream;
 
 public:
-    InputStream(std::istream* stream) : stream(stream) {}
+    InputStream(std::unique_ptr<std::istream>&& stream) : stream(std::move(stream)) {}
+    InputStream(InputStream&& other) : stream(std::move(other.stream)) {}
 
     template <typename T>
     typename std::enable_if_t<std::is_trivially_constructible_v<T>, T> read() {

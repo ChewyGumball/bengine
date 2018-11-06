@@ -11,6 +11,7 @@ struct CORE_API BareFileSystemMount : FileSystemMount {
 
     virtual std::filesystem::path translatePath(const Path& path) const;
 
+    virtual std::optional<InputStream> openFile(const Path& file) const;
     virtual std::optional<std::string> readTextFile(const Path& file) const;
     virtual std::optional<Core::Array<std::byte>> readBinaryFile(const Path& file) const;
 

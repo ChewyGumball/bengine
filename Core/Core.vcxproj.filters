@@ -96,13 +96,13 @@
     <ClInclude Include="include\Core\FileSystem\Path.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Core\InputStream.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Core\FileSystem\BareFileSystemMount.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Core\FileSystem\VirtualFileSystemMount.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\FileSystem\InputStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

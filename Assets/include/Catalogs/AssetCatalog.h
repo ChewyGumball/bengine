@@ -5,6 +5,9 @@
 #include <Core/Containers/Array.h>
 #include <Core/Containers/HashMap.h>
 
+#include <Core/FileSystem/FileSystem.h>
+#include <Core/FileSystem/InputStream.h>
+
 #include "AssetTag.h"
 
 namespace Assets {
@@ -12,47 +15,39 @@ template <typename ASSET_TYPE>
 class AssetCatalog {
 private:
     mutable uint32_t nextID = 0;
-    mutable Core::HashMap<std::string, AssetTag<ASSET_TYPE>> assetNames;
+    mutable Core::HashMap<std::filesystem::path, AssetTag<ASSET_TYPE>> assetNames;
     mutable Core::HashMap<AssetTag<ASSET_TYPE>, ASSET_TYPE*> assets;
 
 protected:
-    virtual ASSET_TYPE* create(const std::filesystem::path& assetPath, uint32_t ID) const = 0;
-    virtual bool reload(const std::filesystem::path& assetPath, T& resource) const        = 0;
+    virtual ASSET_TYPE* create(Core::FileSystem::InputStream& assetData, uint32_t ID) const = 0;
+    virtual bool reload(Core::FileSystem::InputStream& assetData, T& resource) const        = 0;
 
 public:
-    AssetCatalog() {}
-
     std::optional<ASSET_TYPE*> locate(const std::filesystem::path& assetPath) const {
         if(assetNames.count(assetPath) == 0) {
-            bool found = false;
-            for(auto& path : resourceLocations) {
-                std::string location = path + "/" + resourceName;
-                if(std::ifstream(location)) {
-                    T* resource                 = create(location, ++nextID);
-                    ResourceTag<T> tag          = resource->tag;
-                    resources[tag]              = resource;
-                    resourceNames[resourceName] = tag;
+            std::optional<Core::FileSystem::InputStream> assetData = Core::FileSystem::OpenFile(assetPath);
+            assert(assetData);
 
-                    Util::File::WatchForChanges(location,
-                                                [=]() -> bool { return this->reload(location, *resources[tag]); });
-                    found = true;
-                    break;
-                }
-            }
+            T* asset              = create(assetData, ++nextID);
+            AssetTag<T> tag       = asset->tag;
+            assets[tag]           = asset;
+            assetNames[assetPath] = tag;
 
-            assert(found);
+            Core::FileSystem::WatchForChanges(assetPath, [=]() -> bool {
+                std::optional<Core::FileSystem::InputStream> assetData = Core::FileSystem::OpenFile(assetPath);
+                return this->reload(assetData, *resources[tag]);
+            });
         }
 
-        return resources[resourceNames[resourceName]];
-
+        return assets[assetNames[assetPath]];
     }
 
     std::optional<ASSET_TYPE*> get(const AssetTag<ASSET_TYPE>& tag) const {
-        auto resource = resources.find(tag);
-        if(resource == resources.end()) {
+        auto asset = assets.find(tag);
+        if(asset == assets.end()) {
             return std::nullopt;
         } else {
-            return resource->second;
+            return asset->second;
         }
     }
 };

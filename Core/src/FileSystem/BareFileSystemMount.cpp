@@ -52,11 +52,21 @@ public:
 }    // namespace
 
 namespace Core::FileSystem {
-    
+
 BareFileSystemMount::BareFileSystemMount(const std::filesystem::path& mount) : FileSystemMount(mount) {}
 
 std::filesystem::path BareFileSystemMount::translatePath(const Path& path) const {
     return path.path;
+}
+
+std::optional<InputStream> BareFileSystemMount::openFile(const Path& file) const {
+    std::unique_ptr<std::istream> reader = std::make_unique<std::ifstream>(file.path, std::ios::in);
+
+    if(*reader) {
+        return InputStream(std::move(reader));
+    } else {
+        return std::nullopt;
+    }
 }
 
 std::optional<std::string> BareFileSystemMount::readTextFile(const Path& file) const {

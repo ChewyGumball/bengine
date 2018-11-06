@@ -166,7 +166,7 @@
     <ClInclude Include="include\Core\Time\Clock.h" />
     <ClInclude Include="include\Core\Time\SystemClockTicker.h" />
     <ClInclude Include="include\Core\Time\Timer.h" />
-    <ClInclude Include="include\Core\InputStream.h" />
+    <ClInclude Include="include\Core\FileSystem\InputStream.h" />
     <ClInclude Include="ThirdParty\simplefilewatcher\include\FileWatcher\FileWatcher.h" />
     <ClInclude Include="ThirdParty\simplefilewatcher\include\FileWatcher\FileWatcherImpl.h" />
     <ClInclude Include="ThirdParty\simplefilewatcher\include\FileWatcher\FileWatcherLinux.h" />

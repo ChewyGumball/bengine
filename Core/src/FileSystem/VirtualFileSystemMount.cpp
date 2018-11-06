@@ -10,6 +10,11 @@ std::filesystem::path VirtualFileSystemMount::translatePath(const Path& path) co
     return rootPath / path.path.lexically_relative(mountPath);
 }
 
+std::optional<InputStream> VirtualFileSystemMount::openFile(const Path& file) const {
+    Path translatedPath(translatePath(file), file.type);
+    return BareFileSystemMount::openFile(translatedPath);
+}
+
 std::optional<std::string> VirtualFileSystemMount::readTextFile(const Path& file) const {
     Path translatedPath(translatePath(file), file.type);
     return BareFileSystemMount::readTextFile(translatedPath);
