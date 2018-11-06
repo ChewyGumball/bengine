@@ -5,15 +5,15 @@
 namespace {
 Core::FileSystem::BareFileSystemMount DefaultMount("");
 
-Core::FileSystem::FileSystemMount*
+const Core::FileSystem::FileSystemMount&
 findMountPoint(const Core::FileSystem::Path& path,
-               Core::HashMap<std::filesystem::path, Core::FileSystem::FileSystemMount*> mounts) {
+               const Core::HashMap<std::filesystem::path, Core::FileSystem::FileSystemMount*>& mounts) {
     std::filesystem::path pathToCheck = path.path.lexically_normal();
 
     //Check each level of the path for a mount
     while(pathToCheck.has_relative_path()) {
         if(mounts.count(pathToCheck) != 0) {
-            return mounts[pathToCheck];
+            return *mounts.at(pathToCheck);
         }
 
         pathToCheck = pathToCheck.parent_path();
@@ -21,10 +21,10 @@ findMountPoint(const Core::FileSystem::Path& path,
 
     //Check if the root path is a mount
     if(mounts.count(pathToCheck) != 0) {
-        return mounts[pathToCheck];
+        return *mounts.at(pathToCheck);
     }
 
-    return &DefaultMount;
+    return DefaultMount;
 }
 }    // namespace
 
@@ -54,14 +54,14 @@ std::filesystem::path FileSystem::translatePath(const Path& path) const {
         return path.path;
     }
 
-    return findMountPoint(path, mounts)->translatePath(path);
+    return findMountPoint(path, mounts).translatePath(path);
 }
 
 std::optional<std::string> FileSystem::readTextFile(const Path& file) const {
     if (file.type == PathType::Explicit) {
         return DefaultMount.readTextFile(file);
     } else {
-        return findMountPoint(file, mounts)->readTextFile(file);
+        return findMountPoint(file, mounts).readTextFile(file);
     }
 }
 
@@ -69,7 +69,7 @@ std::optional<Core::Array<std::byte>> FileSystem::readBinaryFile(const Path& fil
     if(file.type == PathType::Explicit) {
         return DefaultMount.readBinaryFile(file);
     } else {
-        return findMountPoint(file, mounts)->readBinaryFile(file);
+        return findMountPoint(file, mounts).readBinaryFile(file);
     }
 }
 
@@ -77,7 +77,7 @@ void FileSystem::watchForChanges(const Path& file, const std::function<bool()>& 
     if(file.type == PathType::Explicit) {
         DefaultMount.watchForChanges(file, observer);
     } else {
-        findMountPoint(file, mounts)->watchForChanges(file, observer);
+        findMountPoint(file, mounts).watchForChanges(file, observer);
     }
 }
 void FileSystem::updateWatchers() const {

@@ -1,10 +1,16 @@
 #include "Core/FileSystem/FileSystemMount.h"
 
-namespace Core::FileSystem {
-
-FileSystemMount::FileSystemMount(const std::filesystem::path& mount) : mountPath(mount.lexically_normal()) {
-    if (!mountPath.has_filename()) {
-        mountPath = mountPath.parent_path();
+namespace {
+std::filesystem::path fixupPath(const std::filesystem::path& path) {
+    if(!path.has_filename() && path.has_parent_path()) {
+        return path.parent_path().lexically_normal();
+    } else {
+        return path.lexically_normal();
     }
 }
+}    // namespace
+
+namespace Core::FileSystem {
+
+FileSystemMount::FileSystemMount(const std::filesystem::path& mount) : mountPath(fixupPath(mount)) {}
 }    // namespace Core::FileSystem
