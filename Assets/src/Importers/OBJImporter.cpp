@@ -150,6 +150,7 @@ Mesh Import(const std::filesystem::path& filename) {
 
                 OBJIndexFind(positions, vertexIndex).appendTo(mesh.vertexData);
                 auto& vertexProperty        = mesh.vertexFormat.properties[Assets::VertexUsage::POSITION];
+                vertexProperty.usage        = Assets::VertexUsage::POSITION;
                 vertexProperty.byteOffset   = 0;
                 vertexProperty.elementCount = 3;
 
@@ -159,6 +160,7 @@ Mesh Import(const std::filesystem::path& filename) {
                     auto& vertexProperty = mesh.vertexFormat.properties[Assets::VertexUsage::NORMAL];
                     assert(vertexProperty.elementCount == 0 || vertexProperty.byteOffset == currentOffset);
 
+                    vertexProperty.usage        = Assets::VertexUsage::NORMAL;
                     vertexProperty.byteOffset   = currentOffset;
                     vertexProperty.elementCount = 3;
 
@@ -169,6 +171,7 @@ Mesh Import(const std::filesystem::path& filename) {
                     auto& vertexProperty = mesh.vertexFormat.properties[Assets::VertexUsage::TEXTURE];
                     assert(vertexProperty.elementCount == 0 || vertexProperty.byteOffset == currentOffset);
 
+                    vertexProperty.usage        = Assets::VertexUsage::TEXTURE;
                     vertexProperty.byteOffset   = currentOffset;
                     vertexProperty.elementCount = 2;
 

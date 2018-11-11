@@ -16,12 +16,43 @@ namespace VertexUsage {
     constexpr VertexUsageName COLOUR   = 2;
     constexpr VertexUsageName TEXTURE  = 3;
     constexpr VertexUsageName TEXTURE2 = 4;
+
+    constexpr std::string_view AsString(const VertexUsageName usage) {
+        switch(usage) {
+            case POSITION: return "Position";
+            case NORMAL: return "Normal";
+            case COLOUR: return "Colour";
+            case TEXTURE: return "Texture";
+            case TEXTURE2: return "Texture2";
+            default: return "Unknown Property";
+        }
+    }
 }    // namespace VertexUsage
 
-enum VertexPropertyFormat { FLOAT_32, FLOAT_64, INT_16, INT_32, UINT_16, UINT_32 };
+using VertexPropertyFormatName = uint32_t;
+namespace VertexPropertyFormat {
+    constexpr VertexPropertyFormatName FLOAT_32 = 0;
+    constexpr VertexPropertyFormatName FLOAT_64 = 1;
+    constexpr VertexPropertyFormatName INT_16   = 2;
+    constexpr VertexPropertyFormatName INT_32   = 3;
+    constexpr VertexPropertyFormatName UINT_16  = 4;
+    constexpr VertexPropertyFormatName UINT_32  = 5;
+
+    constexpr std::string_view AsString(const VertexPropertyFormatName& format) {
+        switch(format) {
+            case FLOAT_32: return "32 bit float";
+            case FLOAT_64: return "64 bit float";
+            case INT_16: return "16 bit int";
+            case INT_32: return "32 bit int";
+            case UINT_16: return "16 bit uint";
+            case UINT_32: return "32 bit uint";
+            default: return "unknown format";
+        }
+    }
+}    // namespace VertexPropertyFormat
 
 struct ASSETS_API VertexProperty {
-    VertexPropertyFormat format;
+    VertexPropertyFormatName format;
     VertexUsageName usage;
     uint8_t byteOffset;
     uint8_t elementCount;

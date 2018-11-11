@@ -1,31 +1,51 @@
 #pragma once
 
-#include <istream>
-#include <type_traits>
+#include <memory>
+#include <string>
 
-#include "Core/Containers/Array.h"
+#include "Core/DllExport.h"
 
 namespace Core::IO {
-class InputStream {
+
+template <typename T>
+struct Deserializer {
+    static T deserialize(struct InputStream& stream);
+};
+
+struct CORE_API InputStream {
 private:
-    std::unique_ptr<std::istream> stream;
+    std::unique_ptr<class std::basic_istream<std::byte>> stream;
 
 public:
-    InputStream(std::unique_ptr<std::istream>&& stream) : stream(std::move(stream)) {}
-    InputStream(InputStream&& other) : stream(std::move(other.stream)) {}
+    InputStream(std::basic_streambuf<std::byte>* stream);
+    InputStream(std::unique_ptr<class std::basic_istream<std::byte>>&& stream);
+    InputStream(InputStream&& other);
 
     template <typename T>
-    typename std::enable_if_t<std::is_trivially_constructible_v<T>, T> read() {
-        T value;
-        stream.read(reinterpret_cast<std::byte*>(&value), sizeof(T));
+    T read() {
+        return Deserializer<T>::deserialize(*this);
+    }
+
+    void readInto(std::byte* buffer, uint64_t size);
+};
+
+
+template <typename T>
+T Deserializer<T>::deserialize(InputStream& stream) {
+    static_assert(std::is_arithmetic_v<T> || std::is_enum_v<T>);
+
+    T value;
+    stream.readInto(reinterpret_cast<std::byte*>(&value), sizeof(T));
+    return value;
+}
+
+template <>
+struct Deserializer<std::string> {
+    static std::string deserialize(InputStream& stream) {
+        std::string value(stream.read<size_t>(), 0);
+        stream.readInto(reinterpret_cast<std::byte*>(value.data()), value.size());
         return value;
     }
-
-    template <typename T>
-    typename std::enable_if_t<std::is_trivially_constructible_v<T>, Core::Array<T>> read(size_t count) {
-        Core::Array<T> values(count);
-        stream.read(reinterpret_cast<std::byte*>(values.data()), count * sizeof(T));
-        return values;
-    }
 };
-}    // namespace Core
+
+}    // namespace Core::IO

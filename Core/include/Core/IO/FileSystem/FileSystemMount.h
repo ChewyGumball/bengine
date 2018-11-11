@@ -9,6 +9,7 @@
 #include "Core/Containers/Array.h"
 #include "Core/IO/FileSystem/Path.h"
 #include "Core/IO/InputStream.h"
+#include "Core/IO/OutputStream.h"
 
 namespace Core::IO {
 struct CORE_API FileSystemMount {

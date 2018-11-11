@@ -61,7 +61,8 @@ std::filesystem::path BareFileSystemMount::translatePath(const Path& path) const
 }
 
 std::optional<InputStream> BareFileSystemMount::openFileForRead(const Path& file) const {
-    std::unique_ptr<std::istream> reader = std::make_unique<std::ifstream>(file.path, std::ios::in);
+    std::unique_ptr<class std::basic_istream<std::byte>> reader =
+          std::make_unique<std::basic_ifstream<std::byte>>(file.path, std::ios::in);
 
     if(*reader) {
         return Core::IO::InputStream(std::move(reader));
@@ -95,7 +96,7 @@ std::optional<Core::Array<std::byte>> BareFileSystemMount::readBinaryFile(const 
 }
 
 std::optional<OutputStream> BareFileSystemMount::openFileForWrite(const Path& file) const {
-    std::unique_ptr<OutputByteStream> writer =
+    std::unique_ptr<std::basic_ostream<std::byte>> writer =
           std::make_unique<std::basic_ofstream<std::byte>>(file.path, std::ios::out | std::ios::binary);
 
     if(*writer) {

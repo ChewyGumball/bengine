@@ -1,38 +1,33 @@
 #pragma once
 
-#include <ostream>
-#include <streambuf>
+#include <memory>
+#include <string>
+
+#include "Core/DllExport.h"
 
 namespace Core::IO {
-using OutputByteStream = std::basic_ostream<std::byte>;
-
-struct OutputStream;
 
 template <typename T>
 struct Serializer {
-    static void serialize(OutputStream& stream, const T& value);
+    static void serialize(struct OutputStream& stream, const T& value);
 };
 
-struct OutputStream {
+struct CORE_API OutputStream {
 private:
-    std::unique_ptr<std::basic_ostream<std::byte>> stream;
+    std::unique_ptr<class std::basic_ostream<std::byte>> stream;
 
 public:
-    OutputStream(std::basic_streambuf<std::byte>* stream)
-      : stream(std::make_unique<OutputByteStream>(stream)) {}
-    OutputStream(std::unique_ptr<OutputByteStream>&& stream) : stream(std::move(stream)) {}
-    OutputStream(OutputStream&& other) : stream(std::move(other.stream)) {}
+    OutputStream(std::basic_streambuf<std::byte>* stream);
+    OutputStream(std::unique_ptr<class std::basic_ostream<std::byte>>&& stream);
+    OutputStream(OutputStream&& other);
 
     template <typename T>
     void write(const T& value) {
         Serializer<T>::serialize(*this, value);
     }
 
-    void write(const std::byte* data, uint64_t size) {
-        stream->write(data, size);
-    }
+    void write(const std::byte* data, uint64_t size);
 };
-
 
 template <typename T>
 void Serializer<T>::serialize(OutputStream& stream, const T& value) {

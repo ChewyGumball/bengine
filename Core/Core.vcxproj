@@ -189,7 +189,9 @@
     <ClCompile Include="src\Geometry\Transform.cpp" />
     <ClCompile Include="src\Geometry\ViewFrustum.cpp" />
     <ClCompile Include="src\IO\ArrayBuffer.cpp" />
+    <ClCompile Include="src\IO\InputStream.cpp" />
     <ClCompile Include="src\IO\MemoryBuffer.cpp" />
+    <ClCompile Include="src\IO\OutputStream.cpp" />
     <ClCompile Include="src\IO\WindowedBufferView.cpp" />
     <ClCompile Include="src\Logging\Logger.cpp" />
     <ClCompile Include="src\Time\Clock.cpp" />
