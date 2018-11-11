@@ -35,6 +35,8 @@
 *.psess
 *.vspx
 
+*.vcxproj.user
+
 /.vs/bengine/v15
 /Benchmark/x64/Debug
 /Core/Debug
@@ -63,3 +65,5 @@
 /Core/x64/Release
 /Benchmark/x64/Release
 /Assets/x64/Release
+/ModelCompiler/x64/Debug
+/ModelCompiler/x64/Release
