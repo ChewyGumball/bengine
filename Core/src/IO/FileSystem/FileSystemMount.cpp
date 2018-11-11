@@ -1,4 +1,4 @@
-#include "Core/FileSystem/FileSystemMount.h"
+#include "Core/IO/FileSystem/FileSystemMount.h"
 
 namespace {
 std::filesystem::path fixupPath(const std::filesystem::path& path) {
@@ -10,7 +10,7 @@ std::filesystem::path fixupPath(const std::filesystem::path& path) {
 }
 }    // namespace
 
-namespace Core::FileSystem {
+namespace Core::IO {
 
 FileSystemMount::FileSystemMount(const std::filesystem::path& mount) : mountPath(fixupPath(mount)) {}
 }    // namespace Core::FileSystem

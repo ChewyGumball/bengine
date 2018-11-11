@@ -1,5 +1,6 @@
-#include "Core/FileSystem/BareFileSystemMount.h"
+#include "Core/IO/FileSystem/BareFileSystemMount.h"
 
+#include <assert.h>
 #include <fstream>
 
 #include <FileWatcher/FileWatcher.h>
@@ -51,7 +52,7 @@ public:
 } FileUpdateListener;
 }    // namespace
 
-namespace Core::FileSystem {
+namespace Core::IO {
 
 BareFileSystemMount::BareFileSystemMount(const std::filesystem::path& mount) : FileSystemMount(mount) {}
 
@@ -59,11 +60,11 @@ std::filesystem::path BareFileSystemMount::translatePath(const Path& path) const
     return path.path;
 }
 
-std::optional<InputStream> BareFileSystemMount::openFile(const Path& file) const {
+std::optional<InputStream> BareFileSystemMount::openFileForRead(const Path& file) const {
     std::unique_ptr<std::istream> reader = std::make_unique<std::ifstream>(file.path, std::ios::in);
 
     if(*reader) {
-        return InputStream(std::move(reader));
+        return Core::IO::InputStream(std::move(reader));
     } else {
         return std::nullopt;
     }
@@ -93,6 +94,23 @@ std::optional<Core::Array<std::byte>> BareFileSystemMount::readBinaryFile(const 
     return contents;
 }
 
+std::optional<OutputStream> BareFileSystemMount::openFileForWrite(const Path& file) const {
+    std::unique_ptr<OutputByteStream> writer =
+          std::make_unique<std::basic_ofstream<std::byte>>(file.path, std::ios::out | std::ios::binary);
+
+    if(*writer) {
+        return OutputStream(std::move(writer));
+    } else {
+        return std::nullopt;
+    }
+}
+
+void BareFileSystemMount::writeBinaryFile(const Path& file, const Core::Array<std::byte>& data) const {
+    std::basic_ofstream<std::byte> writer(file.path, std::ios::out | std::ios::binary);
+    assert(writer);
+    writer.write(data.data(), data.size());
+}
+
 void BareFileSystemMount::watchForChanges(const Path& file, const std::function<bool()>& observer) const {
     FileUpdateListener.add(file.path, observer);
 }
@@ -100,4 +118,4 @@ void BareFileSystemMount::updateWatchers() const {
     fileWatcher->update();
     FileUpdateListener.postProcess();
 }
-}    // namespace Core::FileSystem
+}    // namespace Core::IO

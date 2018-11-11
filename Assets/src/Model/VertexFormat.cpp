@@ -1,4 +1,4 @@
-#include "Model/VertexFormat.h"
+#include "Assets/Model/VertexFormat.h"
 
 #include <Core/Logging/Logger.h>
 
@@ -24,14 +24,6 @@ uint32_t VertexProperty::byteCount() const {
                   VertexFormatLog, "Unknown vertex format {}, assuming 32 bit float", format);
     }
     return static_cast<uint32_t>(elementSize * elementCount);
-}
-
-uint32_t VertexFormat::elementCount() const {
-    uint32_t elements = 0;
-    for(auto& property : properties) {
-        elements += property.second.elementCount;
-    }
-    return elements;
 }
 
 uint32_t VertexFormat::byteCount() const {

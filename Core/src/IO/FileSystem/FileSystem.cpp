@@ -1,13 +1,13 @@
-#include "Core/FileSystem/FileSystem.h"
+#include "Core/IO/FileSystem/FileSystem.h"
 
-#include "Core/FileSystem/BareFileSystemMount.h"
+#include "Core/IO/FileSystem/BareFileSystemMount.h"
 
 namespace {
-Core::FileSystem::BareFileSystemMount DefaultMount("");
+Core::IO::BareFileSystemMount DefaultMount("");
 
-const Core::FileSystem::FileSystemMount&
-findMountPoint(const Core::FileSystem::Path& path,
-               const Core::HashMap<std::filesystem::path, Core::FileSystem::FileSystemMount*>& mounts) {
+const Core::IO::FileSystemMount&
+findMountPoint(const Core::IO::Path& path,
+               const Core::HashMap<std::filesystem::path, Core::IO::FileSystemMount*>& mounts) {
     std::filesystem::path pathToCheck = path.path.lexically_normal();
 
     //Check each level of the path for a mount
@@ -28,9 +28,13 @@ findMountPoint(const Core::FileSystem::Path& path,
 }
 }    // namespace
 
-namespace Core::FileSystem {
+namespace Core::IO {
 
 FileSystem DefaultFileSystem = FileSystem();
+
+std::optional<InputStream> OpenFileForRead(const Path& file) {
+    return DefaultFileSystem.openFileForRead(file);
+}
 
 std::optional<std::string> ReadTextFile(const Path& file) {
     return DefaultFileSystem.readTextFile(file);
@@ -38,6 +42,14 @@ std::optional<std::string> ReadTextFile(const Path& file) {
 
 std::optional<Core::Array<std::byte>> ReadBinaryFile(const Path& file) {
     return DefaultFileSystem.readBinaryFile(file);
+}
+
+std::optional<OutputStream> OpenFileForWrite(const Path& file) {
+    return DefaultFileSystem.openFileForWrite(file);
+}
+
+void CORE_API WriteBinaryFile(const Path& file, const Core::Array<std::byte>& data) {
+    DefaultFileSystem.writeBinaryFile(file, data);
 }
 
 void WatchForChanges(const Path& file, const std::function<bool()>& observer) {
@@ -57,11 +69,11 @@ std::filesystem::path FileSystem::translatePath(const Path& path) const {
     return findMountPoint(path, mounts).translatePath(path);
 }
 
-std::optional<InputStream> FileSystem::openFile(const Path& file) const {
+std::optional<InputStream> FileSystem::openFileForRead(const Path& file) const {
     if(file.type == PathType::Explicit) {
-        return DefaultMount.openFile(file);
+        return DefaultMount.openFileForRead(file);
     } else {
-        return findMountPoint(file, mounts).openFile(file);
+        return findMountPoint(file, mounts).openFileForRead(file);
     }
 }
 
@@ -78,6 +90,22 @@ std::optional<Core::Array<std::byte>> FileSystem::readBinaryFile(const Path& fil
         return DefaultMount.readBinaryFile(file);
     } else {
         return findMountPoint(file, mounts).readBinaryFile(file);
+    }
+}
+
+std::optional<OutputStream> FileSystem::openFileForWrite(const Path& file) const {
+    if(file.type == PathType::Explicit) {
+        return DefaultMount.openFileForWrite(file);
+    } else {
+        return findMountPoint(file, mounts).openFileForWrite(file);
+    }
+}
+
+void FileSystem::writeBinaryFile(const Path& file, const Core::Array<std::byte>& data) const {
+    if(file.type == PathType::Explicit) {
+        DefaultMount.writeBinaryFile(file, data);
+    } else {
+        findMountPoint(file, mounts).writeBinaryFile(file, data);
     }
 }
 

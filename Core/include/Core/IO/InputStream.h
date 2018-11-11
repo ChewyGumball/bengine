@@ -5,7 +5,7 @@
 
 #include "Core/Containers/Array.h"
 
-namespace Core::FileSystem {
+namespace Core::IO {
 class InputStream {
 private:
     std::unique_ptr<std::istream> stream;

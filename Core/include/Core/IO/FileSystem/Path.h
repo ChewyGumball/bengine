@@ -14,7 +14,7 @@ struct hash<filesystem::path> {
 }    // namespace std
 
 
-namespace Core::FileSystem {
+namespace Core::IO {
 
 enum class PathType { Mappable, Explicit };
 struct CORE_API Path {

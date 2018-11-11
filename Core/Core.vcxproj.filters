@@ -87,22 +87,37 @@
     <ClInclude Include="ThirdParty\simplefilewatcher\include\FileWatcher\FileWatcherWin32.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Core\FileSystem\FileSystem.h">
+    <ClInclude Include="include\Core\IO\InputStream.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Core\FileSystem\FileSystemMount.h">
+    <ClInclude Include="include\Core\IO\MemoryBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Core\FileSystem\Path.h">
+    <ClInclude Include="include\Core\IO\ArrayBuffer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Core\FileSystem\BareFileSystemMount.h">
+    <ClInclude Include="include\Core\IO\WindowedBufferView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Core\FileSystem\VirtualFileSystemMount.h">
+    <ClInclude Include="include\Core\Containers\ArrayView.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Core\FileSystem\InputStream.h">
+    <ClInclude Include="include\Core\IO\OutputStream.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\IO\FileSystem\BareFileSystemMount.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\IO\FileSystem\FileSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\IO\FileSystem\FileSystemMount.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\IO\FileSystem\Path.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Core\IO\FileSystem\VirtualFileSystemMount.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -143,19 +158,28 @@
     <ClCompile Include="ThirdParty\simplefilewatcher\source\FileWatcherWin32.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\FileSystem\Path.cpp">
+    <ClCompile Include="src\IO\MemoryBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\FileSystem\FileSystem.cpp">
+    <ClCompile Include="src\IO\ArrayBuffer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\FileSystem\BareFileSystemMount.cpp">
+    <ClCompile Include="src\IO\WindowedBufferView.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\FileSystem\VirtualFileSystemMount.cpp">
+    <ClCompile Include="src\IO\FileSystem\BareFileSystemMount.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\FileSystem\FileSystemMount.cpp">
+    <ClCompile Include="src\IO\FileSystem\FileSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IO\FileSystem\FileSystemMount.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IO\FileSystem\Path.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\IO\FileSystem\VirtualFileSystemMount.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

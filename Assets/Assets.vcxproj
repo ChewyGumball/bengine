@@ -137,6 +137,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Importers\OBJImporter.cpp" />
+    <ClCompile Include="src\Model\Mesh.cpp" />
     <ClCompile Include="src\Model\OBJModelCompiler.cpp" />
     <ClCompile Include="src\Model\VertexFormat.cpp" />
   </ItemGroup>
@@ -150,10 +151,10 @@
     <ClInclude Include="include\Catalogs\AssetCatalog.h" />
     <ClInclude Include="include\Catalogs\AssetTag.h" />
     <ClInclude Include="include\DllExport.h" />
-    <ClInclude Include="include\Importers\OBJImporter.h" />
+    <ClInclude Include="include\Assets\Importers\OBJImporter.h" />
     <ClInclude Include="include\Material\Shader.h" />
-    <ClInclude Include="include\Model\Mesh.h" />
-    <ClInclude Include="include\Model\VertexFormat.h" />
+    <ClInclude Include="include\Assets\Model\Mesh.h" />
+    <ClInclude Include="include\Assets\Model\VertexFormat.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,7 +1,7 @@
-#include "Importers/OBJImporter.h"
+#include "Assets/Importers/OBJImporter.h"
 
 #include <Core/Algorithms/Strings.h>
-#include <Core/FileSystem/FileSystem.h>
+#include <Core/IO/FileSystem/FileSystem.h>
 #include <Core/Logging/Logger.h>
 
 #include "AssetsCore.h"
@@ -23,10 +23,16 @@ struct Vector3 {
         y(Core::Algorithms::String::ParseFloat(elements[2])),
         z(Core::Algorithms::String::ParseFloat(elements[3])) {}
 
-    void appendTo(std::vector<float>& data) const {
-        data.push_back(x);
-        data.push_back(y);
-        data.push_back(z);
+    void appendTo(std::vector<std::byte>& data) const {
+        data.insert(data.end(),
+                    reinterpret_cast<const std::byte*>(&x),
+                    reinterpret_cast<const std::byte*>(&x) + sizeof(float));
+        data.insert(data.end(),
+                    reinterpret_cast<const std::byte*>(&y),
+                    reinterpret_cast<const std::byte*>(&y) + sizeof(float));
+        data.insert(data.end(),
+                    reinterpret_cast<const std::byte*>(&z),
+                    reinterpret_cast<const std::byte*>(&z) + sizeof(float));
     }
 };
 
@@ -35,9 +41,13 @@ struct Vector2 {
     Vector2(const std::vector<std::string_view>& elements)
       : x(Core::Algorithms::String::ParseFloat(elements[1])), y(Core::Algorithms::String::ParseFloat(elements[2])) {}
 
-    void appendTo(std::vector<float>& data) const {
-        data.push_back(x);
-        data.push_back(y);
+    void appendTo(std::vector<std::byte>& data) const {
+        data.insert(data.end(),
+                    reinterpret_cast<const std::byte*>(&x),
+                    reinterpret_cast<const std::byte*>(&x) + sizeof(float));
+        data.insert(data.end(),
+                    reinterpret_cast<const std::byte*>(&y),
+                    reinterpret_cast<const std::byte*>(&y) + sizeof(float));
     }
 };
 
@@ -64,25 +74,21 @@ namespace Assets::OBJ {
 
 Core::LogCategory OBJImporter("OBJImporter", &Assets);
 
-OBJModel Import(const std::filesystem::path& filename) {
-    OBJModel model;
+Mesh Import(const std::filesystem::path& filename) {
+    Mesh mesh;
 
-    std::optional<std::string> data = Core::FileSystem::ReadTextFile(filename);
+    std::optional<std::string> data = Core::IO::ReadTextFile(filename);
     if(!data) {
         Core::Log::Error(OBJImporter, "Could not load file '{}'", filename.string());
-        return model;
+        return mesh;
     }
-
-    std::unordered_map<std::string, size_t> meshPartIndices;
 
     std::vector<Vector3> positions;
     std::vector<Vector3> normals;
     std::vector<Vector2> textureCoordinates;
 
-    Mesh defaultMesh;
-    std::string currentMaterialName = "unknown";
-
-    Mesh* currentMesh = &defaultMesh;
+    uint64_t currentMeshPartStartIndex = 0;
+    std::string currentMeshPartName = "default";
 
     std::vector<std::string_view> elements;
     std::vector<std::string_view> face;
@@ -106,21 +112,16 @@ OBJModel Import(const std::filesystem::path& filename) {
         } else if(elements[0] == "vn") {
             normals.emplace_back(elements);
         } else if(elements[0] == "usemtl") {
-            currentMaterialName = elements[1];
-            auto meshPartIndex  = meshPartIndices.find(currentMaterialName);
-            if(meshPartIndex == meshPartIndices.end()) {
-                meshPartIndices[currentMaterialName] = model.meshes.size();
-                currentMesh                          = &model.meshes.emplace_back();
-            } else {
-                currentMesh = &model.meshes[meshPartIndex->second];
-            }
+            mesh.meshParts.emplace_back(MeshPart{currentMeshPartName,
+                                        {currentMeshPartStartIndex, mesh.indexData.size() - currentMeshPartStartIndex}});
+            currentMeshPartStartIndex = mesh.indexData.size();
+            currentMeshPartName       = elements[1];
         } else if(elements[0] == "f") {
             // We can divide by format.totalSize here, even before it is set below because we initialize it to 1.
             // See definition of VertexFormat.
             uint32_t vertexCount = 1;
-            if(!currentMesh->vertexData.empty()) {
-                vertexCount =
-                      static_cast<uint32_t>(currentMesh->vertexData.size() / currentMesh->vertexFormat.elementCount());
+            if(!mesh.vertexData.empty()) {
+                vertexCount = static_cast<uint32_t>(mesh.vertexData.size() / mesh.vertexFormat.byteCount());
             }
 
 
@@ -130,9 +131,9 @@ OBJModel Import(const std::filesystem::path& filename) {
                 Core::Algorithms::String::SplitIntoBuffer(elements[i + 1], '/', face);
 
                 if(i > 1) {
-                    currentMesh->indexData.push_back(vertexCount + 0);
-                    currentMesh->indexData.push_back(vertexCount + i - 1);
-                    currentMesh->indexData.push_back(vertexCount + i);
+                    mesh.indexData.push_back(vertexCount + 0);
+                    mesh.indexData.push_back(vertexCount + i - 1);
+                    mesh.indexData.push_back(vertexCount + i);
                 }
 
                 int64_t vertexIndex = Core::Algorithms::String::ParseInt64(face[0]);
@@ -147,41 +148,40 @@ OBJModel Import(const std::filesystem::path& filename) {
                     normalIndex = Core::Algorithms::String::ParseInt64(face[2]);
                 }
 
-                OBJIndexFind(positions, vertexIndex).appendTo(currentMesh->vertexData);
-                auto& vertexProperty        = currentMesh->vertexFormat.properties[Assets::VertexUsage::POSITION];
-                vertexProperty.offset       = 0;
+                OBJIndexFind(positions, vertexIndex).appendTo(mesh.vertexData);
+                auto& vertexProperty        = mesh.vertexFormat.properties[Assets::VertexUsage::POSITION];
+                vertexProperty.byteOffset   = 0;
                 vertexProperty.elementCount = 3;
 
-                uint32_t currentOffset = PositionElements;
+                uint32_t currentOffset = PositionElements * sizeof(float);
 
                 if(normalIndex) {
-                    auto& vertexProperty = currentMesh->vertexFormat.properties[Assets::VertexUsage::NORMAL];
-                    assert(vertexProperty.elementCount == 0 || vertexProperty.offset == currentOffset);
+                    auto& vertexProperty = mesh.vertexFormat.properties[Assets::VertexUsage::NORMAL];
+                    assert(vertexProperty.elementCount == 0 || vertexProperty.byteOffset == currentOffset);
 
-                    vertexProperty.offset       = currentOffset;
+                    vertexProperty.byteOffset   = currentOffset;
                     vertexProperty.elementCount = 3;
 
-                    OBJIndexFind(normals, *normalIndex).appendTo(currentMesh->vertexData);
-                    currentOffset += NormalElements;
+                    OBJIndexFind(normals, *normalIndex).appendTo(mesh.vertexData);
+                    currentOffset += NormalElements * sizeof(float);
                 }
                 if(textureCoordinateIndex) {
-                    auto& vertexProperty = currentMesh->vertexFormat.properties[Assets::VertexUsage::TEXTURE];
-                    assert(vertexProperty.elementCount == 0 || vertexProperty.offset == currentOffset);
+                    auto& vertexProperty = mesh.vertexFormat.properties[Assets::VertexUsage::TEXTURE];
+                    assert(vertexProperty.elementCount == 0 || vertexProperty.byteOffset == currentOffset);
 
-                    vertexProperty.offset       = currentOffset;
+                    vertexProperty.byteOffset   = currentOffset;
                     vertexProperty.elementCount = 2;
 
-                    OBJIndexFind(textureCoordinates, *textureCoordinateIndex).appendTo(currentMesh->vertexData);
-                    currentOffset += TextureElements;
+                    OBJIndexFind(textureCoordinates, *textureCoordinateIndex).appendTo(mesh.vertexData);
+                    currentOffset += TextureElements * sizeof(float);
                 }
             }
         }
     }
 
-    if(!defaultMesh.vertexData.empty()) {
-        model.meshes.emplace_back(defaultMesh);
-    }
+    mesh.meshParts.emplace_back(MeshPart{currentMeshPartName,
+                                {currentMeshPartStartIndex, mesh.indexData.size() - currentMeshPartStartIndex}});
 
-    return model;
+    return mesh;
 }
 }    // namespace Assets::OBJ

@@ -1,6 +1,6 @@
-#include "Core/FileSystem/Path.h"
+#include "Core/IO/FileSystem/Path.h"
 
-namespace Core::FileSystem {
+namespace Core::IO {
 Path::Path(const char* path, PathType type) : path(path), type(type) {}
 Path::Path(const std::string& path, PathType type) : path(path), type(type) {}
 Path::Path(const std::filesystem::path& path, PathType type) : path(path), type(type) {}
