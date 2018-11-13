@@ -32,7 +32,7 @@ public:
 
 template <typename T>
 T Deserializer<T>::deserialize(InputStream& stream) {
-    static_assert(std::is_arithmetic_v<T> || std::is_enum_v<T>);
+    static_assert(std::is_trivial_v<T>);
 
     T value;
     stream.readInto(reinterpret_cast<std::byte*>(&value), sizeof(T));
@@ -42,7 +42,7 @@ T Deserializer<T>::deserialize(InputStream& stream) {
 template <>
 struct Deserializer<std::string> {
     static std::string deserialize(InputStream& stream) {
-        std::string value(stream.read<size_t>(), 0);
+        std::string value(stream.read<std::string::size_type>(), 0);
         stream.readInto(reinterpret_cast<std::byte*>(value.data()), value.size());
         return value;
     }

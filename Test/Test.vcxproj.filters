@@ -29,6 +29,7 @@
     <None Include=".clang-format" />
     <None Include="Content\Shaders\triangle\triangle.vert" />
     <None Include="Content\Shaders\triangle\triangle.frag" />
+    <None Include="Content\Models\chalet.mesh" />
   </ItemGroup>
   <ItemGroup>
     <CopyFileToFolders Include="Content\Shaders\triangle\frag.spv" />

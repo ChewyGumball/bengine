@@ -4,6 +4,7 @@
 
 #include <Core/Containers/HashMap.h>
 
+#include <Core/IO/InputStream.h>
 #include <Core/IO/OutputStream.h>
 
 namespace Assets {
@@ -68,19 +69,16 @@ struct ASSETS_API VertexFormat {
 
 namespace Core::IO {
 template <>
-struct Serializer<Assets::VertexProperty> {
-    static void serialize(Core::IO::OutputStream& stream, const Assets::VertexProperty& value) {
-        stream.write(value.format);
-        stream.write(value.usage);
-        stream.write(value.byteOffset);
-        stream.write(value.elementCount);
+struct Serializer<Assets::VertexFormat> {
+    static void serialize(Core::IO::OutputStream& stream, const Assets::VertexFormat& value) {
+        stream.write(value.properties);
     }
 };
 
 template <>
-struct Serializer<Assets::VertexFormat> {
-    static void serialize(Core::IO::OutputStream& stream, const Assets::VertexFormat& value) {
-        stream.write(value.properties);
+struct Deserializer<Assets::VertexFormat> {
+    static Assets::VertexFormat deserialize(Core::IO::InputStream& stream) {
+        return Assets::VertexFormat{stream.read<Core::HashMap<Assets::VertexUsageName, Assets::VertexProperty>>()};
     }
 };
 }    // namespace Core::IO

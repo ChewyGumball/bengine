@@ -2,6 +2,7 @@
 
 #include <unordered_map>
 
+#include "Core/IO/InputStream.h"
 #include "Core/IO/OutputStream.h"
 
 namespace Core {
@@ -18,6 +19,20 @@ struct Serializer<Core::HashMap<KEY, VALUE>> {
             stream.write(it.first);
             stream.write(it.second);
         }
+    }
+};
+
+template <typename KEY, typename VALUE>
+struct Deserializer<Core::HashMap<KEY, VALUE>> {
+    static Core::HashMap<KEY, VALUE> deserialize(Core::IO::InputStream& stream) {
+        Core::HashMap<KEY, VALUE> value;
+
+        size_t entryCount = stream.read<size_t>();
+        for (size_t i = 0; i < entryCount; i++) {
+            value.emplace(stream.read<KEY>(), stream.read<VALUE>());
+        }
+
+        return value;
     }
 };
 }

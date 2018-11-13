@@ -31,7 +31,7 @@ public:
 
 template <typename T>
 void Serializer<T>::serialize(OutputStream& stream, const T& value) {
-    static_assert(std::is_arithmetic_v<T> || std::is_enum_v<T>);
+    static_assert(std::is_trivial_v<T>);
     stream.write(reinterpret_cast<const std::byte*>(&value), sizeof(T));
 }
 

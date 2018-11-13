@@ -24,7 +24,7 @@ template <typename T>
 struct Serializer<Core::Array<T>> {
     static void serialize(OutputStream& stream, const Core::Array<T>& values) {
         stream.write(values.size());
-        if constexpr(std::is_trivially_constructible_v<T>) {
+        if constexpr(std::is_trivial_v<T>) {
             stream.write(reinterpret_cast<const std::byte*>(values.data()), values.size() * sizeof(T));
         } else {
             for(const T& value : values) {
@@ -38,7 +38,7 @@ template <typename T, uint64_t SIZE>
 struct Serializer<Core::FixedArray<T, SIZE>> {
     static void serialize(OutputStream& stream, const Core::FixedArray<T, SIZE>& values) {
         stream.write(values.size());
-        if constexpr(std::is_trivially_constructible_v<T>) {
+        if constexpr(std::is_trivial_v<T>) {
             stream.write(reinterpret_cast<const std::byte*>(values.data()), values.size() * sizeof(T));
         } else {
             for(const T& value : values) {
@@ -51,14 +51,14 @@ struct Serializer<Core::FixedArray<T, SIZE>> {
 template <typename T>
 struct Deserializer<Core::Array<T>> {
     static Core::Array<T> deserialize(InputStream& stream) {
-        size_t count = stream.read<size_t>();
-        if constexpr(std::is_trivially_constructible_v<T>) {
+        size_t count = stream.read<Core::Array<T>::size_type>();
+        if constexpr(std::is_trivial_v<T>) {
             Core::Array<T> value(count);
-            stream.readInto(value.data(), value.size() * sizeof(T));
+            stream.readInto(reinterpret_cast<std::byte*>(value.data()), value.size() * sizeof(T));
             return value;
         } else {
             Core::Array<T> value;
-            for (size_t i = 0; i < count; i++) {
+            for(size_t i = 0; i < count; i++) {
                 value.emplace_back(Deserializer<T>::deserialize(stream));
             }
             return value;
@@ -69,13 +69,13 @@ struct Deserializer<Core::Array<T>> {
 template <typename T, uint64_t SIZE>
 struct Deserializer<Core::FixedArray<T, SIZE>> {
     static Core::FixedArray<T, SIZE> deserialize(InputStream& stream) {
-        size_t count = stream.read<size_t>();
+        size_t count = stream.read<Core::FixedArray<T, SIZE>::size_type>();
         assert(count == SIZE);
 
         Core::FixedArray<T, SIZE> value;
 
-        if constexpr(std::is_trivially_constructible_v<T>) {
-            stream.readInto(value.data(), value.size() * sizeof(T));
+        if constexpr(std::is_trivial_v<T>) {
+            stream.readInto(reinterpret_cast<std::byte*>(value.data()), value.size() * sizeof(T));
         } else {
             for(size_t i = 0; i < count; i++) {
                 value[i] = Deserializer<T>::deserialize(stream);
@@ -86,4 +86,4 @@ struct Deserializer<Core::FixedArray<T, SIZE>> {
     }
 };
 
-}
+}    // namespace Core::IO
