@@ -57,19 +57,20 @@ VulkanSwapChain VulkanSwapChain::Create(VkDevice device,
                                                       VulkanMemoryVisibility::Device);
     swapChain.depthView  = VulkanImageView::Create(device, swapChain.depthImage, VulkanImageViewAspect::Depth);
 
-    swapChain.imageViews.resize(imageCount);
-    swapChain.framebuffers.resize(imageCount);
-    for(size_t i = 0; i < imageCount; i++) {
-        swapChain.imageViews[i] = VulkanImageView::Create(device, swapChain.images[i], details.format.format);
-        swapChain.framebuffers[i] =
-              VulkanFramebuffer::Create(device, renderPass, details.extent, {swapChain.imageViews[i], swapChain.depthView});
-    }
-
     VkCommandBuffer commandBuffer = queues.transfer.pool.allocateSingleUseBuffer(device);
     swapChain.depthImage.transitionLayout(
           commandBuffer, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
     vkEndCommandBuffer(commandBuffer);
     queues.transfer.submit(commandBuffer, VulkanQueueSubmitType::Transfer);
+
+    swapChain.imageViews.resize(imageCount);
+    swapChain.framebuffers.resize(imageCount);
+    for(size_t i = 0; i < imageCount; i++) {
+        swapChain.imageViews[i]   = VulkanImageView::Create(device, swapChain.images[i], details.format.format);
+        swapChain.framebuffers[i] = VulkanFramebuffer::Create(
+              device, renderPass, details.extent, {swapChain.imageViews[i], swapChain.depthView});
+    }
+
     vkQueueWaitIdle(queues.transfer);
     queues.transfer.pool.freeBuffers(device, {commandBuffer});
 

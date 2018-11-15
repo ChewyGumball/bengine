@@ -30,7 +30,10 @@ struct RENDERER_API VulkanSwapChain : public VulkanObject<VkSwapchainKHR> {
     VulkanImage depthImage;
     VulkanImageView depthView;
 
-    static VulkanSwapChain Create(VkDevice device, const VulkanPhysicalDevice& physicalDevice, const VulkanQueues& queues, VkRenderPass renderPass);
+    static VulkanSwapChain Create(VkDevice device,
+                                  const VulkanPhysicalDevice& physicalDevice,
+                                  const VulkanQueues& queues,
+                                  VkRenderPass renderPass);
     static void Destroy(VkDevice device, VulkanSwapChain& swapChain);
 
     VulkanSwapChainImageAcquisitionResult acquireNextImage(VkDevice device, VkSemaphore waitSemaphore);

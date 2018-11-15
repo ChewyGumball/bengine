@@ -173,8 +173,6 @@
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanShaderModule.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanSwapChain.h" />
     <ClInclude Include="include\Renderer\Backends\Vulkan\VulkanSwapChainDetails.h" />
-    <ClInclude Include="include\Renderer\Buffers\Buffer.h" />
-    <ClInclude Include="include\Renderer\Buffers\BufferView.h" />
     <ClInclude Include="include\Renderer\DllExport.h" />
   </ItemGroup>
   <ItemGroup>
@@ -203,6 +201,9 @@
     <ClCompile Include="src\Backends\Vulkan\VulkanSwapChainDetails.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Assets\Assets.vcxproj">
+      <Project>{293dc8a0-5b95-4e9b-8228-047caf021f95}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\Core\Core.vcxproj">
       <Project>{8364a8b6-4d3f-4076-bfcd-d2342da5805b}</Project>
     </ProjectReference>

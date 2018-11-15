@@ -36,8 +36,7 @@ VkCommandBuffer VulkanCommandPool::allocateSingleUseBuffer(const VkDevice device
     if(level == VulkanCommandBufferLevel::Primary) {
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
     } else {
-        beginInfo.flags =
-              VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;
     }
 
     VK_CHECK(vkBeginCommandBuffer(buffer, &beginInfo));

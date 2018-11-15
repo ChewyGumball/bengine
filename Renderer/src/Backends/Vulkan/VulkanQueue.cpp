@@ -69,10 +69,13 @@ std::optional<const VulkanQueueFamilyIndices> VulkanQueueFamilyIndices::Find(VkP
     return std::nullopt;
 }
 
-VulkanQueue VulkanQueue::Create(VkDevice device, uint32_t familyIndex, VulkanCommandBufferLifetime lifetime) {
+VulkanQueue VulkanQueue::Create(VkDevice device,
+                                uint32_t familyIndex,
+                                VulkanCommandBufferLifetime lifetime,
+                                VulkanCommandBufferResetType resetType) {
     VulkanQueue queue;
     queue.familyIndex = familyIndex;
-    queue.pool        = VulkanCommandPool::Create(device, familyIndex, lifetime);
+    queue.pool        = VulkanCommandPool::Create(device, familyIndex, lifetime, resetType);
 
     vkGetDeviceQueue(device, familyIndex, 0, &queue.object);
 
@@ -132,7 +135,7 @@ VkResult VulkanQueue::present(VkSwapchainKHR swapChain, VkSemaphore waitSemaphor
 
 VulkanQueues VulkanQueues::Create(VkDevice device, const VulkanQueueFamilyIndices& familyIndices) {
     VulkanQueues queues;
-    queues.graphics = VulkanQueue::Create(device, familyIndices.graphics);
+    queues.graphics = VulkanQueue::Create(device, familyIndices.graphics, VulkanCommandBufferLifetime::Permanent, VulkanCommandBufferResetType::Resettable);
     queues.compute  = VulkanQueue::Create(device, familyIndices.compute);
     queues.present  = VulkanQueue::Create(device, familyIndices.present);
     queues.transfer = VulkanQueue::Create(device, familyIndices.transfer, VulkanCommandBufferLifetime::Transient);

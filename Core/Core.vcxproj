@@ -165,7 +165,7 @@
     <ClInclude Include="include\Core\IO\ArrayBuffer.h" />
     <ClInclude Include="include\Core\IO\MemoryBuffer.h" />
     <ClInclude Include="include\Core\IO\OutputStream.h" />
-    <ClInclude Include="include\Core\IO\WindowedBufferView.h" />
+    <ClInclude Include="include\Core\IO\BufferView.h" />
     <ClInclude Include="include\Core\Logging\LogCategory.h" />
     <ClInclude Include="include\Core\Logging\Logger.h" />
     <ClInclude Include="include\Core\Time\Clock.h" />
@@ -192,7 +192,7 @@
     <ClCompile Include="src\IO\InputStream.cpp" />
     <ClCompile Include="src\IO\MemoryBuffer.cpp" />
     <ClCompile Include="src\IO\OutputStream.cpp" />
-    <ClCompile Include="src\IO\WindowedBufferView.cpp" />
+    <ClCompile Include="src\IO\BufferView.cpp" />
     <ClCompile Include="src\Logging\Logger.cpp" />
     <ClCompile Include="src\Time\Clock.cpp" />
     <ClCompile Include="src\Time\SystemClockTicker.cpp" />

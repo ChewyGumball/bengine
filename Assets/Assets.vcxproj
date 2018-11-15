@@ -148,11 +148,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\AssetsCore.h" />
-    <ClInclude Include="include\Catalogs\AssetCatalog.h" />
-    <ClInclude Include="include\Catalogs\AssetTag.h" />
+    <ClInclude Include="include\Assets\Model\Model.h" />
+    <ClInclude Include="include\Assets\Catalogs\AssetCatalog.h" />
+    <ClInclude Include="include\Assets\Catalogs\AssetTag.h" />
     <ClInclude Include="include\DllExport.h" />
     <ClInclude Include="include\Assets\Importers\OBJImporter.h" />
-    <ClInclude Include="include\Material\Shader.h" />
+    <ClInclude Include="include\Assets\Material\Material.h" />
+    <ClInclude Include="include\Assets\Material\Shader.h" />
     <ClInclude Include="include\Assets\Model\Mesh.h" />
     <ClInclude Include="include\Assets\Model\VertexFormat.h" />
   </ItemGroup>

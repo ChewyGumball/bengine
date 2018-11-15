@@ -35,7 +35,8 @@ struct RENDERER_API VulkanQueue : public VulkanObject<VkQueue> {
     
     static VulkanQueue Create(VkDevice device,
                 uint32_t familyIndex,
-                VulkanCommandBufferLifetime lifetime = VulkanCommandBufferLifetime::Permanent);
+                              VulkanCommandBufferLifetime lifetime = VulkanCommandBufferLifetime::Permanent,
+                              VulkanCommandBufferResetType resetType = VulkanCommandBufferResetType::NotResettable);
     static void Destroy(VkDevice device, VulkanQueue& queue);
 };
 

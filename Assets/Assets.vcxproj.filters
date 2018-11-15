@@ -38,15 +38,6 @@
     <ClInclude Include="include\DllExport.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\Material\Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Catalogs\AssetCatalog.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\Catalogs\AssetTag.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="include\Assets\Importers\OBJImporter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -54,6 +45,21 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\Assets\Model\VertexFormat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Assets\Model\Model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Assets\Material\Material.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Assets\Material\Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Assets\Catalogs\AssetCatalog.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Assets\Catalogs\AssetTag.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

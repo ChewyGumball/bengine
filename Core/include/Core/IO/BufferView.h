@@ -11,7 +11,7 @@
 namespace Core::IO {
 
 struct BufferView {
-    const std::byte* const data;
+    std::byte* const data;
     const uint64_t size;
 
     template <typename T>
@@ -21,26 +21,26 @@ struct BufferView {
     }
 };
 
-struct CORE_API WindowedBufferView {
-    std::byte* data;
-    uint64_t size;
-    const uint64_t windowSize;
+struct CORE_API BufferViewWindow {
+    const BufferView view;
+    const uint64_t window;
+    uint64_t windowStart;
 
-    WindowedBufferView(std::byte* buffer, uint64_t bufferSize, uint64_t window);
-    WindowedBufferView(Core::Array<std::byte>& buffer, uint64_t window);
+    BufferViewWindow(BufferView bufferView, uint64_t windowSize);
+    BufferViewWindow(Core::Array<std::byte>& buffer, uint64_t windowSize);
 
 
     template <typename T>
     typename std::enable_if_t<std::is_trivially_constructible_v<T>, T&> read(uint64_t position) const {
-        assert(position + sizeof(T) <= size);
-        return *reinterpret_cast<T*>(data + position);
+        assert(position + sizeof(T) <= window);
+        return *reinterpret_cast<T*>(view.data + windowStart + position);
     }
 
     const std::byte* operator*() const;
     operator bool() const;
 };
 
-CORE_API WindowedBufferView& operator++(WindowedBufferView& view);
-bool CORE_API operator==(const WindowedBufferView& a, const WindowedBufferView& b);
-bool CORE_API operator!=(const WindowedBufferView& a, const WindowedBufferView& b);
+CORE_API BufferViewWindow& operator++(BufferViewWindow& view);
+bool CORE_API operator==(const BufferViewWindow& a, const BufferViewWindow& b);
+bool CORE_API operator!=(const BufferViewWindow& a, const BufferViewWindow& b);
 }    // namespace Core::IO
