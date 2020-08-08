@@ -20,7 +20,7 @@ struct VulkanSwapChainImageAcquisitionResult {
     }
 };
 
-struct RENDERER_API VulkanSwapChain : public VulkanObject<VkSwapchainKHR> {
+struct VulkanSwapChain : public VulkanObject<VkSwapchainKHR> {
     VkFormat imageFormat;
     VkExtent2D extent;
     std::vector<VkImage> images;

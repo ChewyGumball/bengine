@@ -1,13 +1,12 @@
 #pragma once
 
-#include <streambuf>
 #include <ios>
+#include <streambuf>
 
 #include "Core/Containers/Array.h"
-#include "Core/DllExport.h"
 
 namespace Core::IO {
-struct CORE_API ArrayBuffer : public std::basic_streambuf<std::byte> {
+struct ArrayBuffer : public std::basic_streambuf<std::byte> {
     ArrayBuffer(size_t initialSize = 0);
     ArrayBuffer(Core::Array<std::byte>&& initialData);
 

@@ -19,10 +19,13 @@ private:
     Core::HashSet<std::function<bool()>*> duplicateChanges;
 
 public:
-    void handleFileAction(FW::WatchID watchID, const std::filesystem::path& path, FW::Action action) {
+    void handleFileAction(FW::WatchID watchID, const FW::String& dir, const FW::String& file, FW::Action action) {
+        std::filesystem::path directory = dir;
+        std::filesystem::path filename  = file;
+        std::filesystem::path fullPath  = directory / filename;
         if(action == FW::Action::Modified) {
-            if(watchers.count(path) > 0) {
-                for(auto& observer : watchers[path]) {
+            if(watchers.count(fullPath) > 0) {
+                for(auto& observer : watchers[fullPath]) {
                     duplicateChanges.insert(&observer);
                 }
             }
@@ -45,7 +48,7 @@ public:
         watchers[filename].emplace_back(observer);
         std::filesystem::path directory = filename.parent_path();
         if(watchedDirectories.count(directory) == 0) {
-            fileWatcher->addWatch(directory, this);
+            fileWatcher->addWatch(directory.string(), this);
             watchedDirectories.insert(directory);
         }
     }

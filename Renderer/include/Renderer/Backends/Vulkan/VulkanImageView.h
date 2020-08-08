@@ -6,7 +6,7 @@
 namespace Renderer::Backends::Vulkan {
 enum class VulkanImageViewAspect { Colour, Depth, DepthStencil };
 
-struct RENDERER_API VulkanImageView : public VulkanObject<VkImageView> {
+struct VulkanImageView : public VulkanObject<VkImageView> {
     static VulkanImageView
     Create(VkDevice device, const VulkanImage& image, VulkanImageViewAspect aspect = VulkanImageViewAspect::Colour);
 

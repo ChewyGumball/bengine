@@ -4,7 +4,6 @@
 
 #include <Core/Logging/Logger.h>
 
-#include "Renderer/DllExport.h"
 
 namespace Renderer::Backends::Vulkan {
 
@@ -12,7 +11,7 @@ constexpr Core::LogCategory Vulkan("Vulkan");
 
 enum class VulkanMemoryVisibility { Host, Device };
 
-template<typename T>
+template <typename T>
 struct VulkanObject {
     T object;
 

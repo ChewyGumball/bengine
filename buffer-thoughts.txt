@@ -1,0 +1,47 @@
+Buffer Types:
+Persistent - only lives on GPU - can be changed, manually removed - Main GPU memory
+Transient - lives on CPU and GPU - can be changed, manually removed - from a separately allocated heap in Main GPU memory
+Temporary - lives on CPU and GPU - can not be changed, automatically removed after a frame - from a separately allocated ring buffer in Main GPU memory
+Constant - lives on CPU and GPU - can be changed, manually removed - shader variables - Main GPU memory
+
+Mesh Example:
+
+Buffer {
+    enum BufferType {
+        persistent, transient, temporary, constant
+    } type;
+}
+
+PersistentBuffer {
+    type = BufferType::persistent;
+
+    (data) => {
+        uploadToGPU(data);
+    }
+}
+
+TransientBuffer {
+    type = BufferType::transient;
+    void* data;
+
+    (data) => {
+        this.data = data;
+        uploadToGPU(data);
+    }
+}
+
+Mesh {
+    Buffer* data;
+}
+
+Mesh* createPersistentMesh(void* data) {
+    return new Mesh {
+        data = new PersistentBuffer(data)
+    }
+}
+
+Mesh* createTransientMesh(void* data) {
+    return new Mesh {
+        data = new TransientBuffer(data)
+    }
+}

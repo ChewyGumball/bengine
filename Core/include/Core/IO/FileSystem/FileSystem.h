@@ -9,13 +9,12 @@
 #include "Core/IO/InputStream.h"
 #include "Core/IO/OutputStream.h"
 
-#include "Core/DllExport.h"
 
 #include "FileSystemMount.h"
 #include "Path.h"
 
 namespace Core::IO {
-struct CORE_API FileSystem {
+struct FileSystem {
 private:
     Core::HashMap<std::filesystem::path, FileSystemMount*> mounts;
 
@@ -35,14 +34,14 @@ public:
     void updateWatchers() const;
 };
 
-extern CORE_API FileSystem DefaultFileSystem;
+extern FileSystem DefaultFileSystem;
 
-std::optional<InputStream> CORE_API OpenFileForRead(const Path& file);
-std::optional<std::string> CORE_API ReadTextFile(const Path& file);
-std::optional<Core::Array<std::byte>> CORE_API ReadBinaryFile(const Path& file);
+std::optional<InputStream> OpenFileForRead(const Path& file);
+std::optional<std::string> ReadTextFile(const Path& file);
+std::optional<Core::Array<std::byte>> ReadBinaryFile(const Path& file);
 
-std::optional<OutputStream> CORE_API OpenFileForWrite(const Path& file);
-void CORE_API WriteBinaryFile(const Path& file, const Core::Array<std::byte>& data);
+std::optional<OutputStream> OpenFileForWrite(const Path& file);
+void WriteBinaryFile(const Path& file, const Core::Array<std::byte>& data);
 
-void CORE_API WatchForChanges(const Path& file, const std::function<bool()>& observer);
-}    // namespace Core::FileSystem
+void WatchForChanges(const Path& file, const std::function<bool()>& observer);
+}    // namespace Core::IO

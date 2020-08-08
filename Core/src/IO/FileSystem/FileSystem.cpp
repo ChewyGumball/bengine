@@ -10,7 +10,7 @@ findMountPoint(const Core::IO::Path& path,
                const Core::HashMap<std::filesystem::path, Core::IO::FileSystemMount*>& mounts) {
     std::filesystem::path pathToCheck = path.path.lexically_normal();
 
-    //Check each level of the path for a mount
+    // Check each level of the path for a mount
     while(pathToCheck.has_relative_path()) {
         if(mounts.count(pathToCheck) != 0) {
             return *mounts.at(pathToCheck);
@@ -19,7 +19,7 @@ findMountPoint(const Core::IO::Path& path,
         pathToCheck = pathToCheck.parent_path();
     }
 
-    //Check if the root path is a mount
+    // Check if the root path is a mount
     if(mounts.count(pathToCheck) != 0) {
         return *mounts.at(pathToCheck);
     }
@@ -48,7 +48,7 @@ std::optional<OutputStream> OpenFileForWrite(const Path& file) {
     return DefaultFileSystem.openFileForWrite(file);
 }
 
-void CORE_API WriteBinaryFile(const Path& file, const Core::Array<std::byte>& data) {
+void WriteBinaryFile(const Path& file, const Core::Array<std::byte>& data) {
     DefaultFileSystem.writeBinaryFile(file, data);
 }
 
@@ -78,7 +78,7 @@ std::optional<InputStream> FileSystem::openFileForRead(const Path& file) const {
 }
 
 std::optional<std::string> FileSystem::readTextFile(const Path& file) const {
-    if (file.type == PathType::Explicit) {
+    if(file.type == PathType::Explicit) {
         return DefaultMount.readTextFile(file);
     } else {
         return findMountPoint(file, mounts).readTextFile(file);
@@ -122,4 +122,4 @@ void FileSystem::updateWatchers() const {
         mount.second->updateWatchers();
     }
 }
-}    // namespace Core::FileSystem
+}    // namespace Core::IO

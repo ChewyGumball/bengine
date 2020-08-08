@@ -1,6 +1,5 @@
 #pragma once
 
-#include "DllExport.h"
 
 #include <Core/Containers/HashMap.h>
 
@@ -52,7 +51,7 @@ namespace VertexPropertyFormat {
     }
 }    // namespace VertexPropertyFormat
 
-struct ASSETS_API VertexProperty {
+struct VertexProperty {
     VertexPropertyFormatName format;
     VertexUsageName usage;
     uint8_t byteOffset;
@@ -61,7 +60,7 @@ struct ASSETS_API VertexProperty {
     uint32_t byteCount() const;
 };
 
-struct ASSETS_API VertexFormat {
+struct VertexFormat {
     Core::HashMap<VertexUsageName, VertexProperty> properties;
     uint32_t byteCount() const;
 };
@@ -78,7 +77,8 @@ struct Serializer<Assets::VertexFormat> {
 template <>
 struct Deserializer<Assets::VertexFormat> {
     static Assets::VertexFormat deserialize(Core::IO::InputStream& stream) {
-        return Assets::VertexFormat{stream.read<Core::HashMap<Assets::VertexUsageName, Assets::VertexProperty>>()};
+        return Assets::VertexFormat{
+              .properties = stream.read<Core::HashMap<Assets::VertexUsageName, Assets::VertexProperty>>()};
     }
 };
 }    // namespace Core::IO

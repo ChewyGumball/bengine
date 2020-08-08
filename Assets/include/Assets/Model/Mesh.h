@@ -6,7 +6,6 @@
 #include <Core/IO/InputStream.h>
 #include <Core/IO/OutputStream.h>
 
-#include "DllExport.h"
 
 #include "VertexFormat.h"
 
@@ -17,7 +16,7 @@ struct MeshPart {
     Core::IndexArrayView indices;
 };
 
-struct ASSETS_API Mesh {
+struct Mesh {
     VertexFormat vertexFormat;
     Core::Array<MeshPart> meshParts;
     Core::Array<std::byte> vertexData;
@@ -40,7 +39,7 @@ struct Serializer<Assets::MeshPart> {
 template <>
 struct Deserializer<Assets::MeshPart> {
     static Assets::MeshPart deserialize(InputStream& stream) {
-        return Assets::MeshPart{stream.read<std::string>(), stream.read<IndexArrayView>()};
+        return Assets::MeshPart{.name = stream.read<std::string>(), .indices = stream.read<IndexArrayView>()};
     }
 };
 
@@ -57,10 +56,10 @@ struct Serializer<Assets::Mesh> {
 template <>
 struct Deserializer<Assets::Mesh> {
     static Assets::Mesh deserialize(InputStream& stream) {
-        return Assets::Mesh{stream.read<Assets::VertexFormat>(),
-                            stream.read<Core::Array<Assets::MeshPart>>(),
-                            stream.read<Core::Array<std::byte>>(),
-                            stream.read<Core::Array<uint32_t>>()};
+        return Assets::Mesh{.vertexFormat = stream.read<Assets::VertexFormat>(),
+                            .meshParts    = stream.read<Core::Array<Assets::MeshPart>>(),
+                            .vertexData   = stream.read<Core::Array<std::byte>>(),
+                            .indexData    = stream.read<Core::Array<uint32_t>>()};
     }
 };
 }    // namespace Core::IO

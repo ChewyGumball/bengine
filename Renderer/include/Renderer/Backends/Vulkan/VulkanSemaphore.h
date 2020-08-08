@@ -4,7 +4,7 @@
 
 namespace Renderer::Backends::Vulkan {
 
-struct RENDERER_API VulkanSemaphore : public VulkanObject<VkSemaphore> {
+struct VulkanSemaphore : public VulkanObject<VkSemaphore> {
     static VulkanSemaphore Create(VkDevice device);
     static void Destroy(VkDevice device, VulkanSemaphore& semaphore);
 };

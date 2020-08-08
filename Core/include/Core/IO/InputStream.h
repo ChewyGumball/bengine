@@ -3,7 +3,6 @@
 #include <memory>
 #include <string>
 
-#include "Core/DllExport.h"
 
 namespace Core::IO {
 
@@ -12,7 +11,7 @@ struct Deserializer {
     static T deserialize(struct InputStream& stream);
 };
 
-struct CORE_API InputStream {
+struct InputStream {
 private:
     std::unique_ptr<class std::basic_istream<std::byte>> stream;
 

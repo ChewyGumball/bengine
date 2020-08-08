@@ -9,7 +9,7 @@ namespace Renderer::Backends::Vulkan {
 enum class VulkanBufferUsageType { Vertex, Index, Uniform, Storage, None };
 enum class VulkanBufferTransferType { Source, Destination, None };
 
-struct RENDERER_API VulkanBuffer : public VulkanObject<VkBuffer> {
+struct VulkanBuffer : public VulkanObject<VkBuffer> {
     VkDeviceMemory memory;
     uint64_t size;
 

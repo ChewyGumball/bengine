@@ -67,3 +67,7 @@
 /Assets/x64/Release
 /ModelCompiler/x64/Debug
 /ModelCompiler/x64/Release
+
+/bazel-*
+*.code-workspace
+.vscode

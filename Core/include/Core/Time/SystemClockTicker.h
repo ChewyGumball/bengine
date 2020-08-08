@@ -2,12 +2,11 @@
 
 #include <chrono>
 
-#include "Core/DllExport.h"
 #include "Core/Containers/Array.h"
 #include "Core/Time/Clock.h"
 
 namespace Core {
-class CORE_API SystemClockTicker {
+class SystemClockTicker {
 public:
     SystemClockTicker();
     void tick();
@@ -21,4 +20,4 @@ private:
 
     Core::Array<Clock*> clocksToTick;
 };
-}
+}    // namespace Core

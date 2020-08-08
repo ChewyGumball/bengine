@@ -5,8 +5,9 @@
 #include "VulkanCore.h"
 
 namespace Renderer::Backends::Vulkan {
-struct RENDERER_API VulkanFramebuffer : public VulkanObject<VkFramebuffer> {
-    static VulkanFramebuffer Create(VkDevice device, VkRenderPass renderPass, VkExtent2D extent, const std::vector<VkImageView>& attachments);
+struct VulkanFramebuffer : public VulkanObject<VkFramebuffer> {
+    static VulkanFramebuffer
+    Create(VkDevice device, VkRenderPass renderPass, VkExtent2D extent, const std::vector<VkImageView>& attachments);
     static void Destroy(VkDevice device, VulkanFramebuffer& framebuffer);
 };
 }    // namespace Renderer::Backends::Vulkan

@@ -8,13 +8,15 @@ enum class VulkanCommandBufferLifetime { Transient, Permanent };
 enum class VulkanCommandBufferResetType { Resettable, NotResettable };
 enum class VulkanCommandBufferLevel { Primary, Secondary };
 
-struct RENDERER_API VulkanCommandPool : public VulkanObject<VkCommandPool> {
+struct VulkanCommandPool : public VulkanObject<VkCommandPool> {
     uint32_t family;
 
-    std::vector<VkCommandBuffer> allocateBuffers(const VkDevice device,
-                                                 uint32_t count,
-                                                 VulkanCommandBufferLevel level = VulkanCommandBufferLevel::Primary) const;
-    VkCommandBuffer allocateSingleUseBuffer(const VkDevice device, VulkanCommandBufferLevel level = VulkanCommandBufferLevel::Primary) const;
+    std::vector<VkCommandBuffer>
+    allocateBuffers(const VkDevice device,
+                    uint32_t count,
+                    VulkanCommandBufferLevel level = VulkanCommandBufferLevel::Primary) const;
+    VkCommandBuffer allocateSingleUseBuffer(const VkDevice device,
+                                            VulkanCommandBufferLevel level = VulkanCommandBufferLevel::Primary) const;
     void freeBuffers(const VkDevice device, const std::vector<VkCommandBuffer>& buffers) const;
 
     static VulkanCommandPool

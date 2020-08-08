@@ -20,8 +20,7 @@ uint32_t VertexProperty::byteCount() const {
         case VertexPropertyFormat::UINT_32: elementSize = sizeof(uint32_t); break;
         default:
             elementSize = sizeof(float);
-            Core::Log::Error(
-                  VertexFormatLog, "Unknown vertex format {}, assuming 32 bit float", format);
+            Core::Log::Error(VertexFormatLog, "Unknown vertex format {}, assuming 32 bit float", format);
     }
     return static_cast<uint32_t>(elementSize * elementCount);
 }

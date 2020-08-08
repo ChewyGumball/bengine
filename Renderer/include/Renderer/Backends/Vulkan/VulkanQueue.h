@@ -1,13 +1,13 @@
 #pragma once
 
-#include "VulkanCore.h"
 #include "VulkanCommandPool.h"
+#include "VulkanCore.h"
 
 #include <optional>
 
 namespace Renderer::Backends::Vulkan {
 
-struct RENDERER_API VulkanQueueFamilyIndices {
+struct VulkanQueueFamilyIndices {
     uint32_t graphics;
     uint32_t compute;
     uint32_t present;
@@ -21,10 +21,10 @@ struct RENDERER_API VulkanQueueFamilyIndices {
 
 enum class VulkanQueueSubmitType { Graphics, Transfer };
 
-struct RENDERER_API VulkanQueue : public VulkanObject<VkQueue> {
+struct VulkanQueue : public VulkanObject<VkQueue> {
     uint32_t familyIndex;
     VulkanCommandPool pool;
-    
+
     void submit(const VkCommandBuffer& commandBuffer,
                 VulkanQueueSubmitType type,
                 VkSemaphore waitSemaphore   = VK_NULL_HANDLE,
@@ -32,15 +32,15 @@ struct RENDERER_API VulkanQueue : public VulkanObject<VkQueue> {
                 VkFence fence               = VK_NULL_HANDLE) const;
     VkResult present(VkSwapchainKHR swapChain, VkSemaphore waitSemaphore, uint32_t imageIndex) const;
 
-    
+
     static VulkanQueue Create(VkDevice device,
-                uint32_t familyIndex,
-                              VulkanCommandBufferLifetime lifetime = VulkanCommandBufferLifetime::Permanent,
+                              uint32_t familyIndex,
+                              VulkanCommandBufferLifetime lifetime   = VulkanCommandBufferLifetime::Permanent,
                               VulkanCommandBufferResetType resetType = VulkanCommandBufferResetType::NotResettable);
     static void Destroy(VkDevice device, VulkanQueue& queue);
 };
 
-struct RENDERER_API VulkanQueues {
+struct VulkanQueues {
     VulkanQueue graphics;
     VulkanQueue compute;
     VulkanQueue present;

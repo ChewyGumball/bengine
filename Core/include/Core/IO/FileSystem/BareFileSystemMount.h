@@ -1,12 +1,10 @@
 #pragma once
 
-#include "Core/DllExport.h"
 
 #include "Core/IO/FileSystem/FileSystemMount.h"
 
 namespace Core::IO {
-struct CORE_API BareFileSystemMount : FileSystemMount {
-
+struct BareFileSystemMount : FileSystemMount {
     BareFileSystemMount(const std::filesystem::path& mount);
 
     virtual std::filesystem::path translatePath(const Path& path) const;
@@ -21,4 +19,4 @@ struct CORE_API BareFileSystemMount : FileSystemMount {
     virtual void watchForChanges(const Path& file, const std::function<bool()>& observer) const;
     virtual void updateWatchers() const;
 };
-}    // namespace Core::FileSystem
+}    // namespace Core::IO

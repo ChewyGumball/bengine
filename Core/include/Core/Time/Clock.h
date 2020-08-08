@@ -2,11 +2,10 @@
 
 #include <chrono>
 
-#include "Core/DllExport.h"
 
 namespace Core {
 
-class CORE_API Clock {
+class Clock {
 public:
     using Nanoseconds = std::chrono::nanoseconds;
     using Seconds     = std::chrono::duration<float>;
@@ -18,7 +17,7 @@ public:
 
     Nanoseconds tickedTime() const;
     Nanoseconds totalElapsedTime() const;
-    
+
     Seconds tickedSeconds() const;
     Seconds totalElapsedSeconds() const;
 

@@ -2,11 +2,10 @@
 
 #include "VulkanCore.h"
 
-#include "Renderer/DllExport.h"
 
 namespace Renderer::Backends::Vulkan {
-    
-struct RENDERER_API VulkanSwapChainDetails {
+
+struct VulkanSwapChainDetails {
     VkSurfaceKHR surface;
     VkSurfaceFormatKHR format;
     VkFormat depthFormat;

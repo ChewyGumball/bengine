@@ -5,7 +5,7 @@
 
 
 namespace Renderer::Backends::Vulkan {
-struct RENDERER_API VulkanLogicalDevice : public VulkanObject<VkDevice> {
+struct VulkanLogicalDevice : public VulkanObject<VkDevice> {
     static VulkanLogicalDevice Create(const VulkanQueueFamilyIndices& queueIndices,
                                       const std::vector<std::string>& deviceExtensions,
                                       const std::vector<std::string>& validationLayers);

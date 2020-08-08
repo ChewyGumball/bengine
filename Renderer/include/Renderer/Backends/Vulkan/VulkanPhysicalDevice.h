@@ -9,8 +9,8 @@
 #include "VulkanSwapChainDetails.h"
 
 namespace Renderer::Backends::Vulkan {
-    
-struct RENDERER_API VulkanPhysicalDevice : public VulkanObject<VkPhysicalDevice> {
+
+struct VulkanPhysicalDevice : public VulkanObject<VkPhysicalDevice> {
     VulkanQueueFamilyIndices queueIndices;
     VulkanSwapChainDetails swapChainDetails;
     VkPhysicalDeviceMemoryProperties memoryProperties;

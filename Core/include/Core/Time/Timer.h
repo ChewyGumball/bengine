@@ -2,10 +2,9 @@
 
 #include "Clock.h"
 
-#include "Core/DllExport.h"
 
 namespace Core {
-class CORE_API Timer {
+class Timer {
 public:
     enum class StartType { STARTED, STOPPED };
 

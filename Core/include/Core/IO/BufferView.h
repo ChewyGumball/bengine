@@ -6,7 +6,6 @@
 
 #include "Core/Containers/Array.h"
 
-#include "Core/DllExport.h"
 
 namespace Core::IO {
 
@@ -21,7 +20,7 @@ struct BufferView {
     }
 };
 
-struct CORE_API BufferViewWindow {
+struct BufferViewWindow {
     const BufferView view;
     const uint64_t window;
     uint64_t windowStart;
@@ -40,7 +39,7 @@ struct CORE_API BufferViewWindow {
     operator bool() const;
 };
 
-CORE_API BufferViewWindow& operator++(BufferViewWindow& view);
-bool CORE_API operator==(const BufferViewWindow& a, const BufferViewWindow& b);
-bool CORE_API operator!=(const BufferViewWindow& a, const BufferViewWindow& b);
+BufferViewWindow& operator++(BufferViewWindow& view);
+bool operator==(const BufferViewWindow& a, const BufferViewWindow& b);
+bool operator!=(const BufferViewWindow& a, const BufferViewWindow& b);
 }    // namespace Core::IO

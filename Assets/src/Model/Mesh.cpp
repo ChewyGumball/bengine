@@ -1,5 +1,7 @@
 #include "Assets/Model/Mesh.h"
 
+#include <algorithm>
+
 namespace {
 
 struct VertexProxy {

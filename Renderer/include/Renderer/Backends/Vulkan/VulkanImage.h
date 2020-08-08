@@ -2,14 +2,13 @@
 
 #include "VulkanCore.h"
 
-#include "Renderer/DllExport.h"
 
 namespace Renderer::Backends::Vulkan {
 
 enum class VulkanImageUsageType { Sampled, Storage, Colour, Depth, Input, None };
 enum class VulkanImageTransferType { Source, Destination, None };
 
-struct RENDERER_API VulkanImage : VulkanObject<VkImage> {
+struct VulkanImage : VulkanObject<VkImage> {
     VkDeviceMemory memory;
     VkExtent3D extent;
     VkFormat format;

@@ -3,7 +3,6 @@
 #include <memory>
 #include <string>
 
-#include "Core/DllExport.h"
 
 namespace Core::IO {
 
@@ -12,7 +11,7 @@ struct Serializer {
     static void serialize(struct OutputStream& stream, const T& value);
 };
 
-struct CORE_API OutputStream {
+struct OutputStream {
 private:
     std::unique_ptr<class std::basic_ostream<std::byte>> stream;
 

@@ -3,7 +3,7 @@
 #include "Core/IO/FileSystem/BareFileSystemMount.h"
 
 namespace Core::IO {
-struct CORE_API VirtualFileSystemMount : public BareFileSystemMount {
+struct VirtualFileSystemMount : public BareFileSystemMount {
     std::filesystem::path rootPath;
 
     VirtualFileSystemMount(const std::filesystem::path& mount, const std::filesystem::path& root);
@@ -19,4 +19,4 @@ struct CORE_API VirtualFileSystemMount : public BareFileSystemMount {
     virtual void watchForChanges(const Path& file, const std::function<bool()>& observer) const;
     virtual void updateWatchers() const;
 };
-}    // namespace Core::FileSystem
+}    // namespace Core::IO

@@ -2,7 +2,6 @@
 
 #include <filesystem>
 
-#include "Core/DllExport.h"
 
 namespace std {
 template <>
@@ -17,7 +16,7 @@ struct hash<filesystem::path> {
 namespace Core::IO {
 
 enum class PathType { Mappable, Explicit };
-struct CORE_API Path {
+struct Path {
     std::filesystem::path path;
     PathType type;
 
@@ -26,4 +25,4 @@ struct CORE_API Path {
     Path(const std::filesystem::path& path, PathType type = PathType::Mappable);
 };
 
-}    // namespace Core::FileSystem
+}    // namespace Core::IO
