@@ -1,4 +1,4 @@
-load("//tools:bengine_rules.bzl", "bengine_cc_library")
+load("//tools:bengine_rules.bzl", "bengine_cc_library", "bengine_cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -72,5 +72,15 @@ bengine_cc_library(
     deps = [
         "//Core:containers",
         "//Core:logging",
+    ],
+)
+
+bengine_cc_test(
+    name = "mesh_serialization",
+    srcs = ["test/mesh_serialization.cpp"],
+    deps = [
+        "//Assets:model",
+        "//Core:containers",
+        "//Core:io",
     ],
 )

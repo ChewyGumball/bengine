@@ -39,7 +39,9 @@ struct Serializer<Assets::MeshPart> {
 template <>
 struct Deserializer<Assets::MeshPart> {
     static Assets::MeshPart deserialize(InputStream& stream) {
-        return Assets::MeshPart{.name = stream.read<std::string>(), .indices = stream.read<IndexArrayView>()};
+        auto name    = stream.read<std::string>();
+        auto indices = stream.read<IndexArrayView>();
+        return Assets::MeshPart{.name = std::move(name), .indices = indices};
     }
 };
 
@@ -56,10 +58,15 @@ struct Serializer<Assets::Mesh> {
 template <>
 struct Deserializer<Assets::Mesh> {
     static Assets::Mesh deserialize(InputStream& stream) {
-        return Assets::Mesh{.vertexFormat = stream.read<Assets::VertexFormat>(),
-                            .meshParts    = stream.read<Core::Array<Assets::MeshPart>>(),
-                            .vertexData   = stream.read<Core::Array<std::byte>>(),
-                            .indexData    = stream.read<Core::Array<uint32_t>>()};
+        auto vertexFormat = stream.read<Assets::VertexFormat>();
+        auto meshParts    = stream.read<Core::Array<Assets::MeshPart>>();
+        auto vertexData   = stream.read<Core::Array<std::byte>>();
+        auto indexData    = stream.read<Core::Array<uint32_t>>();
+
+        return Assets::Mesh{.vertexFormat = std::move(vertexFormat),
+                            .meshParts    = std::move(meshParts),
+                            .vertexData   = std::move(vertexData),
+                            .indexData    = std::move(indexData)};
     }
 };
 }    // namespace Core::IO

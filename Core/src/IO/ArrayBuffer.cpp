@@ -6,8 +6,7 @@ namespace Core::IO {
 
 ArrayBuffer::ArrayBuffer(size_t initialSize) : ArrayBuffer(Core::Array<std::byte>(initialSize)) {}
 ArrayBuffer::ArrayBuffer(Core::Array<std::byte>&& initialData) : data(std::move(initialData)) {
-    setg(data.data(), data.data(), data.data() + data.size());
-    setp(data.data(), data.data(), data.data() + data.size());
+    updatePointers(0, 0);
 }
 
 const Core::Array<std::byte>& ArrayBuffer::buffer() const {
@@ -56,8 +55,9 @@ std::streamsize ArrayBuffer::xsgetn(std::byte* s, std::streamsize n) {
 }
 
 void ArrayBuffer::updatePointers(size_t inputOffset, size_t outputOffset) {
-    setg(data.data(), data.data() + inputOffset, data.data() + data.size());
+    setg(data.data(), data.data(), data.data() + data.size());
     setp(data.data(), data.data(), data.data() + data.size());
+    gbump(static_cast<int>(inputOffset));
     pbump(static_cast<int>(outputOffset));
 }
 
@@ -66,6 +66,6 @@ size_t ArrayBuffer::currentOutputOffset() {
 }
 
 size_t ArrayBuffer::currentInputOffset() {
-    return egptr() - gptr();
+    return gptr() - eback();
 }
 }    // namespace Core::IO

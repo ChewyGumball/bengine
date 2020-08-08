@@ -1,4 +1,4 @@
-load("//tools:bengine_rules.bzl", "bengine_cc_library")
+load("//tools:bengine_rules.bzl", "bengine_cc_library", "bengine_cc_test")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -126,5 +126,15 @@ bengine_cc_library(
     strip_include_prefix = "include",
     deps = [
         ":containers",
+    ],
+)
+
+bengine_cc_test(
+    name = "output_stream",
+    srcs = [
+        "test/output_stream.cpp",
+    ],
+    deps = [
+        ":io",
     ],
 )

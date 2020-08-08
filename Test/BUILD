@@ -14,6 +14,7 @@ bengine_cc_binary(
         "Content/Models/chalet.mesh",
         "Content/Shaders/triangle/frag.spv",
         "Content/Shaders/triangle/vert.spv",
+        "Content/Textures/chalet.jpg",
     ],
     deps = [
         "//Assets:importers",

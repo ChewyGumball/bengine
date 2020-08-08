@@ -9,7 +9,7 @@ Core::LogCategory VertexFormatLog("VertexFormat");
 
 namespace Assets {
 
-uint32_t VertexProperty::byteCount() const {
+uint8_t VertexProperty::byteCount() const {
     size_t elementSize = 0;
     switch(format) {
         case VertexPropertyFormat::FLOAT_32: elementSize = sizeof(float); break;
@@ -22,7 +22,7 @@ uint32_t VertexProperty::byteCount() const {
             elementSize = sizeof(float);
             Core::Log::Error(VertexFormatLog, "Unknown vertex format {}, assuming 32 bit float", format);
     }
-    return static_cast<uint32_t>(elementSize * elementCount);
+    return static_cast<uint8_t>(elementSize * elementCount);
 }
 
 uint32_t VertexFormat::byteCount() const {

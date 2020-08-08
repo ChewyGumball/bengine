@@ -15,7 +15,7 @@ template <typename KEY, typename VALUE>
 struct Serializer<Core::HashMap<KEY, VALUE>> {
     static void serialize(Core::IO::OutputStream& stream, const Core::HashMap<KEY, VALUE>& value) {
         stream.write(value.size());
-        for (auto& it : value) {
+        for(auto& it : value) {
             stream.write(it.first);
             stream.write(it.second);
         }
@@ -28,11 +28,13 @@ struct Deserializer<Core::HashMap<KEY, VALUE>> {
         Core::HashMap<KEY, VALUE> value;
 
         size_t entryCount = stream.read<size_t>();
-        for (size_t i = 0; i < entryCount; i++) {
-            value.emplace(stream.read<KEY>(), stream.read<VALUE>());
+        for(size_t i = 0; i < entryCount; i++) {
+            KEY k   = stream.read<KEY>();
+            VALUE v = stream.read<VALUE>();
+            value.emplace(std::move(k), std::move(v));
         }
 
         return value;
     }
 };
-}
+}    // namespace Core::IO

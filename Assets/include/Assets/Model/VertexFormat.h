@@ -57,7 +57,7 @@ struct VertexProperty {
     uint8_t byteOffset;
     uint8_t elementCount;
 
-    uint32_t byteCount() const;
+    uint8_t byteCount() const;
 };
 
 struct VertexFormat {

@@ -1,7 +1,7 @@
 load("//tools:bengine_rules.bzl", "bengine_cc_binary")
 
 bengine_cc_binary(
-    name = "model_compiler",
+    name = "compile",
     srcs = [
         "ModelCompiler.cpp",
     ],

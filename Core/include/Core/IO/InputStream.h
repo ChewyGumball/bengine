@@ -1,8 +1,8 @@
 #pragma once
 
+#include <istream>
 #include <memory>
 #include <string>
-
 
 namespace Core::IO {
 
@@ -13,11 +13,11 @@ struct Deserializer {
 
 struct InputStream {
 private:
-    std::unique_ptr<class std::basic_istream<std::byte>> stream;
+    std::unique_ptr<std::basic_istream<std::byte>> stream;
 
 public:
     InputStream(std::basic_streambuf<std::byte>* stream);
-    InputStream(std::unique_ptr<class std::basic_istream<std::byte>>&& stream);
+    InputStream(std::unique_ptr<std::basic_istream<std::byte>>&& stream);
     InputStream(InputStream&& other);
 
     template <typename T>
@@ -27,7 +27,6 @@ public:
 
     void readInto(std::byte* buffer, uint64_t size);
 };
-
 
 template <typename T>
 T Deserializer<T>::deserialize(InputStream& stream) {

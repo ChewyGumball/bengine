@@ -126,3 +126,14 @@ http_archive(
     strip_prefix = "stb-b42009b3b9d4ca35bc703f5310eedc74f584be58",
     url = "https://github.com/nothings/stb/archive/b42009b3b9d4ca35bc703f5310eedc74f584be58.zip",
 )
+
+################
+# Setup catch2 #
+################
+
+http_archive(
+    name = "catch2",
+    sha256 = "e7336f2b02193f3cc65892eaa0830aae90b750980d9395d42b1df687287a6f8e",
+    strip_prefix = "Catch2-2.13.0",
+    url = "https://github.com/catchorg/Catch2/archive/v2.13.0.zip",
+)
