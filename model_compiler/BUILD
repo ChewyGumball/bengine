@@ -6,8 +6,8 @@ bengine_cc_binary(
         "ModelCompiler.cpp",
     ],
     deps = [
-        "//Assets:importers",
-        "//Core:containers",
-        "//Core:io",
+        "//assets:importers",
+        "//core:containers",
+        "//core:io",
     ],
 )

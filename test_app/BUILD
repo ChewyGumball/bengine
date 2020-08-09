@@ -17,9 +17,9 @@ bengine_cc_binary(
         "Content/Textures/chalet.jpg",
     ],
     deps = [
-        "//Assets:importers",
-        "//Core:time",
-        "//Renderer:vulkan",
+        "//assets:importers",
+        "//core:time",
+        "//renderer:vulkan",
         "@com_google_absl//absl/container:flat_hash_map",
         "@glfw",
         "@glm",

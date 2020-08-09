@@ -6,7 +6,7 @@ bengine_cc_binary(
         "Benchmark.cpp",
     ],
     deps = [
-        "//Core:algorithms",
+        "//core:algorithms",
         "@hayai",
     ],
 )

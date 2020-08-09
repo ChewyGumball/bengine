@@ -9,7 +9,7 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
-        "//Core:logging",
+        "//core:logging",
     ],
 )
 
@@ -22,8 +22,8 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
-        "//Core:containers",
-        "//Core:io",
+        "//core:containers",
+        "//core:io",
     ],
 )
 
@@ -39,9 +39,9 @@ bengine_cc_library(
     deps = [
         ":core",
         ":model",
-        "//Core:algorithms",
-        "//Core:containers",
-        "//Core:io",
+        "//core:algorithms",
+        "//core:containers",
+        "//core:io",
     ],
 )
 
@@ -53,7 +53,7 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
-        "//Core:containers",
+        "//core:containers",
     ],
 )
 
@@ -70,8 +70,8 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
-        "//Core:containers",
-        "//Core:logging",
+        "//core:containers",
+        "//core:logging",
     ],
 )
 
@@ -79,8 +79,8 @@ bengine_cc_test(
     name = "mesh_serialization",
     srcs = ["test/mesh_serialization.cpp"],
     deps = [
-        "//Assets:model",
-        "//Core:containers",
-        "//Core:io",
+        "//assets:model",
+        "//core:containers",
+        "//core:io",
     ],
 )

@@ -37,37 +37,10 @@
 
 *.vcxproj.user
 
-/.vs/bengine/v15
-/Benchmark/x64/Debug
-/Core/Debug
-/Core/x64/Debug
-/Assets/x64/Debug
-/Debug
-/Renderer/x64/Debug
-/Scene/x64/Debug
-/Test/Debug
-/Test/x64/Debug
-/x64/Debug
-/Test/Content/viking_room-gltf.zip
-/Test/Content/viking-room-fbx.zip
-/Test/Content/sea_keep__lonely_watcher-gltf.zip
-/Test/Content/sea-keep-lonely-watcher-fbx.zip
-/Test/Content/littlest-tokyo.zip
-/Test/Content/fantasy_game_inn-gltf.zip
-/Test/Content/fantasy-game-inn-fbx.zip
-/Test/Content/s
-/Test/Content/Models
-/Test/Content/Textures
-/x64/Release
-/Test/x64/Release
-/Scene/x64/Release
-/Renderer/x64/Release
-/Core/x64/Release
-/Benchmark/x64/Release
-/Assets/x64/Release
-/ModelCompiler/x64/Debug
-/ModelCompiler/x64/Release
+*.zip
+/test_app/Content
 
 /bazel-*
 *.code-workspace
-.vscode
+/.vscode
+/.vs
