@@ -32,7 +32,7 @@ IndentWidth: '4'
 KeepEmptyLinesAtTheStartOfBlocks: 'false'
 Language: Cpp
 MaxEmptyLinesToKeep: '2'
-NamespaceIndentation: Inner
+NamespaceIndentation: None
 PointerAlignment: Left
 ReflowComments: 'true'
 SortIncludes: 'true'

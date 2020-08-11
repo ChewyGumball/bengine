@@ -6,6 +6,8 @@
 
 #include "AssetsCore.h"
 
+#include <optional>
+
 namespace {
 template <typename T>
 const T& OBJIndexFind(std::vector<T>& values, int64_t index) {
@@ -77,11 +79,7 @@ Core::LogCategory OBJImporter("OBJImporter", &Assets);
 Mesh Import(const std::filesystem::path& filename) {
     Mesh mesh;
 
-    std::optional<std::string> data = Core::IO::ReadTextFile(filename);
-    if(!data) {
-        Core::Log::Error(OBJImporter, "Could not load file '{}'", filename.string());
-        return mesh;
-    }
+    ASSIGN_OR_ASSERT(std::string data, Core::IO::ReadTextFile(filename));
 
     std::vector<Vector3> positions;
     std::vector<Vector3> normals;
@@ -97,7 +95,7 @@ Mesh Import(const std::filesystem::path& filename) {
     const uint32_t NormalElements   = 3;
     const uint32_t TextureElements  = 2;
 
-    std::vector<std::string_view> lines = Core::Algorithms::String::SplitLines(*data);
+    std::vector<std::string_view> lines = Core::Algorithms::String::SplitLines(data);
     for(auto& line : lines) {
         // There may be more than one space between elements, this will break in such a case :(
         Core::Algorithms::String::SplitIntoBuffer(line, " \t", elements, Core::Algorithms::String::Filter::Empty);

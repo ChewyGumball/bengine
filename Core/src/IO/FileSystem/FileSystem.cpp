@@ -32,19 +32,19 @@ namespace Core::IO {
 
 FileSystem DefaultFileSystem = FileSystem();
 
-std::optional<InputStream> OpenFileForRead(const Path& file) {
+Core::StatusOr<InputStream> OpenFileForRead(const Path& file) {
     return DefaultFileSystem.openFileForRead(file);
 }
 
-std::optional<std::string> ReadTextFile(const Path& file) {
+Core::StatusOr<std::string> ReadTextFile(const Path& file) {
     return DefaultFileSystem.readTextFile(file);
 }
 
-std::optional<Core::Array<std::byte>> ReadBinaryFile(const Path& file) {
+Core::StatusOr<Core::Array<std::byte>> ReadBinaryFile(const Path& file) {
     return DefaultFileSystem.readBinaryFile(file);
 }
 
-std::optional<OutputStream> OpenFileForWrite(const Path& file) {
+Core::StatusOr<OutputStream> OpenFileForWrite(const Path& file) {
     return DefaultFileSystem.openFileForWrite(file);
 }
 
@@ -69,7 +69,7 @@ std::filesystem::path FileSystem::translatePath(const Path& path) const {
     return findMountPoint(path, mounts).translatePath(path);
 }
 
-std::optional<InputStream> FileSystem::openFileForRead(const Path& file) const {
+Core::StatusOr<InputStream> FileSystem::openFileForRead(const Path& file) const {
     if(file.type == PathType::Explicit) {
         return DefaultMount.openFileForRead(file);
     } else {
@@ -77,7 +77,7 @@ std::optional<InputStream> FileSystem::openFileForRead(const Path& file) const {
     }
 }
 
-std::optional<std::string> FileSystem::readTextFile(const Path& file) const {
+Core::StatusOr<std::string> FileSystem::readTextFile(const Path& file) const {
     if(file.type == PathType::Explicit) {
         return DefaultMount.readTextFile(file);
     } else {
@@ -85,7 +85,7 @@ std::optional<std::string> FileSystem::readTextFile(const Path& file) const {
     }
 }
 
-std::optional<Core::Array<std::byte>> FileSystem::readBinaryFile(const Path& file) const {
+Core::StatusOr<Core::Array<std::byte>> FileSystem::readBinaryFile(const Path& file) const {
     if(file.type == PathType::Explicit) {
         return DefaultMount.readBinaryFile(file);
     } else {
@@ -93,7 +93,7 @@ std::optional<Core::Array<std::byte>> FileSystem::readBinaryFile(const Path& fil
     }
 }
 
-std::optional<OutputStream> FileSystem::openFileForWrite(const Path& file) const {
+Core::StatusOr<OutputStream> FileSystem::openFileForWrite(const Path& file) const {
     if(file.type == PathType::Explicit) {
         return DefaultMount.openFileForWrite(file);
     } else {

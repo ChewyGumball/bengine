@@ -10,22 +10,22 @@ std::filesystem::path VirtualFileSystemMount::translatePath(const Path& path) co
     return rootPath / path.path.lexically_relative(mountPath);
 }
 
-std::optional<InputStream> VirtualFileSystemMount::openFileForRead(const Path& file) const {
+Core::StatusOr<InputStream> VirtualFileSystemMount::openFileForRead(const Path& file) const {
     Path translatedPath(translatePath(file), file.type);
     return BareFileSystemMount::openFileForRead(translatedPath);
 }
 
-std::optional<std::string> VirtualFileSystemMount::readTextFile(const Path& file) const {
+Core::StatusOr<std::string> VirtualFileSystemMount::readTextFile(const Path& file) const {
     Path translatedPath(translatePath(file), file.type);
     return BareFileSystemMount::readTextFile(translatedPath);
 }
-std::optional<Core::Array<std::byte>> VirtualFileSystemMount::readBinaryFile(const Path& file) const {
+Core::StatusOr<Core::Array<std::byte>> VirtualFileSystemMount::readBinaryFile(const Path& file) const {
     Path translatedPath(translatePath(file), file.type);
     return BareFileSystemMount::readBinaryFile(translatedPath);
 }
 
 
-std::optional<OutputStream> VirtualFileSystemMount::openFileForWrite(const Path& file) const {
+Core::StatusOr<OutputStream> VirtualFileSystemMount::openFileForWrite(const Path& file) const {
     Path translatedPath(translatePath(file), file.type);
     return BareFileSystemMount::openFileForWrite(translatedPath);
 }

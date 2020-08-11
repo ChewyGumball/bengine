@@ -120,6 +120,7 @@ bengine_cc_library(
     strip_include_prefix = "include",
     deps = [
         ":containers",
+        ":status",
         "@simple_file_watcher",
     ],
 )

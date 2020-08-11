@@ -1,6 +1,5 @@
 #include "Core/IO/FileSystem/BareFileSystemMount.h"
 
-#include <assert.h>
 #include <fstream>
 
 #include <FileWatcher/FileWatcher.h>
@@ -64,21 +63,21 @@ std::filesystem::path BareFileSystemMount::translatePath(const Path& path) const
     return path.path;
 }
 
-std::optional<InputStream> BareFileSystemMount::openFileForRead(const Path& file) const {
+Core::StatusOr<InputStream> BareFileSystemMount::openFileForRead(const Path& file) const {
     std::unique_ptr<class std::basic_istream<std::byte>> reader =
           std::make_unique<std::basic_ifstream<std::byte>>(file.path, std::ios::in | std::ios::binary);
 
     if(*reader) {
         return Core::IO::InputStream(std::move(reader));
     } else {
-        return std::nullopt;
+        return Core::Status::Error("Unable to open file to read at path: {}", file.path.string());
     }
 }
 
-std::optional<std::string> BareFileSystemMount::readTextFile(const Path& file) const {
+Core::StatusOr<std::string> BareFileSystemMount::readTextFile(const Path& file) const {
     std::ifstream reader(file.path, std::ios::in);
     if(!reader) {
-        return std::nullopt;
+        return Core::Status::Error("Unable to open file to read at path: {}", file.path.string());
     }
 
     uint64_t fileSize = std::filesystem::file_size(file.path);
@@ -87,10 +86,10 @@ std::optional<std::string> BareFileSystemMount::readTextFile(const Path& file) c
     return contents;
 }
 
-std::optional<Core::Array<std::byte>> BareFileSystemMount::readBinaryFile(const Path& file) const {
+Core::StatusOr<Core::Array<std::byte>> BareFileSystemMount::readBinaryFile(const Path& file) const {
     std::basic_ifstream<std::byte> reader(file.path, std::ios::in | std::ios::binary);
     if(!reader) {
-        return std::nullopt;
+        return Core::Status::Error("Unable to open file to read at path: {}", file.path.string());
     }
 
     uint64_t fileSize = std::filesystem::file_size(file.path);
@@ -99,14 +98,14 @@ std::optional<Core::Array<std::byte>> BareFileSystemMount::readBinaryFile(const 
     return contents;
 }
 
-std::optional<OutputStream> BareFileSystemMount::openFileForWrite(const Path& file) const {
+Core::StatusOr<OutputStream> BareFileSystemMount::openFileForWrite(const Path& file) const {
     std::unique_ptr<std::basic_ostream<std::byte>> writer =
           std::make_unique<std::basic_ofstream<std::byte>>(file.path, std::ios::out | std::ios::binary);
 
     if(*writer) {
         return OutputStream(std::move(writer));
     } else {
-        return std::nullopt;
+        return Core::Status::Error("Unable to open file to write at path: {}", file.path.string());
     }
 }
 

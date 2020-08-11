@@ -95,3 +95,19 @@ private:
     lhs = std::move(tempName).value();
 
 #define ASSIGN_OR_RETURN(lhs, rhs) ASSIGN_OR_RETURN_IMPL(assign_or_return_status_or_##__COUNTER__, lhs, rhs)
+
+#define ASSIGN_OR_ASSERT_IMPL(tempName, lhs, rhs)                                                         \
+    auto tempName((rhs));                                                                                 \
+    if(tempName.isError())                                                                                \
+        [[unlikely]] {                                                                                    \
+            Core::AbortWithMessage(                                                                       \
+                  "StatusOr was expected to contain a value, but it is an error: {}\n{} ({}) at {}:{}\n", \
+                  tempName.message(),                                                                     \
+                  #rhs,                                                                                   \
+                  CORE_ASSERT_STRINGIFY(rhs),                                                             \
+                  __FILE__,                                                                               \
+                  __LINE__);                                                                              \
+        }                                                                                                 \
+    lhs = std::move(tempName).value();
+
+#define ASSIGN_OR_ASSERT(lhs, rhs) ASSIGN_OR_ASSERT_IMPL(assign_or_assert_status_or_##__COUNTER__, lhs, rhs)

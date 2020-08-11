@@ -16,14 +16,9 @@ VulkanShaderModule VulkanShaderModule::Create(VkDevice device, const std::vector
 }
 
 VulkanShaderModule VulkanShaderModule::CreateFromFile(VkDevice device, const Core::IO::Path& filename) {
-    std::optional<std::vector<std::byte>> vertexShaderCode = Core::IO::ReadBinaryFile(filename);
+    ASSIGN_OR_ASSERT(std::vector<std::byte> vertexShaderCode, Core::IO::ReadBinaryFile(filename));
 
-    if(!vertexShaderCode) {
-        Core::Log::Critical(Vulkan, "Couldn't load shader code from {}", filename.path.string());
-        VK_CHECK(VK_ERROR_INITIALIZATION_FAILED);
-    }
-
-    return Create(device, *vertexShaderCode);
+    return Create(device, vertexShaderCode);
 }
 
 void VulkanShaderModule::Destroy(VkDevice device, VulkanShaderModule& shaderModule) {

@@ -79,3 +79,17 @@ private:
 
 
 #define RETURN_IF_ERROR(status) RETURN_IF_ERROR_IMPL(return_if_error_status_##__COUNTER__, status)
+
+#define ASSERT_IS_OK_IMPL(tempName, status)                                                                    \
+    Status tempName(std::move(status));                                                                        \
+    if(tempName.IsError())                                                                                     \
+        [[unlikely]] {                                                                                         \
+            Core::AbortWithMessage("Status was expected to be ok, but it is an error: {}\n{} ({}) at {}:{}\n", \
+                                   tempName.message(),                                                         \
+                                   #status,                                                                    \
+                                   CORE_ASSERT_STRINGIFY(status),                                              \
+                                   __FILE__,                                                                   \
+                                   __LINE__);                                                                  \
+        }
+
+#define ASSERT_IS_OK(status) ASSERT_IS_OK_IMPL(assert_is_ok_status_##__COUNTER__, status)
