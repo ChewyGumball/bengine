@@ -14,7 +14,7 @@ struct VulkanQueueFamilyIndices {
     uint32_t transfer;
 
     VkPhysicalDevice physicalDevice;
-    VkSurfaceKHR surface;
+    // VkSurfaceKHR surface;
 
     static std::optional<const VulkanQueueFamilyIndices> Find(VkPhysicalDevice device, VkSurfaceKHR surface);
 };

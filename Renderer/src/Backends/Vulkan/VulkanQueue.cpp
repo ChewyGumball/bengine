@@ -61,7 +61,8 @@ std::optional<const VulkanQueueFamilyIndices> VulkanQueueFamilyIndices::Find(VkP
     }
 
     if(graphicsIndex && computeIndex && transferIndex && presentIndex) {
-        VulkanQueueFamilyIndices value{*graphicsIndex, *computeIndex, *presentIndex, *transferIndex, device, surface};
+        VulkanQueueFamilyIndices value{
+              *graphicsIndex, *computeIndex, *presentIndex, *transferIndex, device /*, surface*/};
         LogQueueDetails(value, queueFamilies);
         return value;
     }
@@ -135,7 +136,10 @@ VkResult VulkanQueue::present(VkSwapchainKHR swapChain, VkSemaphore waitSemaphor
 
 VulkanQueues VulkanQueues::Create(VkDevice device, const VulkanQueueFamilyIndices& familyIndices) {
     VulkanQueues queues;
-    queues.graphics = VulkanQueue::Create(device, familyIndices.graphics, VulkanCommandBufferLifetime::Permanent, VulkanCommandBufferResetType::Resettable);
+    queues.graphics = VulkanQueue::Create(device,
+                                          familyIndices.graphics,
+                                          VulkanCommandBufferLifetime::Permanent,
+                                          VulkanCommandBufferResetType::Resettable);
     queues.compute  = VulkanQueue::Create(device, familyIndices.compute);
     queues.present  = VulkanQueue::Create(device, familyIndices.present);
     queues.transfer = VulkanQueue::Create(device, familyIndices.transfer, VulkanCommandBufferLifetime::Transient);

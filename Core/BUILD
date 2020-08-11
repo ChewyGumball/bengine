@@ -3,6 +3,25 @@ load("//tools:bengine_rules.bzl", "bengine_cc_library", "bengine_cc_test")
 package(default_visibility = ["//visibility:public"])
 
 bengine_cc_library(
+    name = "assert",
+    srcs = [
+        "src/Assert.cpp",
+    ],
+    hdrs = ["include/Assert.h"],
+    include_prefix = "Core",
+    strip_include_prefix = "include",
+)
+
+bengine_cc_library(
+    name = "status",
+    hdrs = [
+        "include/Core/Status.h",
+        "include/Core/StatusOr.h",
+    ],
+    strip_include_prefix = "include",
+)
+
+bengine_cc_library(
     name = "algorithms",
     srcs = [
         "src/Algorithms/Strings.cpp",
@@ -10,6 +29,7 @@ bengine_cc_library(
     hdrs = [
         "include/Core/Algorithms/Containers.h",
         "include/Core/Algorithms/Mappers.h",
+        "include/Core/Algorithms/Optional.h",
         "include/Core/Algorithms/Strings.h",
     ],
     strip_include_prefix = "include",
