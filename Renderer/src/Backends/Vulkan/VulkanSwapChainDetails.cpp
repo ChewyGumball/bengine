@@ -2,6 +2,7 @@
 
 #include <Core/Algorithms/Containers.h>
 
+
 namespace {
 
 struct SwapChainSupportDetails {
@@ -85,7 +86,7 @@ VkFormat findBestDepthFormat(VkPhysicalDevice device) {
     VK_CHECK(VK_ERROR_FEATURE_NOT_PRESENT);
     return VK_FORMAT_R8G8B8A8_UNORM;
 }
-}
+}    // namespace
 
 namespace Renderer::Backends::Vulkan {
 

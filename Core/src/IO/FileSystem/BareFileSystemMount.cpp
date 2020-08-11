@@ -5,8 +5,9 @@
 
 #include <FileWatcher/FileWatcher.h>
 
-#include "Core/Containers/HashMap.h"
-#include "Core/Containers/HashSet.h"
+#include <Core/Assert.h>
+#include <Core/Containers/HashMap.h>
+#include <Core/Containers/HashSet.h>
 
 namespace {
 std::unique_ptr<FW::FileWatcher> fileWatcher = std::make_unique<FW::FileWatcher>();
@@ -111,7 +112,7 @@ std::optional<OutputStream> BareFileSystemMount::openFileForWrite(const Path& fi
 
 void BareFileSystemMount::writeBinaryFile(const Path& file, const Core::Array<std::byte>& data) const {
     std::basic_ofstream<std::byte> writer(file.path, std::ios::out | std::ios::binary);
-    assert(writer);
+    ASSERT(writer);
     writer.write(data.data(), data.size());
 }
 

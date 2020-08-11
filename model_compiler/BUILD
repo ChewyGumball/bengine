@@ -7,6 +7,7 @@ bengine_cc_binary(
     ],
     deps = [
         "//assets:importers",
+        "//core:assert",
         "//core:containers",
         "//core:io",
     ],

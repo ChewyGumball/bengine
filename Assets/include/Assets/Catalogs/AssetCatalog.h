@@ -26,7 +26,7 @@ public:
     std::optional<ASSET_TYPE*> locate(const std::filesystem::path& assetPath) const {
         if(assetNames.count(assetPath) == 0) {
             std::optional<Core::FileSystem::InputStream> assetData = Core::FileSystem::OpenFile(assetPath);
-            assert(assetData);
+            ASSERT(assetData);
 
             T* asset              = create(assetData, ++nextID);
             AssetTag<T> tag       = asset->tag;

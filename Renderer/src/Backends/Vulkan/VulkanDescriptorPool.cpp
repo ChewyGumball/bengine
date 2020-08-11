@@ -2,6 +2,7 @@
 
 #include <Core/Algorithms/Containers.h>
 
+
 namespace Renderer::Backends::Vulkan {
 
 
@@ -40,16 +41,16 @@ void VulkanDescriptorSetUpdate::update(VkDevice device, VkDescriptorSet descript
     }
     for(auto& imageWrite : images) {
         VkWriteDescriptorSet& set = writes[currentSet++];
-        set.sType              = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        set.dstSet             = descriptorSet;
-        set.dstBinding         = imageWrite.first;
-        set.dstArrayElement    = 0;
-        set.descriptorType     = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        set.descriptorCount    = 1;
-        set.pImageInfo         = &imageWrite.second;
+        set.sType                 = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        set.dstSet                = descriptorSet;
+        set.dstBinding            = imageWrite.first;
+        set.dstArrayElement       = 0;
+        set.descriptorType        = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        set.descriptorCount       = 1;
+        set.pImageInfo            = &imageWrite.second;
     }
 
-    assert(currentSet == writes.size());
+    ASSERT(currentSet == writes.size());
 
     vkUpdateDescriptorSets(device, currentSet, writes.data(), 0, nullptr);
 }
@@ -59,7 +60,7 @@ std::vector<VkDescriptorSet>
 VulkanDescriptorPool::allocateSets(VkDevice device, uint32_t count, VkDescriptorSetLayout layout) {
     currentlyAllocated += count;
 
-    assert(currentlyAllocated <= size);
+    ASSERT(currentlyAllocated <= size);
 
     std::vector<VkDescriptorSetLayout> layouts(count, layout);
     VkDescriptorSetAllocateInfo allocInfo = {};

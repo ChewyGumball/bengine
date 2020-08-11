@@ -70,7 +70,7 @@ template <typename T, uint64_t SIZE>
 struct Deserializer<Core::FixedArray<T, SIZE>> {
     static Core::FixedArray<T, SIZE> deserialize(InputStream& stream) {
         size_t count = stream.read<Core::FixedArray<T, SIZE>::size_type>();
-        assert(count == SIZE);
+        ASSERT(count == SIZE);
 
         Core::FixedArray<T, SIZE> value;
 

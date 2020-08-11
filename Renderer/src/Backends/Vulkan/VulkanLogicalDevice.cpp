@@ -5,6 +5,7 @@
 #include <Core/Algorithms/Containers.h>
 #include <Core/Algorithms/Mappers.h>
 
+
 namespace Renderer::Backends::Vulkan {
 
 VulkanLogicalDevice VulkanLogicalDevice::Create(const VulkanQueueFamilyIndices& queueIndices,
@@ -54,5 +55,5 @@ VulkanLogicalDevice VulkanLogicalDevice::Create(const VulkanQueueFamilyIndices& 
 
 void VulkanLogicalDevice::Destroy(VulkanLogicalDevice& device) {
     vkDestroyDevice(device, nullptr);
-} 
+}
 }    // namespace Renderer::Backends::Vulkan

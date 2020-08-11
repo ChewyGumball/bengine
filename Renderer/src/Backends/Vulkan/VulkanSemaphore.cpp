@@ -1,5 +1,6 @@
 #include "Renderer/Backends/Vulkan/VulkanSemaphore.h"
 
+
 namespace Renderer::Backends::Vulkan {
 VulkanSemaphore VulkanSemaphore::Create(VkDevice device) {
     VkSemaphoreCreateInfo semaphoreInfo = {};

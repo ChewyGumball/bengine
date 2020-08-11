@@ -1,12 +1,12 @@
 #pragma once
 
-#include <optional>
-
 #include "VulkanBuffer.h"
 #include "VulkanCore.h"
 #include "VulkanImage.h"
 #include "VulkanQueue.h"
 #include "VulkanSwapChainDetails.h"
+
+#include <Core/Status/StatusOr.h>
 
 namespace Renderer::Backends::Vulkan {
 
@@ -30,9 +30,9 @@ struct VulkanPhysicalDevice : public VulkanObject<VkPhysicalDevice> {
                             VulkanMemoryVisibility visibility    = VulkanMemoryVisibility::Host) const;
     static void DestroyImage(VkDevice device, VulkanImage& image);
 
-    static std::optional<VulkanPhysicalDevice> Find(VkInstance instance,
-                                                    VkSurfaceKHR surface,
-                                                    const std::vector<std::string>& requiredExtensions,
-                                                    VkExtent2D windowSize);
+    static Core::StatusOr<VulkanPhysicalDevice> Find(VkInstance instance,
+                                                     VkSurfaceKHR surface,
+                                                     const std::vector<std::string>& requiredExtensions,
+                                                     VkExtent2D windowSize);
 };
 }    // namespace Renderer::Backends::Vulkan

@@ -16,7 +16,7 @@ BufferViewWindow::operator bool() const {
 }
 
 BufferViewWindow& operator++(BufferViewWindow& view) {
-    assert(view.view.size >= view.windowStart);
+    ASSERT(view.view.size >= view.windowStart);
     view.windowStart += view.window;
 
     return view;

@@ -2,8 +2,8 @@
 
 #include <vulkan/vulkan.h>
 
+#include <Core/Assert.h>
 #include <Core/Logging/Logger.h>
-
 
 namespace Renderer::Backends::Vulkan {
 
@@ -22,18 +22,18 @@ struct VulkanObject {
 
 }    // namespace Renderer::Backends::Vulkan
 
-#define VK_CHECK(function)                                        \
-    {                                                             \
-        VkResult __result = (function);                           \
-        if(__result != VK_SUCCESS) {                              \
-            Core::Log::Always(Renderer::Backends::Vulkan::Vulkan, \
-                              "Result of {} is {} in {}:{}",      \
-                              #function,                          \
-                              __result,                           \
-                              __FILE__,                           \
-                              __LINE__);                          \
-            assert(__result == VK_SUCCESS);                       \
-        }                                                         \
+#define VK_CHECK(function)                                          \
+    {                                                               \
+        VkResult __result = (function);                             \
+        if(__result != VK_SUCCESS) {                                \
+            Core::Log::Critical(Renderer::Backends::Vulkan::Vulkan, \
+                                "Result of {} is {} in {}:{}",      \
+                                #function,                          \
+                                __result,                           \
+                                __FILE__,                           \
+                                __LINE__);                          \
+            ASSERT(__result == VK_SUCCESS);                         \
+        }                                                           \
     }
 
 std::ostream& operator<<(std::ostream& out, const VkResult& result);

@@ -88,7 +88,7 @@ Mesh Import(const std::filesystem::path& filename) {
     std::vector<Vector2> textureCoordinates;
 
     uint64_t currentMeshPartStartIndex = 0;
-    std::string currentMeshPartName = "default";
+    std::string currentMeshPartName    = "default";
 
     std::vector<std::string_view> elements;
     std::vector<std::string_view> face;
@@ -112,8 +112,8 @@ Mesh Import(const std::filesystem::path& filename) {
         } else if(elements[0] == "vn") {
             normals.emplace_back(elements);
         } else if(elements[0] == "usemtl") {
-            mesh.meshParts.emplace_back(MeshPart{currentMeshPartName,
-                                        {currentMeshPartStartIndex, mesh.indexData.size() - currentMeshPartStartIndex}});
+            mesh.meshParts.emplace_back(MeshPart{
+                  currentMeshPartName, {currentMeshPartStartIndex, mesh.indexData.size() - currentMeshPartStartIndex}});
             currentMeshPartStartIndex = mesh.indexData.size();
             currentMeshPartName       = elements[1];
         } else if(elements[0] == "f") {
@@ -158,7 +158,7 @@ Mesh Import(const std::filesystem::path& filename) {
 
                 if(normalIndex) {
                     auto& vertexProperty = mesh.vertexFormat.properties[Assets::VertexUsage::NORMAL];
-                    assert(vertexProperty.elementCount == 0 || vertexProperty.byteOffset == currentOffset);
+                    ASSERT(vertexProperty.elementCount == 0 || vertexProperty.byteOffset == currentOffset);
 
                     vertexProperty.usage        = Assets::VertexUsage::NORMAL;
                     vertexProperty.byteOffset   = currentOffset;
@@ -169,7 +169,7 @@ Mesh Import(const std::filesystem::path& filename) {
                 }
                 if(textureCoordinateIndex) {
                     auto& vertexProperty = mesh.vertexFormat.properties[Assets::VertexUsage::TEXTURE];
-                    assert(vertexProperty.elementCount == 0 || vertexProperty.byteOffset == currentOffset);
+                    ASSERT(vertexProperty.elementCount == 0 || vertexProperty.byteOffset == currentOffset);
 
                     vertexProperty.usage        = Assets::VertexUsage::TEXTURE;
                     vertexProperty.byteOffset   = currentOffset;
@@ -182,8 +182,8 @@ Mesh Import(const std::filesystem::path& filename) {
         }
     }
 
-    mesh.meshParts.emplace_back(MeshPart{currentMeshPartName,
-                                {currentMeshPartStartIndex, mesh.indexData.size() - currentMeshPartStartIndex}});
+    mesh.meshParts.emplace_back(MeshPart{
+          currentMeshPartName, {currentMeshPartStartIndex, mesh.indexData.size() - currentMeshPartStartIndex}});
 
     return mesh;
 }

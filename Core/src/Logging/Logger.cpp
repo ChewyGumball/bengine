@@ -6,8 +6,10 @@
 
 #include <thread>
 
-#include "Core/Containers/HashMap.h"
-#include "Core/Containers/HashSet.h"
+// We don't use the Core contaienrs here so that we don't have any external dependencies, allowing this library to be
+// used by any other library.
+#include <unordered_map>
+#include <unordered_set>
 
 namespace {
 
@@ -24,18 +26,18 @@ void InitLocks() {
     }
 }
 
-Core::HashMap<std::string, Core::LogLevel>& Filters() {
-    static Core::HashMap<std::string, Core::LogLevel> FilterMap;
+std::unordered_map<std::string, Core::LogLevel>& Filters() {
+    static std::unordered_map<std::string, Core::LogLevel> FilterMap;
     return FilterMap;
 }
 
-Core::HashSet<spdlog::sink_ptr>& Sinks() {
-    static Core::HashSet<spdlog::sink_ptr> SinkMap{std::make_shared<spdlog::sinks::stdout_color_sink_mt>()};
+std::unordered_set<spdlog::sink_ptr>& Sinks() {
+    static std::unordered_set<spdlog::sink_ptr> SinkMap{std::make_shared<spdlog::sinks::stdout_color_sink_mt>()};
     return SinkMap;
 }
 
-Core::HashMap<const Core::LogCategory*, std::string>& DisplayNames() {
-    static Core::HashMap<const Core::LogCategory*, std::string> DisplayNameMap;
+std::unordered_map<const Core::LogCategory*, std::string>& DisplayNames() {
+    static std::unordered_map<const Core::LogCategory*, std::string> DisplayNameMap;
     return DisplayNameMap;
 }
 

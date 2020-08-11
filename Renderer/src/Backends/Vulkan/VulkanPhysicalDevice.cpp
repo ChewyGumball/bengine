@@ -249,21 +249,18 @@ void VulkanPhysicalDevice::DestroyImage(VkDevice device, VulkanImage& image) {
     vkDestroyImage(device, image, nullptr);
 }
 
-std::optional<VulkanPhysicalDevice> VulkanPhysicalDevice::Find(VkInstance instance,
-                                                               VkSurfaceKHR surface,
-                                                               const std::vector<std::string>& requiredExtensions,
-                                                               VkExtent2D windowSize) {
+Core::StatusOr<VulkanPhysicalDevice> VulkanPhysicalDevice::Find(VkInstance instance,
+                                                                VkSurfaceKHR surface,
+                                                                const std::vector<std::string>& requiredExtensions,
+                                                                VkExtent2D windowSize) {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
     if(deviceCount == 0) {
-        Core::Log::Always(Vulkan, "No devices support Vulkan!");
-        return std::nullopt;
+        return Core::Status::Error("No devices support Vulkan!");
     }
 
     std::vector<VkPhysicalDevice> devices(deviceCount);
     vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
-
-    std::optional<VulkanPhysicalDevice> physicalDevice;
 
     for(auto device : devices) {
         bool extensionsSupported = deviceSupportsRequiredExtensions(device, requiredExtensions);
@@ -287,28 +284,26 @@ std::optional<VulkanPhysicalDevice> VulkanPhysicalDevice::Find(VkInstance instan
             VkPhysicalDeviceMemoryProperties memoryProperties;
             vkGetPhysicalDeviceMemoryProperties(device, &memoryProperties);
 
-            physicalDevice = {
+            VulkanPhysicalDevice physicalDevice = {
                   device, *indices, VulkanSwapChainDetails::Find(device, surface, windowSize), memoryProperties};
-            break;
+
+            VkPhysicalDeviceProperties deviceProperties;
+            vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
+
+
+            Core::Log::Debug(Vulkan,
+                             "Using {} [Vendor: {}, Type: {}, Driver Version: {}, API Version: {}]",
+                             deviceProperties.deviceName,
+                             vendorNameFromID(deviceProperties.vendorID),
+                             deviceTypeNameFromEnum(deviceProperties.deviceType),
+                             deviceProperties.driverVersion,
+                             deviceProperties.apiVersion);
+
+            return physicalDevice;
         }
     }
 
-    if(physicalDevice) {
-        VkPhysicalDeviceProperties deviceProperties;
-        vkGetPhysicalDeviceProperties(*physicalDevice, &deviceProperties);
-
-
-        Core::Log::Debug(Vulkan,
-                         "Using {} [Vendor: {}, Type: {}, Driver Version: {}, API Version: {}]",
-                         deviceProperties.deviceName,
-                         vendorNameFromID(deviceProperties.vendorID),
-                         deviceTypeNameFromEnum(deviceProperties.deviceType),
-                         deviceProperties.driverVersion,
-                         deviceProperties.apiVersion);
-    } else {
-        Core::Log::Always(Vulkan, "No devices support all required queue types!");
-    }
-
-    return physicalDevice;
+    return Core::Status::Error("No devices support all required queue types!");
 }
+
 }    // namespace Renderer::Backends::Vulkan

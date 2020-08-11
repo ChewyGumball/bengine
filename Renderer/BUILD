@@ -54,6 +54,7 @@ bengine_cc_library(
         "//core:algorithms",
         "//core:io",
         "//core:logging",
+        "//core:status",
         "@vulkan_sdk_windows//:vulkan",
     ],
 )

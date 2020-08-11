@@ -7,18 +7,24 @@ bengine_cc_library(
     srcs = [
         "src/Assert.cpp",
     ],
-    hdrs = ["include/Assert.h"],
-    include_prefix = "Core",
+    hdrs = ["include/Core/Assert.h"],
     strip_include_prefix = "include",
+    deps = [
+        ":logging",
+    ],
 )
 
 bengine_cc_library(
     name = "status",
     hdrs = [
-        "include/Core/Status.h",
-        "include/Core/StatusOr.h",
+        "include/Core/Status/Status.h",
+        "include/Core/Status/StatusOr.h",
     ],
     strip_include_prefix = "include",
+    deps = [
+        ":assert",
+        "@spdlog",
+    ],
 )
 
 bengine_cc_library(
@@ -50,6 +56,7 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
+        ":assert",
         ":io_streams",
     ],
 )
@@ -126,7 +133,6 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
-        ":containers",
         "@spdlog",
     ],
 )

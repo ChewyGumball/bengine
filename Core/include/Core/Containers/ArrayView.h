@@ -1,11 +1,12 @@
 #pragma once
 
-#include <assert.h>
 
-#include "Array.h"
+#include <Core/Containers/Array.h>
 
-#include "Core/IO/InputStream.h"
-#include "Core/IO/OutputStream.h"
+#include <Core/Assert.h>
+#include <Core/IO/InputStream.h>
+#include <Core/IO/OutputStream.h>
+
 
 namespace Core {
 
@@ -20,16 +21,16 @@ struct ArrayView {
     ArrayView(Core::FixedArray<T, SIZE>& a) : data(a.data()), count(a.size()) {}
 
     T& operator[](uint64_t index) {
-        assert(index < count);
+        ASSERT(index < count);
         return *(data + index);
     }
     const T& operator[](uint64_t index) const {
-        assert(index < count);
+        ASSERT(index < count);
         return *(data + index);
     }
 
     ArrayView slice(uint64_t offset, uint64_t count) {
-        assert(count + offset <= this->count);
+        ASSERT(count + offset <= this->count);
         return ArrayView{data + offset, count};
     }
 };
@@ -42,12 +43,12 @@ struct IndexArrayView {
     IndexArrayView(uint64_t start, uint64_t count) : start(start), count(count) {}
 
     uint64_t operator[](uint64_t index) const {
-        assert(index < count);
+        ASSERT(index < count);
         return start + index;
     }
 
     IndexArrayView slice(uint64_t offset, uint64_t count) {
-        assert(count + offset < this->count);
+        ASSERT(count + offset < this->count);
         return IndexArrayView(start + offset, count);
     }
 };
