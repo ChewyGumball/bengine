@@ -8,6 +8,8 @@ namespace Renderer::Backends::Vulkan {
 
 struct VulkanGraphicsPipelineInfo {
     std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+    std::vector<VkDynamicState> dynamicStates;
+
     VkPipelineVertexInputStateCreateInfo vertexInput;
     VkPipelineInputAssemblyStateCreateInfo inputAssembly;
     VkViewport viewport;
@@ -18,6 +20,7 @@ struct VulkanGraphicsPipelineInfo {
     VkPipelineDepthStencilStateCreateInfo depthStencil;
     VkPipelineColorBlendAttachmentState colourBlendAttachment;
     VkPipelineColorBlendStateCreateInfo colourBlending;
+    VkPipelineDynamicStateCreateInfo dynamicState;
     VkPipelineLayout pipelineLayout;
     VkRenderPass renderPass;
 

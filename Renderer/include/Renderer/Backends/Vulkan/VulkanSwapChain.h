@@ -23,6 +23,7 @@ struct VulkanSwapChainImageAcquisitionResult {
 struct VulkanSwapChain : public VulkanObject<VkSwapchainKHR> {
     VkFormat imageFormat;
     VkExtent2D extent;
+    VkViewport viewport;
     std::vector<VkImage> images;
     std::vector<VulkanImageView> imageViews;
     std::vector<VulkanFramebuffer> framebuffers;

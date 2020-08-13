@@ -42,6 +42,13 @@ VulkanSwapChain VulkanSwapChain::Create(VkDevice device,
     swapChain.imageFormat = details.format.format;
     swapChain.extent      = details.extent;
 
+    swapChain.viewport.x        = 0.0f;
+    swapChain.viewport.y        = 0.0f;
+    swapChain.viewport.width    = (float)details.extent.width;
+    swapChain.viewport.height   = (float)details.extent.height;
+    swapChain.viewport.minDepth = 0.0f;
+    swapChain.viewport.maxDepth = 1.0f;
+
     VK_CHECK(vkCreateSwapchainKHR(device, &createInfo, nullptr, &swapChain.object));
 
     uint32_t imageCount;

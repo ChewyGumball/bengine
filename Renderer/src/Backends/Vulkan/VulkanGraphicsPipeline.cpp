@@ -4,7 +4,8 @@ namespace Renderer::Backends::Vulkan {
 VulkanGraphicsPipelineInfo::VulkanGraphicsPipelineInfo(VkExtent2D outputExtent,
                                                        VkPipelineLayout layout,
                                                        VkRenderPass pass)
-  : vertexInput({}),
+  : dynamicStates({VK_DYNAMIC_STATE_VIEWPORT}),
+    vertexInput({}),
     inputAssembly({}),
     viewport({}),
     scissor({}),
@@ -14,6 +15,7 @@ VulkanGraphicsPipelineInfo::VulkanGraphicsPipelineInfo(VkExtent2D outputExtent,
     depthStencil({}),
     colourBlendAttachment({}),
     colourBlending({}),
+    dynamicState({}),
     pipelineLayout(layout),
     renderPass(pass) {
     vertexInput.sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -91,6 +93,10 @@ VulkanGraphicsPipelineInfo::VulkanGraphicsPipelineInfo(VkExtent2D outputExtent,
     colourBlending.blendConstants[1] = 0.0f;    // Optional
     colourBlending.blendConstants[2] = 0.0f;    // Optional
     colourBlending.blendConstants[3] = 0.0f;    // Optional
+
+    dynamicState.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+    dynamicState.pDynamicStates    = dynamicStates.data();
 }
 
 VulkanGraphicsPipeline VulkanGraphicsPipeline::Create(VkDevice device, const VulkanGraphicsPipelineInfo& pipelineInfo) {
@@ -105,7 +111,7 @@ VulkanGraphicsPipeline VulkanGraphicsPipeline::Create(VkDevice device, const Vul
     pipelineCreateInfo.pMultisampleState            = &pipelineInfo.multisampling;
     pipelineCreateInfo.pDepthStencilState           = &pipelineInfo.depthStencil;
     pipelineCreateInfo.pColorBlendState             = &pipelineInfo.colourBlending;
-    pipelineCreateInfo.pDynamicState                = nullptr;    // Optional
+    pipelineCreateInfo.pDynamicState                = &pipelineInfo.dynamicState;    // Optional
     pipelineCreateInfo.layout                       = pipelineInfo.pipelineLayout;
     pipelineCreateInfo.renderPass                   = pipelineInfo.renderPass;
     pipelineCreateInfo.subpass                      = 0;

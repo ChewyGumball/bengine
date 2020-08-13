@@ -137,3 +137,22 @@ http_archive(
     strip_prefix = "Catch2-2.13.0",
     url = "https://github.com/catchorg/Catch2/archive/v2.13.0.zip",
 )
+
+###############
+# Setup boost #
+###############
+
+http_archive(
+    name = "com_github_nelhage_rules_boost",
+    patch_args = ["-p1"],
+    patches = [
+        "@bengine//:third_party/rules_boost/0001-add-patch_cmds_win.patch",
+    ],
+    sha256 = "9a588a62062c8bf352b398a5db3ccc65561d43c40968762f7e05da76ccb5a6c9",
+    strip_prefix = "rules_boost-2613d04ab3d22dfc4543ea0a083d9adeaa0daf09",
+    url = "https://github.com/nelhage/rules_boost/archive/2613d04ab3d22dfc4543ea0a083d9adeaa0daf09.zip",
+)
+
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+
+boost_deps()

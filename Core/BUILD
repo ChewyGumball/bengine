@@ -11,6 +11,7 @@ bengine_cc_library(
     strip_include_prefix = "include",
     deps = [
         ":logging",
+        "@boost//:stacktrace",
     ],
 )
 
