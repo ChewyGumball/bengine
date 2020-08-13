@@ -12,8 +12,6 @@ struct VulkanGraphicsPipelineInfo {
 
     VkPipelineVertexInputStateCreateInfo vertexInput;
     VkPipelineInputAssemblyStateCreateInfo inputAssembly;
-    VkViewport viewport;
-    VkRect2D scissor;
     VkPipelineViewportStateCreateInfo viewportState;
     VkPipelineRasterizationStateCreateInfo rasterizer;
     VkPipelineMultisampleStateCreateInfo multisampling;
@@ -24,7 +22,7 @@ struct VulkanGraphicsPipelineInfo {
     VkPipelineLayout pipelineLayout;
     VkRenderPass renderPass;
 
-    VulkanGraphicsPipelineInfo(VkExtent2D outputExtent, VkPipelineLayout layout, VkRenderPass pass);
+    VulkanGraphicsPipelineInfo(VkPipelineLayout layout, VkRenderPass pass);
 };
 
 struct VulkanGraphicsPipeline : public VulkanObject<VkPipeline> {

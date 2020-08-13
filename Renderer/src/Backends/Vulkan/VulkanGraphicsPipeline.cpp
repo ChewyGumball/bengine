@@ -1,14 +1,10 @@
 #include "Renderer/Backends/Vulkan/VulkanGraphicsPipeline.h"
 
 namespace Renderer::Backends::Vulkan {
-VulkanGraphicsPipelineInfo::VulkanGraphicsPipelineInfo(VkExtent2D outputExtent,
-                                                       VkPipelineLayout layout,
-                                                       VkRenderPass pass)
-  : dynamicStates({VK_DYNAMIC_STATE_VIEWPORT}),
+VulkanGraphicsPipelineInfo::VulkanGraphicsPipelineInfo(VkPipelineLayout layout, VkRenderPass pass)
+  : dynamicStates({VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR}),
     vertexInput({}),
     inputAssembly({}),
-    viewport({}),
-    scissor({}),
     viewportState({}),
     rasterizer({}),
     multisampling({}),
@@ -28,21 +24,11 @@ VulkanGraphicsPipelineInfo::VulkanGraphicsPipelineInfo(VkExtent2D outputExtent,
     inputAssembly.topology               = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     inputAssembly.primitiveRestartEnable = VK_FALSE;
 
-    viewport.x        = 0.0f;
-    viewport.y        = 0.0f;
-    viewport.width    = (float)outputExtent.width;
-    viewport.height   = (float)outputExtent.height;
-    viewport.minDepth = 0.0f;
-    viewport.maxDepth = 1.0f;
-
-    scissor.offset = {0, 0};
-    scissor.extent = outputExtent;
-
     viewportState.sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     viewportState.viewportCount = 1;
-    viewportState.pViewports    = &viewport;
+    viewportState.pViewports    = nullptr;
     viewportState.scissorCount  = 1;
-    viewportState.pScissors     = &scissor;
+    viewportState.pScissors     = nullptr;
 
     rasterizer.sType                   = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterizer.depthClampEnable        = VK_FALSE;
@@ -111,7 +97,7 @@ VulkanGraphicsPipeline VulkanGraphicsPipeline::Create(VkDevice device, const Vul
     pipelineCreateInfo.pMultisampleState            = &pipelineInfo.multisampling;
     pipelineCreateInfo.pDepthStencilState           = &pipelineInfo.depthStencil;
     pipelineCreateInfo.pColorBlendState             = &pipelineInfo.colourBlending;
-    pipelineCreateInfo.pDynamicState                = &pipelineInfo.dynamicState;    // Optional
+    pipelineCreateInfo.pDynamicState                = &pipelineInfo.dynamicState;
     pipelineCreateInfo.layout                       = pipelineInfo.pipelineLayout;
     pipelineCreateInfo.renderPass                   = pipelineInfo.renderPass;
     pipelineCreateInfo.subpass                      = 0;

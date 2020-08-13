@@ -39,8 +39,9 @@ VulkanSwapChain VulkanSwapChain::Create(VkDevice device,
     createInfo.oldSwapchain   = VK_NULL_HANDLE;
 
     VulkanSwapChain swapChain;
-    swapChain.imageFormat = details.format.format;
-    swapChain.extent      = details.extent;
+    swapChain.imageFormat    = details.format.format;
+    swapChain.scissor.offset = VkOffset2D{.x = 0, .y = 0};
+    swapChain.scissor.extent = details.extent;
 
     swapChain.viewport.x        = 0.0f;
     swapChain.viewport.y        = 0.0f;
