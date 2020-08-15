@@ -34,7 +34,8 @@ struct VulkanSwapChain : public VulkanObject<VkSwapchainKHR> {
     static VulkanSwapChain Create(VkDevice device,
                                   const VulkanPhysicalDevice& physicalDevice,
                                   const VulkanQueues& queues,
-                                  VkRenderPass renderPass);
+                                  VkRenderPass renderPass,
+                                  VkSwapchainKHR oldSwapChain = VK_NULL_HANDLE);
     static void Destroy(VkDevice device, VulkanSwapChain& swapChain);
 
     VulkanSwapChainImageAcquisitionResult acquireNextImage(VkDevice device, VkSemaphore waitSemaphore);

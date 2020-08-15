@@ -3,6 +3,8 @@
 #include "VulkanCommandPool.h"
 #include "VulkanCore.h"
 
+#include <Renderer/Backends/Vulkan/DiagnosticCheckpoint.h>
+
 #include <optional>
 
 namespace Renderer::Backends::Vulkan {
@@ -24,6 +26,7 @@ enum class VulkanQueueSubmitType { Graphics, Transfer };
 struct VulkanQueue : public VulkanObject<VkQueue> {
     uint32_t familyIndex;
     VulkanCommandPool pool;
+    DiagnosticCheckpointStorage diagnosticCheckpoints;
 
     void submit(const VkCommandBuffer& commandBuffer,
                 VulkanQueueSubmitType type,

@@ -22,6 +22,8 @@ struct VulkanObject {
 
 }    // namespace Renderer::Backends::Vulkan
 
+std::ostream& operator<<(std::ostream& out, const VkResult& result);
+
 #define VK_CHECK(function)                                          \
     {                                                               \
         VkResult __result = (function);                             \
@@ -35,5 +37,3 @@ struct VulkanObject {
             ASSERT(__result == VK_SUCCESS);                         \
         }                                                           \
     }
-
-std::ostream& operator<<(std::ostream& out, const VkResult& result);

@@ -5,6 +5,7 @@ package(default_visibility = ["//visibility:public"])
 bengine_cc_library(
     name = "vulkan",
     srcs = [
+        "src/Backends/Vulkan/DiagnosticCheckpoint.cpp",
         "src/Backends/Vulkan/VulkanBuffer.cpp",
         "src/Backends/Vulkan/VulkanCommandPool.cpp",
         "src/Backends/Vulkan/VulkanCore.cpp",
@@ -27,6 +28,7 @@ bengine_cc_library(
         "src/Backends/Vulkan/VulkanSwapChainDetails.cpp",
     ],
     hdrs = [
+        "include/Renderer/Backends/Vulkan/DiagnosticCheckpoint.h",
         "include/Renderer/Backends/Vulkan/VulkanBuffer.h",
         "include/Renderer/Backends/Vulkan/VulkanCommandPool.h",
         "include/Renderer/Backends/Vulkan/VulkanCore.h",

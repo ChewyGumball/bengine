@@ -1,5 +1,23 @@
 #include "Renderer/Backends/Vulkan/VulkanQueue.h"
 
+#define VK_CHECK_DIAGNOSTICS(function)                              \
+    {                                                               \
+        VkResult __result = (function);                             \
+        if(__result != VK_SUCCESS) {                                \
+            Core::Log::Critical(Renderer::Backends::Vulkan::Vulkan, \
+                                "Result of {} is {} in {}:{}",      \
+                                #function,                          \
+                                __result,                           \
+                                __FILE__,                           \
+                                __LINE__);                          \
+            if(__result == VK_ERROR_DEVICE_LOST) {                  \
+                diagnosticCheckpoints.printCheckpoints(*this);      \
+            }                                                       \
+        }                                                           \
+        ASSERT(__result == VK_SUCCESS);                             \
+    }
+
+
 namespace {
 void LogQueueDetails(const Renderer::Backends::Vulkan::VulkanQueueFamilyIndices& indices,
                      const std::vector<VkQueueFamilyProperties>& details) {
@@ -116,18 +134,15 @@ void VulkanQueue::submit(const VkCommandBuffer& commandBuffer,
         submitInfo.pSignalSemaphores    = signalSemaphores;
     }
 
-    VK_CHECK(vkQueueSubmit(object, 1, &submitInfo, fence));
+    VK_CHECK_DIAGNOSTICS(vkQueueSubmit(object, 1, &submitInfo, fence));
 }
 VkResult VulkanQueue::present(VkSwapchainKHR swapChain, VkSemaphore waitSemaphore, uint32_t imageIndex) const {
-    VkSwapchainKHR swapChains[]  = {swapChain};
-    VkSemaphore waitSemaphores[] = {waitSemaphore};
-
     VkPresentInfoKHR presentInfo   = {};
     presentInfo.sType              = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
     presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores    = waitSemaphores;
+    presentInfo.pWaitSemaphores    = &waitSemaphore;
     presentInfo.swapchainCount     = 1;
-    presentInfo.pSwapchains        = swapChains;
+    presentInfo.pSwapchains        = &swapChain;
     presentInfo.pImageIndices      = &imageIndex;
     presentInfo.pResults           = nullptr;    // Optional
 

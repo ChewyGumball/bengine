@@ -12,7 +12,8 @@ void DebugPrintAvailableExtensions() {
 
     Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "Vulkan Extension Count: {}", extensionCount);
     for(const auto& extension : availableExtensions) {
-        Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "- {} v{}", extension.extensionName, extension.specVersion);
+        Core::Log::Debug(
+              Renderer::Backends::Vulkan::Vulkan, "- {} v{}", extension.extensionName, extension.specVersion);
     }
 }
 
@@ -31,7 +32,8 @@ std::vector<std::string> FilterValidationLayers(const std::vector<std::string>& 
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
     std::vector<std::string> availableLayerNames;
-    Core::Algorithms::Map(availableLayers, availableLayerNames, [](const auto& layer) { return std::string(layer.layerName); });
+    Core::Algorithms::Map(
+          availableLayers, availableLayerNames, [](const auto& layer) { return std::string(layer.layerName); });
 
     std::vector<std::string> unsupportedLayerNames;
 
@@ -73,6 +75,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
         Core::Log::Log(VulkanValidation, level, "Validation Message: {}", pCallbackData->pMessage);
     } else if(messageType == VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT) {
         Core::Log::Log(VulkanValidation, level, "Validation Error: {}", pCallbackData->pMessage);
+        Core::Log::Log(VulkanValidation, level, "Stack Trace: {}", Core::GetBacktraceAsString());
     } else if(messageType == VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT) {
         Core::Log::Log(VulkanValidation, level, "Validation Performance Warning: {}", pCallbackData->pMessage);
     }
@@ -83,23 +86,26 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
 VkDebugUtilsMessengerEXT CreateDebugCallback(VkInstance instance) {
     using Renderer::Backends::Vulkan::Vulkan;
 
-    auto func                               = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
+    auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
     VkDebugUtilsMessengerEXT callbackHandle = nullptr;
 
     if(func != nullptr) {
         VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
 
-        createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        createInfo.messageSeverity =
-              VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        createInfo.messageType =
-              VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+        createInfo.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                                     VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                                     VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
         createInfo.pfnUserCallback = debugCallback;
         createInfo.pUserData       = nullptr;    // Optional
 
         VK_CHECK(func(instance, &createInfo, nullptr, &callbackHandle));
     } else {
-        Core::Log::Warning(Vulkan, "vkCreateDebugUtilsMessengerEXT function pointer was missing! Debug callback was not created.");
+        Core::Log::Warning(
+              Vulkan, "vkCreateDebugUtilsMessengerEXT function pointer was missing! Debug callback was not created.");
         VK_CHECK(VK_ERROR_EXTENSION_NOT_PRESENT);
     }
 
@@ -126,7 +132,7 @@ VulkanInstance VulkanInstance::Create(const std::string& applicationName,
 
     std::vector<const char*> validationLayerNames;
     Core::Algorithms::Map(activeValidationLayers, validationLayerNames, Core::Algorithms::Mappers::StringToChar());
-    
+
     VkApplicationInfo applicationInfo  = {};
     applicationInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     applicationInfo.pApplicationName   = applicationName.c_str();

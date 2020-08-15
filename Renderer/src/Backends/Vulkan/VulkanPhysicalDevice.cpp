@@ -119,7 +119,15 @@ bool deviceSupportsRequiredExtensions(VkPhysicalDevice deviceToCheck,
         extensions.erase(extension.extensionName);
     }
 
-    return extensions.empty();
+    if(extensions.empty()) {
+        return true;
+    } else {
+        Core::Log::Info(Renderer::Backends::Vulkan::Vulkan, "Missing extensions:");
+        for(auto& e : extensions) {
+            Core::Log::Info(Renderer::Backends::Vulkan::Vulkan, "\t{}", e);
+        }
+        return false;
+    }
 }
 std::optional<uint32_t> findMemoryType(uint32_t typeFilter,
                                        VkMemoryPropertyFlags desiredProperties,

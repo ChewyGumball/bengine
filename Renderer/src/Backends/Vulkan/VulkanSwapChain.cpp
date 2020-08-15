@@ -6,7 +6,8 @@ namespace Renderer::Backends::Vulkan {
 VulkanSwapChain VulkanSwapChain::Create(VkDevice device,
                                         const VulkanPhysicalDevice& physicalDevice,
                                         const VulkanQueues& queues,
-                                        VkRenderPass renderPass) {
+                                        VkRenderPass renderPass,
+                                        VkSwapchainKHR oldSwapChain) {
     const VulkanSwapChainDetails& details = physicalDevice.swapChainDetails;
 
     VkSwapchainCreateInfoKHR createInfo = {};
@@ -36,7 +37,7 @@ VulkanSwapChain VulkanSwapChain::Create(VkDevice device,
     createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     createInfo.presentMode    = details.presentMode;
     createInfo.clipped        = VK_TRUE;
-    createInfo.oldSwapchain   = VK_NULL_HANDLE;
+    createInfo.oldSwapchain   = oldSwapChain;
 
     VulkanSwapChain swapChain;
     swapChain.imageFormat    = details.format.format;

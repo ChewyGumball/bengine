@@ -2,19 +2,21 @@
 
 #include <Core/Logging/Logger.h>
 
-#include <boost/stacktrace.hpp>
-
 #include <string_view>
 
 namespace Core {
 namespace internal {
 extern LogCategory AssertLog;
 }
+
+// The default skip of three frames (2 for boost functions, one for this functions) will give a stack trace pointing to
+// the caller of this function.
+std::string GetBacktraceAsString(uint32_t framesToSkip = 3);
+
 template <typename... FORMAT_ARGS>
 [[noreturn]] void AbortWithMessage(std::string_view message, FORMAT_ARGS&&... args) {
     Log::Critical(internal::AssertLog, message, std::forward<FORMAT_ARGS>(args)...);
-    Log::Critical(
-          internal::AssertLog, "Backtrace:\n{}", boost::stacktrace::to_string(boost::stacktrace::stacktrace(3, 9999)));
+    Log::Critical(internal::AssertLog, "Backtrace:\n{}", GetBacktraceAsString(4));
     std::abort();
 }
 }    // namespace Core

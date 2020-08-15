@@ -1,7 +1,7 @@
 load("//tools:bengine_rules.bzl", "bengine_cc_binary")
 
 bengine_cc_binary(
-    name = "test",
+    name = "test_app",
     srcs = [
         "Test.cpp",
         "Test.h",
