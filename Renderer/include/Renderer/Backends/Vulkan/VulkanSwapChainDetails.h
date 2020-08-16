@@ -6,7 +6,6 @@
 namespace Renderer::Backends::Vulkan {
 
 struct VulkanSwapChainDetails {
-    VkSurfaceKHR surface;
     VkSurfaceFormatKHR format;
     VkFormat depthFormat;
     VkPresentModeKHR presentMode;

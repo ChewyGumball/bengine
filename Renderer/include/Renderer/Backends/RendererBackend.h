@@ -2,6 +2,8 @@
 
 namespace Renderer::Backends {
 
-class RendererBackend {};
+class RendererBackend {
+    virtual ~RendererBackend() = default;
+};
 
 }    // namespace Renderer::Backends

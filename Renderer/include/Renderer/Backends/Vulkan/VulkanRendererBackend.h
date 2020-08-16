@@ -5,42 +5,70 @@
 #include <Renderer/Backends/Vulkan/VulkanInstance.h>
 #include <Renderer/Backends/Vulkan/VulkanLogicalDevice.h>
 #include <Renderer/Backends/Vulkan/VulkanPhysicalDevice.h>
+#include <Renderer/Backends/Vulkan/VulkanRenderPass.h>
+#include <Renderer/Backends/Vulkan/VulkanSwapChain.h>
 
+#include <Core/Containers/Array.h>
+#include <Core/Containers/HashSet.h>
 #include <Core/Status/StatusOr.h>
 
 #include <functional>
 #include <optional>
 #include <string>
-#include <unordered_set>
 
 namespace Renderer::Backends::Vulkan {
 
-struct VulkanSurfaceDetails {
-    VkSurfaceKHR surface;
-    VkExtent2D initialExtent;
+using SurfaceCreationFunction = std::function<VkSurfaceKHR(VulkanInstance&)>;
+
+struct VulkanSurfaceFormat {
+    VkFormat colourFormat;
+    VkFormat depthFormat;
 };
-using SurfaceCreationFunction = std::function<VulkanSurfaceDetails(VulkanInstance)>;
 
 class VulkanRendererBackend : public RendererBackend {
 public:
     VulkanRendererBackend(VulkanInstance instance,
                           VulkanPhysicalDevice physicalDevice,
                           std::optional<VkSurfaceKHR> surface,
-                          const std::vector<std::string>& requiredDeviceExtensions,
-                          const std::vector<std::string>& requiredValidationLayers);
+                          const Core::Array<std::string>& requiredDeviceExtensions,
+                          const Core::Array<std::string>& requiredValidationLayers);
+
+    ~VulkanRendererBackend();
+
+    VulkanSurfaceFormat getSurfaceFormat() const;
+
+    VulkanRenderPass makeRenderPass(VkFormat colourBufferFormat, VkFormat depthBufferFormat);
+
+    VulkanSwapChain makeSwapChain(const VulkanRenderPass& renderPass,
+                                  VkExtent2D size,
+                                  std::optional<VulkanSwapChain> previousSwapChain = std::nullopt);
 
     static Core::StatusOr<VulkanRendererBackend>
     CreateWithSurface(const std::string& applicationName,
-                      std::optional<SurfaceCreationFunction> surfaceCreationFunction,
-                      const std::unordered_set<std::string>& requiredInstanceExtensions,
-                      const std::unordered_set<std::string>& requiredDeviceExtensions,
-                      const std::unordered_set<std::string>& requiredValidationLayers = {});
+                      SurfaceCreationFunction surfaceCreationFunction,
+                      const Core::HashSet<std::string>& requiredInstanceExtensions,
+                      const Core::HashSet<std::string>& requiredDeviceExtensions,
+                      const Core::HashSet<std::string>& requiredValidationLayers = {});
+
+    VulkanInstance& getInstance() {
+        return instance;
+    }
+    VulkanPhysicalDevice& getPhsyicalDevice() {
+        return physicalDevice;
+    }
+    VulkanLogicalDevice& getLogicalDevice() {
+        return logicalDevice;
+    }
+    VulkanQueues& getQueues() {
+        return queues;
+    }
 
 private:
     VulkanInstance instance;
     VulkanPhysicalDevice physicalDevice;
     VulkanLogicalDevice logicalDevice;
     VulkanQueues queues;
+
 
     std::optional<VkSurfaceKHR> surface;
 };

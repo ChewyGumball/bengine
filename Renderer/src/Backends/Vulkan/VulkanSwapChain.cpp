@@ -1,15 +1,13 @@
 #include "Renderer/Backends/Vulkan/VulkanSwapChain.h"
 
-#include "Renderer/Backends/Vulkan/VulkanSwapChainDetails.h"
 
 namespace Renderer::Backends::Vulkan {
 VulkanSwapChain VulkanSwapChain::Create(VkDevice device,
                                         const VulkanPhysicalDevice& physicalDevice,
+                                        const VulkanSwapChainDetails& details,
                                         const VulkanQueues& queues,
                                         VkRenderPass renderPass,
                                         VkSwapchainKHR oldSwapChain) {
-    const VulkanSwapChainDetails& details = physicalDevice.swapChainDetails;
-
     VkSwapchainCreateInfoKHR createInfo = {};
     createInfo.sType                    = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface                  = details.surface;

@@ -259,8 +259,7 @@ void VulkanPhysicalDevice::DestroyImage(VkDevice device, VulkanImage& image) {
 
 Core::StatusOr<VulkanPhysicalDevice> VulkanPhysicalDevice::Find(VkInstance instance,
                                                                 VkSurfaceKHR surface,
-                                                                const std::vector<std::string>& requiredExtensions,
-                                                                VkExtent2D windowSize) {
+                                                                const std::vector<std::string>& requiredExtensions) {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
     if(deviceCount == 0) {
@@ -292,8 +291,7 @@ Core::StatusOr<VulkanPhysicalDevice> VulkanPhysicalDevice::Find(VkInstance insta
             VkPhysicalDeviceMemoryProperties memoryProperties;
             vkGetPhysicalDeviceMemoryProperties(device, &memoryProperties);
 
-            VulkanPhysicalDevice physicalDevice = {
-                  device, *indices, VulkanSwapChainDetails::Find(device, surface, windowSize), memoryProperties};
+            VulkanPhysicalDevice physicalDevice{device, *indices, memoryProperties};
 
             VkPhysicalDeviceProperties deviceProperties;
             vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);

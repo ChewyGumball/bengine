@@ -74,6 +74,13 @@ public:
         return std::get<T>(valueOrStatus);
     }
 
+    [[nodiscard]] T& value() & {
+        ASSERT_WITH_MESSAGE(std::holds_alternative<T>(valueOrStatus),
+                            "A StatusOr doesn't have a value if it holds a Status!");
+
+        return std::get<T>(valueOrStatus);
+    }
+
     [[nodiscard]] T&& value() && {
         ASSERT_WITH_MESSAGE(std::holds_alternative<T>(valueOrStatus),
                             "A StatusOr doesn't have a value if it holds a Status!");

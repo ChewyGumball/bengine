@@ -94,20 +94,20 @@ VulkanSwapChainDetails
 VulkanSwapChainDetails::Find(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkExtent2D windowSize) {
     SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice, surface);
 
-    VulkanSwapChainDetails details;
-    details.surface           = surface;
-    details.format            = chooseSwapSurfaceFormat(swapChainSupport.formats);
-    details.depthFormat       = findBestDepthFormat(physicalDevice);
-    details.presentMode       = chooseSwapPresentMode(swapChainSupport.presentModes);
-    details.extent            = chooseSwapExtent(swapChainSupport.capabilities, windowSize);
-    details.desiredImageCount = swapChainSupport.capabilities.minImageCount + 1;
     // maxImageCount == 0 means only limited by memory
-    if(swapChainSupport.capabilities.maxImageCount > 0 &&
-       details.desiredImageCount > swapChainSupport.capabilities.maxImageCount) {
-        details.desiredImageCount = swapChainSupport.capabilities.maxImageCount;
+    uint32_t maxImageCount = swapChainSupport.capabilities.maxImageCount;
+    if(maxImageCount == 0) {
+        maxImageCount = std::numeric_limits<uint32_t>::max();
     }
-    details.transform = swapChainSupport.capabilities.currentTransform;
+    uint32_t clampedImageCount = std::min(swapChainSupport.capabilities.minImageCount + 1, maxImageCount);
 
-    return details;
+    return VulkanSwapChainDetails{
+          .format            = chooseSwapSurfaceFormat(swapChainSupport.formats),
+          .depthFormat       = findBestDepthFormat(physicalDevice),
+          .presentMode       = chooseSwapPresentMode(swapChainSupport.presentModes),
+          .extent            = chooseSwapExtent(swapChainSupport.capabilities, windowSize),
+          .desiredImageCount = clampedImageCount,
+          .transform         = swapChainSupport.capabilities.currentTransform,
+    };
 }
 }    // namespace Renderer::Backends::Vulkan

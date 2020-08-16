@@ -1,34 +1,24 @@
 #include <Renderer/Backends/Vulkan/VulkanRendererBackend.h>
 
+#include "Renderer/Backends/Vulkan/VulkanSwapChainDetails.h"
+#include <Renderer/Backends/Vulkan/DiagnosticCheckpoint.h>
+
 #include <Core/Algorithms/Optional.h>
 
 namespace Renderer::Backends::Vulkan {
 
 namespace internal {
-    const std::unordered_set<std::string> ValidationLayers   = {"VK_LAYER_LUNARG_standard_validation"};
-    const std::unordered_set<std::string> InstanceExtensions = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME};
-    const std::unordered_set<std::string> DeviceExtensions   = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+const Core::HashSet<std::string> ValidationLayers   = {"VK_LAYER_LUNARG_standard_validation"};
+const Core::HashSet<std::string> InstanceExtensions = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME};
+const Core::HashSet<std::string> DeviceExtensions   = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
-    std::vector<std::string> CombineSetsToList(const std::unordered_set<std::string>& setA,
-                                               const std::unordered_set<std::string>& setB) {
-        std::unordered_set set = setA;
-        set.insert(setB.begin(), setB.end());
+Core::Array<std::string> CombineSetsToList(const Core::HashSet<std::string>& setA,
+                                           const Core::HashSet<std::string>& setB) {
+    Core::HashSet set = setA;
+    set.insert(setB.begin(), setB.end());
 
-        return std::vector(set.begin(), set.end());
-    }
-
-    Core::StatusOr<VulkanPhysicalDevice> FindPhysicalDevice(VulkanInstance instance,
-                                                            VkSurfaceKHR surface,
-                                                            const std::vector<std::string>& deviceExtensions,
-                                                            VkExtent2D initialSurfaceSize) {
-        std::optional<VulkanPhysicalDevice> device =
-              VulkanPhysicalDevice::Find(instance, surface, deviceExtensions, initialSurfaceSize);
-        if(device) {
-            return *device;
-        } else {
-            return Core::Status::Error("Unable to find a device that supports Vulkan!");
-        }
-    }
+    return Core::Array(set.begin(), set.end());
+}
 
 }    // namespace internal
 
@@ -36,8 +26,8 @@ namespace internal {
 VulkanRendererBackend::VulkanRendererBackend(VulkanInstance instance,
                                              VulkanPhysicalDevice physicalDevice,
                                              std::optional<VkSurfaceKHR> surface,
-                                             const std::vector<std::string>& requiredDeviceExtensions,
-                                             const std::vector<std::string>& requiredValidationLayers)
+                                             const Core::Array<std::string>& requiredDeviceExtensions,
+                                             const Core::Array<std::string>& requiredValidationLayers)
   : instance(instance),
     physicalDevice(physicalDevice),
     logicalDevice(
@@ -45,12 +35,56 @@ VulkanRendererBackend::VulkanRendererBackend(VulkanInstance instance,
     queues(VulkanQueues::Create(logicalDevice, physicalDevice.queueIndices)),
     surface(surface) {}
 
+VulkanRendererBackend::~VulkanRendererBackend() {
+    vkDeviceWaitIdle(logicalDevice);
+
+    VulkanQueues::Destroy(logicalDevice, queues);
+    VulkanLogicalDevice::Destroy(logicalDevice);
+
+    if(surface) {
+        vkDestroySurfaceKHR(instance, *surface, nullptr);
+    }
+
+    VulkanInstance::Destroy(instance);
+}
+
+VulkanSurfaceFormat VulkanRendererBackend::getSurfaceFormat() const {
+    VkExtent unusedSize{.width = 0, .height = 0};
+    VulkanSwapChainDetails details = VulkanSwapChainDetails::Find(physicalDevice, surface, unusedSize);
+
+    return VulkanSurfaceFormat{.colourFormat = details.format.format, .depthFormat = details.depthFormat};
+}
+
+VulkanRenderPass VulkanRendererBackend::makeRenderPass(VkFormat colourBufferFormat, VkFormat depthBufferFormat) {
+    return VulkanRenderPass::Create(logicalDevice, colourBufferFormat, depthBufferFormat);
+}
+
+VulkanSwapChain VulkanRendererBackend::makeSwapChain(const VulkanRenderPass& renderPass,
+                                                     VkExtent2D size,
+                                                     std::optional<VulkanSwapChain> previousSwapChain) {
+    VulkanSwapChainDetails details         = VulkanSwapChainDetails::Find(physicalDevice, surface, size);
+    VkSwapchainKHR previousSwapChainHandle = VK_NULL_HANDLE;
+    if(previousSwapChain) {
+        previousSwapChainHandle = previousSwapChain->object;
+    }
+
+    VulkanSwapChain newChain =
+          VulkanSwapChain::Create(logicalDevice, physicalDevice, details, queues, renderPass, previousSwapChainHandle);
+
+    if(previousSwapChain) {
+        VulkanSwapChain::Destroy(logicalDevice, *previousSwapChain);
+    }
+
+    return newChain;
+}
+
+
 Core::StatusOr<VulkanRendererBackend>
 VulkanRendererBackend::CreateWithSurface(const std::string& applicationName,
-                                         std::optional<SurfaceCreationFunction> surfaceCreationFunction,
-                                         const std::unordered_set<std::string>& requiredInstanceExtensions,
-                                         const std::unordered_set<std::string>& requiredDeviceExtensions,
-                                         const std::unordered_set<std::string>& requiredValidationLayers) {
+                                         SurfaceCreationFunction surfaceCreationFunction,
+                                         const Core::HashSet<std::string>& requiredInstanceExtensions,
+                                         const Core::HashSet<std::string>& requiredDeviceExtensions,
+                                         const Core::HashSet<std::string>& requiredValidationLayers) {
     auto validationLayers = internal::CombineSetsToList(requiredValidationLayers, internal::ValidationLayers);
 
     VulkanInstance instance =
@@ -58,15 +92,15 @@ VulkanRendererBackend::CreateWithSurface(const std::string& applicationName,
                                  internal::CombineSetsToList(requiredInstanceExtensions, internal::InstanceExtensions),
                                  validationLayers);
 
-    VulkanSurfaceDetails surfaceDetails =
-          Core::Algorithms::Map(surfaceCreationFunction, [&](const auto& f) { return f(instance); });
+    DiagnosticCheckpointStorage::Init(instance);
+
+    VkSurfaceKHR surface = surfaceCreationFunction(instance);
 
     auto deviceExtensions = internal::CombineSetsToList(requiredDeviceExtensions, internal::DeviceExtensions);
 
     ASSIGN_OR_RETURN(VulkanPhysicalDevice physicalDevice,
-                     internal::FindPhysicalDevice(
-                           instance, surfaceDetails.surface, deviceExtensions, surfaceDetails.initialExtent));
+                     VulkanPhysicalDevice::Find(instance, surface, deviceExtensions));
 
-    return VulkanRendererBackend(instance, physicalDevice, surfaceDetails.surface, deviceExtensions, validationLayers);
+    return VulkanRendererBackend(instance, physicalDevice, surface, deviceExtensions, validationLayers);
 }
 }    // namespace Renderer::Backends::Vulkan
