@@ -2,7 +2,6 @@
 
 #include <Core/Algorithms/Containers.h>
 
-
 namespace {
 
 struct SwapChainSupportDetails {
@@ -12,12 +11,13 @@ struct SwapChainSupportDetails {
 };
 
 SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice deviceToCheck, VkSurfaceKHR surface) {
-    SwapChainSupportDetails details;
+    SwapChainSupportDetails details{};
     VK_CHECK(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(deviceToCheck, surface, &details.capabilities));
 
     uint32_t formatCount;
     VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(deviceToCheck, surface, &formatCount, nullptr));
 
+    ASSERT(formatCount < 100000);
     if(formatCount != 0) {
         details.formats.resize(formatCount);
         VK_CHECK(vkGetPhysicalDeviceSurfaceFormatsKHR(deviceToCheck, surface, &formatCount, details.formats.data()));
@@ -102,6 +102,7 @@ VulkanSwapChainDetails::Find(VkPhysicalDevice physicalDevice, VkSurfaceKHR surfa
     uint32_t clampedImageCount = std::min(swapChainSupport.capabilities.minImageCount + 1, maxImageCount);
 
     return VulkanSwapChainDetails{
+          .surface           = surface,
           .format            = chooseSwapSurfaceFormat(swapChainSupport.formats),
           .depthFormat       = findBestDepthFormat(physicalDevice),
           .presentMode       = chooseSwapPresentMode(swapChainSupport.presentModes),

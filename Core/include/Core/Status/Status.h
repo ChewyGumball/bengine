@@ -69,19 +69,19 @@ private:
 };
 }    // namespace Core
 
-#define RETURN_IF_ERROR_IMPL(tempName, status) \
-    Status tempName(std::move(status));        \
-    if(tempName.isError())                     \
-        [[unlikely]] {                         \
-            tempName.reset();                  \
-            return std::move(tempName);        \
+#define RETURN_IF_ERROR_IMPL(tempName, status)  \
+    Core::Status tempName(std::move((status))); \
+    if(tempName.isError())                      \
+        [[unlikely]] {                          \
+            tempName.reset();                   \
+            return std::move(tempName);         \
         }
 
 
-#define RETURN_IF_ERROR(status) RETURN_IF_ERROR_IMPL(return_if_error_status_##__COUNTER__, status)
+#define RETURN_IF_ERROR(status) RETURN_IF_ERROR_IMPL(CORE_ASSERT_CONCAT(return_if_error_status_, __COUNTER__), status)
 
 #define ASSERT_IS_OK_IMPL(tempName, status)                                                                    \
-    Status tempName(std::move(status));                                                                        \
+    Core::Status tempName(std::move((status)));                                                                \
     if(tempName.IsError())                                                                                     \
         [[unlikely]] {                                                                                         \
             Core::AbortWithMessage("Status was expected to be ok, but it is an error: {}\n{} ({}) at {}:{}\n", \
@@ -92,4 +92,4 @@ private:
                                    __LINE__);                                                                  \
         }
 
-#define ASSERT_IS_OK(status) ASSERT_IS_OK_IMPL(assert_is_ok_status_##__COUNTER__, status)
+#define ASSERT_IS_OK(status) ASSERT_IS_OK_IMPL(CORE_ASSERT_CONCAT(assert_is_ok_status_, __COUNTER__), status)

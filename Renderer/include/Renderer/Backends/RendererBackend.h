@@ -3,7 +3,8 @@
 namespace Renderer::Backends {
 
 class RendererBackend {
-    virtual ~RendererBackend() = default;
+public:
+    virtual ~RendererBackend(){};
 };
 
 }    // namespace Renderer::Backends

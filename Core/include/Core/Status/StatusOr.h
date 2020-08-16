@@ -101,7 +101,19 @@ private:
         }                                         \
     lhs = std::move(tempName).value();
 
-#define ASSIGN_OR_RETURN(lhs, rhs) ASSIGN_OR_RETURN_IMPL(assign_or_return_status_or_##__COUNTER__, lhs, rhs)
+#define ASSIGN_OR_RETURN(lhs, rhs) \
+    ASSIGN_OR_RETURN_IMPL(CORE_ASSERT_CONCAT(assign_or_return_status_or_, __COUNTER__), lhs, rhs)
+
+#define CONSTRUCT_OR_RETURN_IMPL(tempName, lhs, rhs) \
+    auto tempName((rhs));                            \
+    if(tempName.peekError())                         \
+        [[unlikely]] {                               \
+            return std::move(tempName).status();     \
+        }                                            \
+    lhs(std::move(tempName).value());
+
+#define CONSTRUCT_OR_RETURN(lhs, rhs) \
+    CONSTRUCT_OR_RETURN_IMPL(CORE_ASSERT_CONCAT(construct_or_return_status_or_, __COUNTER__), lhs, rhs)
 
 #define ASSIGN_OR_ASSERT_IMPL(tempName, lhs, rhs)                                                         \
     auto tempName((rhs));                                                                                 \
@@ -117,4 +129,5 @@ private:
         }                                                                                                 \
     lhs = std::move(tempName).value();
 
-#define ASSIGN_OR_ASSERT(lhs, rhs) ASSIGN_OR_ASSERT_IMPL(assign_or_assert_status_or_##__COUNTER__, lhs, rhs)
+#define ASSIGN_OR_ASSERT(lhs, rhs) \
+    ASSIGN_OR_ASSERT_IMPL(CORE_ASSERT_CONCAT(assign_or_assert_status_or_, __COUNTER__), lhs, rhs)

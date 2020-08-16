@@ -23,6 +23,9 @@ template <typename... FORMAT_ARGS>
 
 #define CORE_ASSERT_STRINGIFY(s) #s
 
+#define CORE_ASSERT_CONCAT_IMPL(x, y) x##y
+#define CORE_ASSERT_CONCAT(x, y) CORE_ASSERT_CONCAT_IMPL(x, y)
+
 #define ASSERT(value)                                                                                              \
     if(!(value))                                                                                                   \
         [[unlikely]] {                                                                                             \

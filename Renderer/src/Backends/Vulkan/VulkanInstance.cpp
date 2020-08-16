@@ -83,6 +83,23 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityF
     return VK_FALSE;
 }
 
+VkDebugUtilsMessengerCreateInfoEXT MakeDebugCallbackCreateInfo() {
+    VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
+
+    createInfo.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
+                                 VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                                 VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                             VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.pfnUserCallback = debugCallback;
+    createInfo.pUserData       = nullptr;    // Optional
+
+    return createInfo;
+}
+
+
 VkDebugUtilsMessengerEXT CreateDebugCallback(VkInstance instance) {
     using Renderer::Backends::Vulkan::Vulkan;
 
@@ -90,18 +107,7 @@ VkDebugUtilsMessengerEXT CreateDebugCallback(VkInstance instance) {
     VkDebugUtilsMessengerEXT callbackHandle = nullptr;
 
     if(func != nullptr) {
-        VkDebugUtilsMessengerCreateInfoEXT createInfo = {};
-
-        createInfo.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-        createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT |
-                                     VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                                     VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-        createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-        createInfo.pfnUserCallback = debugCallback;
-        createInfo.pUserData       = nullptr;    // Optional
-
+        VkDebugUtilsMessengerCreateInfoEXT createInfo = MakeDebugCallbackCreateInfo();
         VK_CHECK(func(instance, &createInfo, nullptr, &callbackHandle));
     } else {
         Core::Log::Warning(
@@ -122,12 +128,15 @@ VulkanInstance VulkanInstance::Create(const std::string& applicationName,
 
     std::vector<const char*> requiredExtensionNames;
     Core::Algorithms::Map(requiredExtensions, requiredExtensionNames, Core::Algorithms::Mappers::StringToChar());
-
+    Core::Log::Debug(Vulkan, "Creating instance with extensions:");
+    for(const auto& extension : requiredExtensionNames) {
+        Core::Log::Debug(Vulkan, "\t{}", extension);
+    }
 
     std::vector<std::string> activeValidationLayers = FilterValidationLayers(requestedValidationLayers);
     Core::Log::Debug(Vulkan, "Supported Validation Layer Count: {}", activeValidationLayers.size());
     for(const auto& layer : activeValidationLayers) {
-        Core::Log::Debug(Vulkan, "- {}", layer);
+        Core::Log::Debug(Vulkan, "\t{}", layer);
     }
 
     std::vector<const char*> validationLayerNames;
@@ -139,7 +148,7 @@ VulkanInstance VulkanInstance::Create(const std::string& applicationName,
     applicationInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     applicationInfo.pEngineName        = "BENgine";
     applicationInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
-    applicationInfo.apiVersion         = VK_API_VERSION_1_0;
+    applicationInfo.apiVersion         = VK_API_VERSION_1_1;
 
 
     VkInstanceCreateInfo createInfo    = {};
@@ -152,6 +161,9 @@ VulkanInstance VulkanInstance::Create(const std::string& applicationName,
     if(!validationLayerNames.empty()) {
         createInfo.ppEnabledLayerNames = validationLayerNames.data();
     }
+
+    VkDebugUtilsMessengerCreateInfoEXT instanceCreateDebugInfo = MakeDebugCallbackCreateInfo();
+    createInfo.pNext                                           = &instanceCreateDebugInfo;
 
     VK_CHECK(vkCreateInstance(&createInfo, nullptr, &instance.object));
 

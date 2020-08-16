@@ -8,6 +8,7 @@
 #include "VulkanImageView.h"
 #include "VulkanPhysicalDevice.h"
 #include "VulkanQueue.h"
+#include "VulkanSwapChainDetails.h"
 
 namespace Renderer::Backends::Vulkan {
 
@@ -33,6 +34,7 @@ struct VulkanSwapChain : public VulkanObject<VkSwapchainKHR> {
 
     static VulkanSwapChain Create(VkDevice device,
                                   const VulkanPhysicalDevice& physicalDevice,
+                                  const VulkanSwapChainDetails& details,
                                   const VulkanQueues& queues,
                                   VkRenderPass renderPass,
                                   VkSwapchainKHR oldSwapChain = VK_NULL_HANDLE);

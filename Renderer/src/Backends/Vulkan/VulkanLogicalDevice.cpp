@@ -35,13 +35,17 @@ VulkanLogicalDevice VulkanLogicalDevice::Create(const VulkanQueueFamilyIndices& 
     std::vector<const char*> deviceExtensionNames;
     Core::Algorithms::Map(deviceExtensions, deviceExtensionNames, Core::Algorithms::Mappers::StringToChar());
 
+    Core::Log::Debug(Vulkan, "Creating logical device with extensions:");
+    for(auto name : deviceExtensionNames) {
+        Core::Log::Debug(Vulkan, "\t{}", name);
+    }
+
 
     VkDeviceCreateInfo createInfo      = {};
     createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.pQueueCreateInfos       = queueCreateInfos.data();
     createInfo.queueCreateInfoCount    = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pEnabledFeatures        = &deviceFeatures;
-    createInfo.enabledExtensionCount   = 0;
     createInfo.enabledLayerCount       = static_cast<uint32_t>(validationLayerNames.size());
     createInfo.ppEnabledLayerNames     = validationLayerNames.data();
     createInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensionNames.size());

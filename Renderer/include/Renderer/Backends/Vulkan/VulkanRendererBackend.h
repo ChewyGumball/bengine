@@ -33,7 +33,7 @@ public:
                           const Core::Array<std::string>& requiredDeviceExtensions,
                           const Core::Array<std::string>& requiredValidationLayers);
 
-    ~VulkanRendererBackend();
+    void shutdown();
 
     VulkanSurfaceFormat getSurfaceFormat() const;
 
@@ -53,7 +53,7 @@ public:
     VulkanInstance& getInstance() {
         return instance;
     }
-    VulkanPhysicalDevice& getPhsyicalDevice() {
+    VulkanPhysicalDevice& getPhysicalDevice() {
         return physicalDevice;
     }
     VulkanLogicalDevice& getLogicalDevice() {

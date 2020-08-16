@@ -38,7 +38,7 @@
 *.vcxproj.user
 
 *.zip
-/test_app/Content
+/content
 
 /bazel-*
 *.code-workspace

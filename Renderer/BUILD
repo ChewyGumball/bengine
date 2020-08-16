@@ -21,6 +21,7 @@ bengine_cc_library(
         "src/Backends/Vulkan/VulkanPipelineLayout.cpp",
         "src/Backends/Vulkan/VulkanQueue.cpp",
         "src/Backends/Vulkan/VulkanRenderPass.cpp",
+        "src/Backends/Vulkan/VulkanRendererBackend.cpp",
         "src/Backends/Vulkan/VulkanSampler.cpp",
         "src/Backends/Vulkan/VulkanSemaphore.cpp",
         "src/Backends/Vulkan/VulkanShaderModule.cpp",
@@ -28,6 +29,7 @@ bengine_cc_library(
         "src/Backends/Vulkan/VulkanSwapChainDetails.cpp",
     ],
     hdrs = [
+        "include/Renderer/Backends/RendererBackend.h",
         "include/Renderer/Backends/Vulkan/DiagnosticCheckpoint.h",
         "include/Renderer/Backends/Vulkan/VulkanBuffer.h",
         "include/Renderer/Backends/Vulkan/VulkanCommandPool.h",
@@ -45,6 +47,7 @@ bengine_cc_library(
         "include/Renderer/Backends/Vulkan/VulkanPipelineShaderStage.h",
         "include/Renderer/Backends/Vulkan/VulkanQueue.h",
         "include/Renderer/Backends/Vulkan/VulkanRenderPass.h",
+        "include/Renderer/Backends/Vulkan/VulkanRendererBackend.h",
         "include/Renderer/Backends/Vulkan/VulkanSampler.h",
         "include/Renderer/Backends/Vulkan/VulkanSemaphore.h",
         "include/Renderer/Backends/Vulkan/VulkanShaderModule.h",

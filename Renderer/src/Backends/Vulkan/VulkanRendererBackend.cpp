@@ -5,6 +5,10 @@
 
 #include <Core/Algorithms/Optional.h>
 
+namespace {
+Core::LogCategory Backend("Vulkan Backend");
+}
+
 namespace Renderer::Backends::Vulkan {
 
 namespace internal {
@@ -14,10 +18,10 @@ const Core::HashSet<std::string> DeviceExtensions   = {VK_KHR_SWAPCHAIN_EXTENSIO
 
 Core::Array<std::string> CombineSetsToList(const Core::HashSet<std::string>& setA,
                                            const Core::HashSet<std::string>& setB) {
-    Core::HashSet set = setA;
+    Core::HashSet<std::string> set = setA;
     set.insert(setB.begin(), setB.end());
 
-    return Core::Array(set.begin(), set.end());
+    return Core::Array<std::string>(set.begin(), set.end());
 }
 
 }    // namespace internal
@@ -33,9 +37,12 @@ VulkanRendererBackend::VulkanRendererBackend(VulkanInstance instance,
     logicalDevice(
           VulkanLogicalDevice::Create(physicalDevice.queueIndices, requiredDeviceExtensions, requiredValidationLayers)),
     queues(VulkanQueues::Create(logicalDevice, physicalDevice.queueIndices)),
-    surface(surface) {}
+    surface(surface) {
+    Core::Log::Debug(Vulkan, "Backend initialized.");
+}
 
-VulkanRendererBackend::~VulkanRendererBackend() {
+void VulkanRendererBackend::shutdown() {
+    Core::Log::Info(Backend, "Destroying backend.");
     vkDeviceWaitIdle(logicalDevice);
 
     VulkanQueues::Destroy(logicalDevice, queues);
@@ -49,8 +56,10 @@ VulkanRendererBackend::~VulkanRendererBackend() {
 }
 
 VulkanSurfaceFormat VulkanRendererBackend::getSurfaceFormat() const {
-    VkExtent unusedSize{.width = 0, .height = 0};
-    VulkanSwapChainDetails details = VulkanSwapChainDetails::Find(physicalDevice, surface, unusedSize);
+    ASSERT_WITH_MESSAGE(surface.has_value(), "The surface format can only be retrieved if there is a surface!");
+
+    VkExtent2D unusedSize{.width = 0, .height = 0};
+    VulkanSwapChainDetails details = VulkanSwapChainDetails::Find(physicalDevice, *surface, unusedSize);
 
     return VulkanSurfaceFormat{.colourFormat = details.format.format, .depthFormat = details.depthFormat};
 }
@@ -62,7 +71,11 @@ VulkanRenderPass VulkanRendererBackend::makeRenderPass(VkFormat colourBufferForm
 VulkanSwapChain VulkanRendererBackend::makeSwapChain(const VulkanRenderPass& renderPass,
                                                      VkExtent2D size,
                                                      std::optional<VulkanSwapChain> previousSwapChain) {
-    VulkanSwapChainDetails details         = VulkanSwapChainDetails::Find(physicalDevice, surface, size);
+    ASSERT_WITH_MESSAGE(surface.has_value(), "There is no surface, so no swap chain can be created!");
+
+    vkDeviceWaitIdle(logicalDevice);
+
+    VulkanSwapChainDetails details         = VulkanSwapChainDetails::Find(physicalDevice, *surface, size);
     VkSwapchainKHR previousSwapChainHandle = VK_NULL_HANDLE;
     if(previousSwapChain) {
         previousSwapChainHandle = previousSwapChain->object;
