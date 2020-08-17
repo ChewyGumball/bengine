@@ -24,14 +24,3 @@ bengine_cc_binary(
         "@stb//:stb_image",
     ],
 )
-
-bengine_cc_binary(
-    name = "redo",
-    srcs = [
-        "Redo.cpp",
-    ],
-    deps = [
-        "//gui:window",
-        "//renderer:vulkan",
-    ],
-)
