@@ -14,7 +14,8 @@ namespace Renderer::Backends::Vulkan {
 namespace internal {
 const Core::HashSet<std::string> ValidationLayers   = {"VK_LAYER_LUNARG_standard_validation"};
 const Core::HashSet<std::string> InstanceExtensions = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME};
-const Core::HashSet<std::string> DeviceExtensions   = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+const Core::HashSet<std::string> DeviceExtensions   = {VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+                                                     VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME};
 
 Core::Array<std::string> CombineSetsToList(const Core::HashSet<std::string>& setA,
                                            const Core::HashSet<std::string>& setB) {

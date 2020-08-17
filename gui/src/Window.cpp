@@ -58,6 +58,7 @@ Window::Window(const std::string& name, GLFWwindow* handle) : name(name), handle
 }
 
 Window::~Window() {
+    Core::Log::Info(internal::GLFW, "Destroying window.");
     glfwDestroyWindow(handle);
     internal::TerminateGLFW();
 }
@@ -84,12 +85,16 @@ Core::HashSet<std::string> Window::getRequiredVulkanExtensions() {
 
     Core::HashSet<std::string> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
     extensions.insert(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
-    // extensions.insert(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+    extensions.insert(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 
     return extensions;
 }
 bool Window::shouldClose() const {
     return glfwWindowShouldClose(handle) == GLFW_TRUE;
+}
+
+void Window::pumpEvents() {
+    glfwPollEvents();
 }
 
 Core::StatusOr<std::unique_ptr<Window>> Window::Create(const std::string& name, uint32_t width, uint32_t height) {

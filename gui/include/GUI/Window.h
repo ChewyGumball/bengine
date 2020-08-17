@@ -25,6 +25,7 @@ public:
     VkExtent2D getSize() const;
 
     bool shouldClose() const;
+    void pumpEvents();
 
 private:
     Window(const std::string& name, GLFWwindow* handle);

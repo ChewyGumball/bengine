@@ -4,10 +4,6 @@ bengine_cc_binary(
     name = "test_app",
     srcs = [
         "Test.cpp",
-        "imgui_impl_glfw.cpp",
-        "imgui_impl_glfw.h",
-        "imgui_impl_vulkan.cpp",
-        "imgui_impl_vulkan.h",
     ],
     data = [
         "//content:models",
@@ -23,6 +19,19 @@ bengine_cc_binary(
         "@glfw",
         "@glm",
         "@imgui",
+        "@imgui//:imgui_glfw",
+        "@imgui//:imgui_vulkan",
         "@stb//:stb_image",
+    ],
+)
+
+bengine_cc_binary(
+    name = "redo",
+    srcs = [
+        "Redo.cpp",
+    ],
+    deps = [
+        "//gui:window",
+        "//renderer:vulkan",
     ],
 )

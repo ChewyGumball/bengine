@@ -17,7 +17,6 @@
         ASSERT(__result == VK_SUCCESS);                             \
     }
 
-
 namespace {
 void LogQueueDetails(const Renderer::Backends::Vulkan::VulkanQueueFamilyIndices& indices,
                      const std::vector<VkQueueFamilyProperties>& details) {
@@ -49,7 +48,8 @@ std::optional<const VulkanQueueFamilyIndices> VulkanQueueFamilyIndices::Find(VkP
 
     for(uint32_t i = 0; i < queueFamilies.size(); i++) {
         if(queueFamilies[i].queueCount > 0) {
-            // We would prefer graphics and present queues to be in the same family if possible.
+            // We would prefer graphics and present queues to be in the same family if
+            // possible.
             if(!graphicsIndex || !presentIndex) {
                 if((queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) {
                     graphicsIndex = i;
@@ -63,15 +63,18 @@ std::optional<const VulkanQueueFamilyIndices> VulkanQueueFamilyIndices::Find(VkP
             }
 
             if((queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT) != 0) {
-                // We would prefer the compute queue to be in a separate family from the graphics queue
+                // We would prefer the compute queue to be in a separate family from the
+                // graphics queue
                 if(!computeIndex || (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) {
                     computeIndex = i;
                 }
             }
 
             if((queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT) != 0) {
-                // We would prefer the transfer queue to be in a separate family from the graphics queue
-                if(!transferIndex || (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0) {
+                // We would prefer the transfer queue to be in a separate family from
+                // the graphics and computer queue
+                if(!transferIndex || ((queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) == 0 &&
+                                      (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT) == 0)) {
                     transferIndex = i;
                 }
             }
@@ -120,7 +123,6 @@ void VulkanQueue::submit(const VkCommandBuffer& commandBuffer,
         mask                         = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         submitInfo.pWaitDstStageMask = &mask;
     }
-
 
     VkSemaphore waitSemaphores[] = {waitSemaphore};
     if(waitSemaphore != VK_NULL_HANDLE) {
