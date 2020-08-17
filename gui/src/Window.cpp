@@ -101,7 +101,6 @@ Core::StatusOr<std::unique_ptr<Window>> Window::Create(const std::string& name, 
     RETURN_IF_ERROR(internal::InitializeGLFW());
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
     GLFWwindow* handle = glfwCreateWindow(width, height, name.c_str(), nullptr, nullptr);
     glfwSetFramebufferSizeCallback(handle, internal::WindowResizeHandler);
