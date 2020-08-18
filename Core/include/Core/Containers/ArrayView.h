@@ -15,6 +15,8 @@ struct ArrayView {
     T* data;
     uint64_t count;
 
+    ArrayView(T* data, uint64_t count) : data(data), count(count) {}
+
     ArrayView(Core::Array<T>& a) : data(a.data()), count(a.size()) {}
 
     template <uint64_t SIZE>

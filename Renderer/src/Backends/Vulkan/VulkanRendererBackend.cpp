@@ -93,6 +93,53 @@ VulkanSwapChain VulkanRendererBackend::makeSwapChain(const VulkanRenderPass& ren
 }
 
 
+VulkanBuffer VulkanRendererBackend::createBuffer(Core::ArrayView<const std::byte> data,
+                                                 VulkanBufferUsageType bufferType) {
+    VulkanBuffer stagingBuffer = physicalDevice.createBuffer(logicalDevice,
+                                                             data.count,
+                                                             VulkanBufferUsageType::None,
+                                                             VulkanBufferTransferType::Source,
+                                                             VulkanMemoryVisibility::Host);
+
+    stagingBuffer.upload(logicalDevice, data.data, stagingBuffer.size);
+
+    VulkanBuffer finalBuffer = physicalDevice.createBuffer(
+          logicalDevice, data.count, bufferType, VulkanBufferTransferType::Destination, VulkanMemoryVisibility::Device);
+
+
+    VkCommandBuffer copyBuffer = queues.transfer.pool.allocateSingleUseBuffer(logicalDevice);
+
+    VkBufferCopy copyRegion = {};
+    copyRegion.srcOffset    = 0;    // Optional
+    copyRegion.dstOffset    = 0;    // Optional
+    copyRegion.size         = stagingBuffer.size;
+    vkCmdCopyBuffer(copyBuffer, stagingBuffer, finalBuffer, 1, &copyRegion);
+    vkEndCommandBuffer(copyBuffer);
+
+    SubmittedCommandBuffers& submittedBuffer =
+          submittedCommandBuffers.emplace(SubmittedCommandBuffers{.submitFence    = VulkanFence::Create(logicalDevice),
+                                                                  .pool           = queues.transfer.pool,
+                                                                  .commandBuffers = {copyBuffer},
+                                                                  .dataBuffers    = {stagingBuffer}});
+
+    queues.transfer.submit(
+          copyBuffer, VulkanQueueSubmitType::Transfer, VK_NULL_HANDLE, VK_NULL_HANDLE, submittedBuffer.submitFence);
+
+    return finalBuffer;
+}
+void VulkanRendererBackend::processFinishedSubmitResources() {
+    while(!submittedCommandBuffers.empty() &&
+          vkGetFenceStatus(logicalDevice, submittedCommandBuffers.front().submitFence)) {
+        SubmittedCommandBuffers submittedBuffers = submittedCommandBuffers.front();
+        submittedCommandBuffers.pop();
+
+        submittedBuffers.pool.freeBuffers(logicalDevice, submittedBuffers.commandBuffers);
+        for(auto& buffer : submittedBuffers.dataBuffers) {
+            physicalDevice.DestroyBuffer(logicalDevice, buffer);
+        }
+    }
+}
+
 Core::StatusOr<VulkanRendererBackend>
 VulkanRendererBackend::CreateWithSurface(const std::string& applicationName,
                                          SurfaceCreationFunction surfaceCreationFunction,

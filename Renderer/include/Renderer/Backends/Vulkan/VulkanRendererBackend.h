@@ -2,6 +2,7 @@
 
 #include <Renderer/Backends/RendererBackend.h>
 
+#include <Renderer/Backends/Vulkan/VulkanFence.h>
 #include <Renderer/Backends/Vulkan/VulkanInstance.h>
 #include <Renderer/Backends/Vulkan/VulkanLogicalDevice.h>
 #include <Renderer/Backends/Vulkan/VulkanPhysicalDevice.h>
@@ -9,11 +10,13 @@
 #include <Renderer/Backends/Vulkan/VulkanSwapChain.h>
 
 #include <Core/Containers/Array.h>
+#include <Core/Containers/ArrayView.h>
 #include <Core/Containers/HashSet.h>
 #include <Core/Status/StatusOr.h>
 
 #include <functional>
 #include <optional>
+#include <queue>
 #include <string>
 
 namespace Renderer::Backends::Vulkan {
@@ -23,6 +26,13 @@ using SurfaceCreationFunction = std::function<VkSurfaceKHR(VulkanInstance&)>;
 struct VulkanSurfaceFormat {
     VkFormat colourFormat;
     VkFormat depthFormat;
+};
+
+struct SubmittedCommandBuffers {
+    VulkanFence submitFence;
+    VulkanCommandPool pool;
+    std::vector<VkCommandBuffer> commandBuffers;
+    std::vector<VulkanBuffer> dataBuffers;
 };
 
 class VulkanRendererBackend : public RendererBackend {
@@ -42,6 +52,17 @@ public:
     VulkanSwapChain makeSwapChain(const VulkanRenderPass& renderPass,
                                   VkExtent2D size,
                                   std::optional<VulkanSwapChain> previousSwapChain = std::nullopt);
+
+    VulkanBuffer createBuffer(Core::ArrayView<const std::byte> data, VulkanBufferUsageType bufferType);
+
+    void processFinishedSubmitResources();
+
+    template <typename T>
+    VulkanBuffer createBuffer(const Core::Array<T>& data, VulkanBufferUsageType bufferType) {
+        return createBuffer(Core::ArrayView<const std::byte>(reinterpret_cast<const std::byte*>(data.data()),
+                                                             data.size() * sizeof(T)),
+                            bufferType);
+    }
 
     static Core::StatusOr<VulkanRendererBackend>
     CreateWithSurface(const std::string& applicationName,
@@ -71,6 +92,7 @@ private:
 
 
     std::optional<VkSurfaceKHR> surface;
+    std::queue<SubmittedCommandBuffers> submittedCommandBuffers;
 };
 
 }    // namespace Renderer::Backends::Vulkan
