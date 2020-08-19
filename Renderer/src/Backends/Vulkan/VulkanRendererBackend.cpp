@@ -127,6 +127,59 @@ VulkanBuffer VulkanRendererBackend::createBuffer(Core::ArrayView<const std::byte
 
     return finalBuffer;
 }
+
+
+VulkanImage
+VulkanRendererBackend::createImage(Core::ArrayView<const std::byte> data, VkFormat format, VkExtent2D dimensions) {
+    VulkanBuffer transferBuffer = physicalDevice.createBuffer(
+          logicalDevice, data.count, VulkanBufferUsageType::None, VulkanBufferTransferType::Source);
+    transferBuffer.upload(logicalDevice, data.data, data.count);
+
+    VulkanImage image = physicalDevice.createImage(logicalDevice,
+                                                   dimensions,
+                                                   format,
+                                                   VulkanImageUsageType::Sampled,
+                                                   VulkanImageTransferType::Destination,
+                                                   VulkanMemoryVisibility::Device);
+
+    VkCommandBuffer commandBuffer = queues.transfer.pool.allocateSingleUseBuffer(logicalDevice);
+
+    image.transitionLayout(commandBuffer, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+    VkBufferImageCopy region = {};
+    region.bufferOffset      = 0;
+    region.bufferRowLength   = 0;
+    region.bufferImageHeight = 0;
+
+    region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel       = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount     = 1;
+
+    region.imageOffset = {0, 0, 0};
+    region.imageExtent = image.extent;
+
+    vkCmdCopyBufferToImage(commandBuffer, transferBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+
+
+    image.transitionLayout(
+          commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+    vkEndCommandBuffer(commandBuffer);
+
+
+    SubmittedCommandBuffers& submittedBuffer =
+          submittedCommandBuffers.emplace(SubmittedCommandBuffers{.submitFence    = VulkanFence::Create(logicalDevice),
+                                                                  .pool           = queues.transfer.pool,
+                                                                  .commandBuffers = {commandBuffer},
+                                                                  .dataBuffers    = {transferBuffer}});
+
+    queues.transfer.submit(
+          commandBuffer, VulkanQueueSubmitType::Transfer, VK_NULL_HANDLE, VK_NULL_HANDLE, submittedBuffer.submitFence);
+
+    return image;
+}
+
 void VulkanRendererBackend::processFinishedSubmitResources() {
     while(!submittedCommandBuffers.empty() &&
           vkGetFenceStatus(logicalDevice, submittedCommandBuffers.front().submitFence)) {

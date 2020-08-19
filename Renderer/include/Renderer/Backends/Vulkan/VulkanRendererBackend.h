@@ -54,14 +54,14 @@ public:
                                   std::optional<VulkanSwapChain> previousSwapChain = std::nullopt);
 
     VulkanBuffer createBuffer(Core::ArrayView<const std::byte> data, VulkanBufferUsageType bufferType);
+    VulkanImage createImage(Core::ArrayView<const std::byte> data, VkFormat format, VkExtent2D dimensions);
 
     void processFinishedSubmitResources();
 
     template <typename T>
     VulkanBuffer createBuffer(const Core::Array<T>& data, VulkanBufferUsageType bufferType) {
-        return createBuffer(Core::ArrayView<const std::byte>(reinterpret_cast<const std::byte*>(data.data()),
-                                                             data.size() * sizeof(T)),
-                            bufferType);
+        const std::byte* byteData = reinterpret_cast<const std::byte*>(data.data());
+        return createBuffer(Core::ArrayView<const std::byte>(byteData, data.size() * sizeof(T)), bufferType);
     }
 
     static Core::StatusOr<VulkanRendererBackend>
