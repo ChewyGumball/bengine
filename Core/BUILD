@@ -52,6 +52,7 @@ bengine_cc_library(
         "include/Core/Containers/ArrayView.h",
         "include/Core/Containers/HashMap.h",
         "include/Core/Containers/HashSet.h",
+        "include/Core/Containers/OpaqueID.h",
         "include/Core/Containers/OrderedMap.h",
         "include/Core/Containers/Queue.h",
     ],
@@ -135,6 +136,7 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
+        "@fmt",
         "@spdlog",
     ],
 )

@@ -156,3 +156,15 @@ http_archive(
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 
 boost_deps()
+
+#############
+# Setup fmt #
+#############
+
+http_archive(
+    name = "fmt",
+    build_file = "@bengine//:third_party/fmt/BUILD",
+    sha256 = "cf962e2a76fc151cf22e108c176a9f0d1390bd70355178ee3639a762b898ce4e",
+    strip_prefix = "fmt-7.0.3",
+    url = "https://github.com/fmtlib/fmt/archive/7.0.3.zip",
+)

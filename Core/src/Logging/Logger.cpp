@@ -1,5 +1,6 @@
 #include "Core/Logging/Logger.h"
 
+#define SPDLOG_FMT_EXTERNAL
 #include <spdlog/spdlog.h>
 
 #include <spdlog/sinks/stdout_color_sinks.h>

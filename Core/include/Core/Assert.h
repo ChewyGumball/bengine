@@ -2,6 +2,8 @@
 
 #include <Core/Logging/Logger.h>
 
+#include <fmt/format.h>
+
 #include <string_view>
 
 namespace Core {
@@ -33,7 +35,7 @@ template <typename... FORMAT_ARGS>
                   "Assertion at {}:{} failed: {} ({})", __FILE__, __LINE__, #value, CORE_ASSERT_STRINGIFY(value)); \
         }
 
-#define ASSERT_WITH_MESSAGE(value, message)                                  \
+#define ASSERT_WITH_MESSAGE(value, message, ...)                             \
     if(!(value))                                                             \
         [[unlikely]] {                                                       \
             Core::AbortWithMessage("Assertion at {}:{} failed: {} ({})\n{}", \
@@ -41,5 +43,5 @@ template <typename... FORMAT_ARGS>
                                    __LINE__,                                 \
                                    #value,                                   \
                                    CORE_ASSERT_STRINGIFY(value),             \
-                                   message);                                 \
+                                   fmt::format(message, __VA_ARGS__));       \
         }

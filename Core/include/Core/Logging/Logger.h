@@ -1,7 +1,8 @@
 #pragma once
 
+
+#include <fmt/ostream.h>
 #include <spdlog/common.h>
-#include <spdlog/fmt/ostr.h>
 #include <spdlog/logger.h>
 
 
