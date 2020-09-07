@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Core/Containers/Array.h>
-#include <Core/Containers/ArrayView.h>
+#include <Core/Containers/IndexSpan.h>
 
 #include <Core/IO/InputStream.h>
 #include <Core/IO/OutputStream.h>
@@ -13,7 +13,7 @@ namespace Assets {
 
 struct MeshPart {
     std::string name;
-    Core::IndexArrayView indices;
+    Core::IndexSpan indices;
 };
 
 struct Mesh {
@@ -40,7 +40,7 @@ template <>
 struct Deserializer<Assets::MeshPart> {
     static Assets::MeshPart deserialize(InputStream& stream) {
         auto name    = stream.read<std::string>();
-        auto indices = stream.read<IndexArrayView>();
+        auto indices = stream.read<IndexSpan>();
         return Assets::MeshPart{.name = std::move(name), .indices = indices};
     }
 };

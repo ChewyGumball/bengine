@@ -30,7 +30,7 @@ Core::StatusOr<OutputStream> VirtualFileSystemMount::openFileForWrite(const Path
     return BareFileSystemMount::openFileForWrite(translatedPath);
 }
 
-void VirtualFileSystemMount::writeBinaryFile(const Path& file, const Core::Array<std::byte>& data) const {
+void VirtualFileSystemMount::writeBinaryFile(const Path& file, std::span<const std::byte> data) const {
     Path translatedPath(translatePath(file), file.type);
     BareFileSystemMount::writeBinaryFile(translatedPath, data);
 }

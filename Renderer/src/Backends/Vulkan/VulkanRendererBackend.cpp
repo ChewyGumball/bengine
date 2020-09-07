@@ -22,11 +22,15 @@ Core::Array<std::string> CombineSetsToList(const Core::HashSet<std::string>& set
     Core::HashSet<std::string> set = setA;
     set.insert(setB.begin(), setB.end());
 
-    return Core::Array<std::string>(set.begin(), set.end());
+    Core::Array<std::string> list;
+    for(auto& element : set) {
+        list.emplace(std::move(element));
+    }
+
+    return list;
 }
 
 }    // namespace internal
-
 
 VulkanRendererBackend::VulkanRendererBackend(VulkanInstance instance,
                                              VulkanPhysicalDevice physicalDevice,
@@ -92,27 +96,27 @@ VulkanSwapChain VulkanRendererBackend::makeSwapChain(const VulkanRenderPass& ren
     return newChain;
 }
 
-
-VulkanBuffer VulkanRendererBackend::createBuffer(Core::ArrayView<const std::byte> data,
-                                                 VulkanBufferUsageType bufferType) {
+VulkanBuffer VulkanRendererBackend::createBuffer(std::span<const std::byte> data, VulkanBufferUsageType bufferType) {
     VulkanBuffer stagingBuffer = physicalDevice.createBuffer(logicalDevice,
-                                                             data.count,
+                                                             data.size(),
                                                              VulkanBufferUsageType::None,
                                                              VulkanBufferTransferType::Source,
                                                              VulkanMemoryVisibility::Host);
 
-    stagingBuffer.upload(logicalDevice, data.data, stagingBuffer.size);
+    stagingBuffer.upload(logicalDevice, data);
 
-    VulkanBuffer finalBuffer = physicalDevice.createBuffer(
-          logicalDevice, data.count, bufferType, VulkanBufferTransferType::Destination, VulkanMemoryVisibility::Device);
-
+    VulkanBuffer finalBuffer = physicalDevice.createBuffer(logicalDevice,
+                                                           data.size(),
+                                                           bufferType,
+                                                           VulkanBufferTransferType::Destination,
+                                                           VulkanMemoryVisibility::Device);
 
     VkCommandBuffer copyBuffer = queues.transfer.pool.allocateSingleUseBuffer(logicalDevice);
 
     VkBufferCopy copyRegion = {};
     copyRegion.srcOffset    = 0;    // Optional
     copyRegion.dstOffset    = 0;    // Optional
-    copyRegion.size         = stagingBuffer.size;
+    copyRegion.size         = data.size();
     vkCmdCopyBuffer(copyBuffer, stagingBuffer, finalBuffer, 1, &copyRegion);
     vkEndCommandBuffer(copyBuffer);
 
@@ -128,12 +132,11 @@ VulkanBuffer VulkanRendererBackend::createBuffer(Core::ArrayView<const std::byte
     return finalBuffer;
 }
 
-
 VulkanImage
-VulkanRendererBackend::createImage(Core::ArrayView<const std::byte> data, VkFormat format, VkExtent2D dimensions) {
+VulkanRendererBackend::createImage(std::span<const std::byte> data, VkFormat format, VkExtent2D dimensions) {
     VulkanBuffer transferBuffer = physicalDevice.createBuffer(
-          logicalDevice, data.count, VulkanBufferUsageType::None, VulkanBufferTransferType::Source);
-    transferBuffer.upload(logicalDevice, data.data, data.count);
+          logicalDevice, data.size(), VulkanBufferUsageType::None, VulkanBufferTransferType::Source);
+    transferBuffer.upload(logicalDevice, data);
 
     VulkanImage image = physicalDevice.createImage(logicalDevice,
                                                    dimensions,
@@ -161,12 +164,10 @@ VulkanRendererBackend::createImage(Core::ArrayView<const std::byte> data, VkForm
 
     vkCmdCopyBufferToImage(commandBuffer, transferBuffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-
     image.transitionLayout(
           commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     vkEndCommandBuffer(commandBuffer);
-
 
     SubmittedCommandBuffers& submittedBuffer =
           submittedCommandBuffers.emplace(SubmittedCommandBuffers{.submitFence    = VulkanFence::Create(logicalDevice),

@@ -106,12 +106,13 @@ std::string deviceTypeNameFromEnum(VkPhysicalDeviceType type) {
 }
 
 bool deviceSupportsRequiredExtensions(VkPhysicalDevice deviceToCheck,
-                                      const std::vector<std::string>& requiredExtensions) {
+                                      const Core::Array<std::string>& requiredExtensions) {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(deviceToCheck, nullptr, &extensionCount, nullptr);
 
-    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-    vkEnumerateDeviceExtensionProperties(deviceToCheck, nullptr, &extensionCount, availableExtensions.data());
+    Core::Array<VkExtensionProperties> availableExtensions;
+    vkEnumerateDeviceExtensionProperties(
+          deviceToCheck, nullptr, &extensionCount, availableExtensions.insertUninitialized(extensionCount).data());
 
     std::set<std::string> extensions(requiredExtensions.begin(), requiredExtensions.end());
 
@@ -259,15 +260,15 @@ void VulkanPhysicalDevice::DestroyImage(VkDevice device, VulkanImage& image) {
 
 Core::StatusOr<VulkanPhysicalDevice> VulkanPhysicalDevice::Find(VkInstance instance,
                                                                 VkSurfaceKHR surface,
-                                                                const std::vector<std::string>& requiredExtensions) {
+                                                                const Core::Array<std::string>& requiredExtensions) {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
     if(deviceCount == 0) {
         return Core::Status::Error("No devices support Vulkan!");
     }
 
-    std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+    Core::Array<VkPhysicalDevice> devices;
+    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.insertUninitialized(deviceCount).data());
 
     for(auto device : devices) {
         bool extensionsSupported = deviceSupportsRequiredExtensions(device, requiredExtensions);

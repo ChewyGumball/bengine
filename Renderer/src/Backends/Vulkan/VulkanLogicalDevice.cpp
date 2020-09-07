@@ -9,11 +9,11 @@
 namespace Renderer::Backends::Vulkan {
 
 VulkanLogicalDevice VulkanLogicalDevice::Create(const VulkanQueueFamilyIndices& queueIndices,
-                                                const std::vector<std::string>& deviceExtensions,
-                                                const std::vector<std::string>& validationLayers) {
+                                                const Core::Array<std::string>& deviceExtensions,
+                                                const Core::Array<std::string>& validationLayers) {
     float queuePriority = 1.0f;
 
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+    Core::Array<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = {
           queueIndices.graphics, queueIndices.compute, queueIndices.present, queueIndices.transfer};
 
@@ -23,17 +23,17 @@ VulkanLogicalDevice VulkanLogicalDevice::Create(const VulkanQueueFamilyIndices& 
         queueCreateInfo.queueFamilyIndex        = queueFamily;
         queueCreateInfo.queueCount              = 1;
         queueCreateInfo.pQueuePriorities        = &queuePriority;
-        queueCreateInfos.push_back(queueCreateInfo);
+        queueCreateInfos.insert(queueCreateInfo);
     }
 
     VkPhysicalDeviceFeatures deviceFeatures = {};
     deviceFeatures.samplerAnisotropy        = VK_TRUE;
 
-    std::vector<const char*> validationLayerNames;
-    Core::Algorithms::Map(validationLayers, validationLayerNames, Core::Algorithms::Mappers::StringToChar());
+    Core::Array<const char*> validationLayerNames =
+          Core::Algorithms::Map(validationLayers, Core::Algorithms::Mappers::StringToChar());
 
-    std::vector<const char*> deviceExtensionNames;
-    Core::Algorithms::Map(deviceExtensions, deviceExtensionNames, Core::Algorithms::Mappers::StringToChar());
+    Core::Array<const char*> deviceExtensionNames =
+          Core::Algorithms::Map(deviceExtensions, Core::Algorithms::Mappers::StringToChar());
 
     Core::Log::Debug(Vulkan, "Creating logical device with extensions:");
     for(auto name : deviceExtensionNames) {
@@ -43,13 +43,13 @@ VulkanLogicalDevice VulkanLogicalDevice::Create(const VulkanQueueFamilyIndices& 
 
     VkDeviceCreateInfo createInfo      = {};
     createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.pQueueCreateInfos       = queueCreateInfos.data();
-    createInfo.queueCreateInfoCount    = static_cast<uint32_t>(queueCreateInfos.size());
+    createInfo.pQueueCreateInfos       = queueCreateInfos.rawData();
+    createInfo.queueCreateInfoCount    = static_cast<uint32_t>(queueCreateInfos.count());
     createInfo.pEnabledFeatures        = &deviceFeatures;
-    createInfo.enabledLayerCount       = static_cast<uint32_t>(validationLayerNames.size());
-    createInfo.ppEnabledLayerNames     = validationLayerNames.data();
-    createInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensionNames.size());
-    createInfo.ppEnabledExtensionNames = deviceExtensionNames.data();
+    createInfo.enabledLayerCount       = static_cast<uint32_t>(validationLayerNames.count());
+    createInfo.ppEnabledLayerNames     = validationLayerNames.rawData();
+    createInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensionNames.count());
+    createInfo.ppEnabledExtensionNames = deviceExtensionNames.rawData();
 
     VulkanLogicalDevice logicalDevice;
     VK_CHECK(vkCreateDevice(queueIndices.physicalDevice, &createInfo, nullptr, &logicalDevice.object));

@@ -5,6 +5,8 @@
 #include "VulkanImageView.h"
 #include "VulkanSampler.h"
 
+#include <Core/Containers/Array.h>
+
 
 namespace Renderer::Backends::Vulkan {
 
@@ -15,19 +17,19 @@ struct VulkanDescriptorSetUpdate {
     void update(VkDevice device, VkDescriptorSet descriptorSet) const;
 
 private:
-    std::vector<std::pair<uint32_t, VkDescriptorBufferInfo>> buffers;
-    std::vector<std::pair<uint32_t, VkDescriptorImageInfo>> images;
+    Core::Array<std::pair<uint32_t, VkDescriptorBufferInfo>> buffers;
+    Core::Array<std::pair<uint32_t, VkDescriptorImageInfo>> images;
 };
 
 struct VulkanDescriptorPool : VulkanObject<VkDescriptorPool> {
     uint32_t size;
     uint32_t currentlyAllocated;
-    std::vector<VkDescriptorType> types;
+    Core::Array<VkDescriptorType> types;
 
-    std::vector<VkDescriptorSet> allocateSets(VkDevice device, uint32_t count, VkDescriptorSetLayout layout);
-    void freeSets(VkDevice device, const std::vector<VkDescriptorSet>& sets);
+    Core::Array<VkDescriptorSet> allocateSets(VkDevice device, uint32_t count, VkDescriptorSetLayout layout);
+    void freeSets(VkDevice device, const Core::Array<VkDescriptorSet>& sets);
 
-    static VulkanDescriptorPool Create(VkDevice device, uint32_t poolSize, std::vector<VkDescriptorType> poolTypes);
+    static VulkanDescriptorPool Create(VkDevice device, uint32_t poolSize, Core::Array<VkDescriptorType> poolTypes);
     static void Destroy(VkDevice device, VulkanDescriptorPool& pool);
 };
 

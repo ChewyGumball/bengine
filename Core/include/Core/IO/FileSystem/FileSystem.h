@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <functional>
+#include <span>
 
 #include <Core/IO/FileSystem/FileSystemMount.h>
 #include <Core/IO/FileSystem/Path.h>
@@ -26,7 +27,7 @@ public:
     Core::StatusOr<Core::Array<std::byte>> readBinaryFile(const Path& file) const;
 
     Core::StatusOr<OutputStream> openFileForWrite(const Path& file) const;
-    void writeBinaryFile(const Path& file, const Core::Array<std::byte>& data) const;
+    void writeBinaryFile(const Path& file, std::span<const std::byte> data) const;
 
     void watchForChanges(const Path& file, const std::function<bool()>& observer) const;
     void updateWatchers() const;

@@ -29,6 +29,6 @@ struct VulkanPhysicalDevice : public VulkanObject<VkPhysicalDevice> {
     static void DestroyImage(VkDevice device, VulkanImage& image);
 
     static Core::StatusOr<VulkanPhysicalDevice>
-    Find(VkInstance instance, VkSurfaceKHR surface, const std::vector<std::string>& requiredExtensions);
+    Find(VkInstance instance, VkSurfaceKHR surface, const Core::Array<std::string>& requiredExtensions);
 };
 }    // namespace Renderer::Backends::Vulkan

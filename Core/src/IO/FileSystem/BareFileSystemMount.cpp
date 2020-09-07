@@ -45,7 +45,7 @@ public:
     }
 
     void add(const std::filesystem::path& filename, const std::function<bool()>& observer) {
-        watchers[filename].emplace_back(observer);
+        watchers[filename].emplace(observer);
         std::filesystem::path directory = filename.parent_path();
         if(watchedDirectories.count(directory) == 0) {
             fileWatcher->addWatch(directory.string(), this);
@@ -93,8 +93,11 @@ Core::StatusOr<Core::Array<std::byte>> BareFileSystemMount::readBinaryFile(const
     }
 
     uint64_t fileSize = std::filesystem::file_size(file.path);
-    Core::Array<std::byte> contents(fileSize);
-    reader.read(contents.data(), fileSize);
+
+    Core::Array<std::byte> contents;
+    std::span<std::byte> data = contents.insertUninitialized(fileSize);
+
+    reader.read(data.data(), data.size());
     return contents;
 }
 
@@ -109,7 +112,7 @@ Core::StatusOr<OutputStream> BareFileSystemMount::openFileForWrite(const Path& f
     }
 }
 
-void BareFileSystemMount::writeBinaryFile(const Path& file, const Core::Array<std::byte>& data) const {
+void BareFileSystemMount::writeBinaryFile(const Path& file, std::span<const std::byte> data) const {
     std::basic_ofstream<std::byte> writer(file.path, std::ios::out | std::ios::binary);
     ASSERT(writer);
     writer.write(data.data(), data.size());

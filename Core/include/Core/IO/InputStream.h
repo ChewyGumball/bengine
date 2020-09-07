@@ -2,7 +2,9 @@
 
 #include <istream>
 #include <memory>
+#include <span>
 #include <string>
+#include <type_traits>
 
 namespace Core::IO {
 
@@ -26,6 +28,12 @@ public:
     }
 
     void readInto(std::byte* buffer, uint64_t size);
+
+    template <typename T>
+    void readInto(std::span<T> buffer) {
+        static_assert(std::is_trivially_copyable_v<T>);
+        readInto(reinterpret_cast<std::byte*>(buffer.data()), buffer.size() * sizeof(T));
+    }
 };
 
 template <typename T>

@@ -5,7 +5,7 @@ namespace Core::IO {
 BufferViewWindow::BufferViewWindow(BufferView bufferView, uint64_t windowSize)
   : view(bufferView), window(windowSize), windowStart(0) {}
 BufferViewWindow::BufferViewWindow(Core::Array<std::byte>& buffer, uint64_t windowSize)
-  : view(BufferView{buffer.data(), buffer.size()}), window(windowSize), windowStart(0) {}
+  : view(BufferView{buffer.rawData(), buffer.count()}), window(windowSize), windowStart(0) {}
 
 const std::byte* BufferViewWindow::operator*() const {
     return view.data + windowStart;

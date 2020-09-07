@@ -10,7 +10,7 @@ OutputStream::OutputStream(std::unique_ptr<std::basic_ostream<std::byte>>&& stre
 
 OutputStream::OutputStream(OutputStream&& other) : stream(std::move(other.stream)) {}
 
-void OutputStream::write(const std::byte* data, uint64_t size) {
-    stream->write(data, size);
+void OutputStream::write(std::span<const std::byte> data) {
+    stream->write(data.data(), data.size());
 }
 }    // namespace Core::IO

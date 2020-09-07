@@ -18,9 +18,9 @@ void VulkanBuffer::unmap(VkDevice device) {
     }
 }
 
-void VulkanBuffer::upload(VkDevice device, const void* data, uint64_t size) {
+void VulkanBuffer::upload(VkDevice device, std::span<const std::byte> data) {
     std::byte* destination = map(device);
-    std::memcpy(destination, data, size);
+    std::memcpy(destination, data.data(), data.size());
     unmap(device);
 }
 }    // namespace Renderer::Backends::Vulkan

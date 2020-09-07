@@ -10,13 +10,13 @@
 #include <Renderer/Backends/Vulkan/VulkanSwapChain.h>
 
 #include <Core/Containers/Array.h>
-#include <Core/Containers/ArrayView.h>
 #include <Core/Containers/HashSet.h>
 #include <Core/Status/StatusOr.h>
 
 #include <functional>
 #include <optional>
 #include <queue>
+#include <span>
 #include <string>
 
 namespace Renderer::Backends::Vulkan {
@@ -31,8 +31,8 @@ struct VulkanSurfaceFormat {
 struct SubmittedCommandBuffers {
     VulkanFence submitFence;
     VulkanCommandPool pool;
-    std::vector<VkCommandBuffer> commandBuffers;
-    std::vector<VulkanBuffer> dataBuffers;
+    Core::Array<VkCommandBuffer> commandBuffers;
+    Core::Array<VulkanBuffer> dataBuffers;
 };
 
 class VulkanRendererBackend : public RendererBackend {
@@ -53,15 +53,14 @@ public:
                                   VkExtent2D size,
                                   std::optional<VulkanSwapChain> previousSwapChain = std::nullopt);
 
-    VulkanBuffer createBuffer(Core::ArrayView<const std::byte> data, VulkanBufferUsageType bufferType);
-    VulkanImage createImage(Core::ArrayView<const std::byte> data, VkFormat format, VkExtent2D dimensions);
+    VulkanBuffer createBuffer(std::span<const std::byte> data, VulkanBufferUsageType bufferType);
+    VulkanImage createImage(std::span<const std::byte> data, VkFormat format, VkExtent2D dimensions);
 
     void processFinishedSubmitResources();
 
     template <typename T>
     VulkanBuffer createBuffer(const Core::Array<T>& data, VulkanBufferUsageType bufferType) {
-        const std::byte* byteData = reinterpret_cast<const std::byte*>(data.data());
-        return createBuffer(Core::ArrayView<const std::byte>(byteData, data.size() * sizeof(T)), bufferType);
+        return createBuffer(std::as_bytes(Core::ToSpan(data)), bufferType);
     }
 
     static Core::StatusOr<VulkanRendererBackend>

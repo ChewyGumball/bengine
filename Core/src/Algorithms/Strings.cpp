@@ -171,7 +171,7 @@ void SplitIntoBuffer(const std::string_view string,
         if(currentChar == delimiter) {
             std::string_view chunk = string.substr(start, current - start);
             if(passesFilter(chunk, filter)) {
-                buffer.push_back(chunk);
+                buffer.insert(chunk);
             }
 
             start = current + 1;
@@ -181,7 +181,7 @@ void SplitIntoBuffer(const std::string_view string,
     if(start != string.size()) {
         std::string_view chunk = string.substr(start);
         if(passesFilter(chunk, filter)) {
-            buffer.push_back(chunk);
+            buffer.insert(chunk);
         }
     }
 }
@@ -206,7 +206,7 @@ void SplitIntoBuffer(const std::string_view string,
         if(delimiters.find(currentChar) != std::string_view::npos) {
             std::string_view chunk = string.substr(start, current - start);
             if(passesFilter(chunk, filter)) {
-                buffer.push_back(chunk);
+                buffer.insert(chunk);
             }
 
             start = current + 1;
@@ -216,10 +216,9 @@ void SplitIntoBuffer(const std::string_view string,
     if(start != string.size()) {
         std::string_view chunk = string.substr(start);
         if(passesFilter(chunk, filter)) {
-            buffer.push_back(chunk);
+            buffer.insert(chunk);
         }
     }
-
 }
 
 Core::Array<std::string_view> Split(const std::string_view string, const std::string_view delimiters, Filter filter) {
@@ -237,7 +236,7 @@ Core::Array<std::string_view> SplitLines(const std::string_view string, Filter f
         if(currentChar == '\n' || (currentChar == '\r' && current + 1 < string.size() && string[current] == '\n')) {
             std::string_view chunk = string.substr(start, current - start);
             if(passesFilter(chunk, filter)) {
-                splits.push_back(chunk);
+                splits.insert(chunk);
             }
 
             if(currentChar == '\r') {
@@ -253,7 +252,7 @@ Core::Array<std::string_view> SplitLines(const std::string_view string, Filter f
     if(start != string.size()) {
         std::string_view chunk = string.substr(start);
         if(passesFilter(chunk, filter)) {
-            splits.push_back(chunk);
+            splits.insert(chunk);
         }
     }
 

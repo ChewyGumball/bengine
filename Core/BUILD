@@ -49,12 +49,14 @@ bengine_cc_library(
     name = "containers",
     hdrs = [
         "include/Core/Containers/Array.h",
-        "include/Core/Containers/ArrayView.h",
         "include/Core/Containers/HashMap.h",
         "include/Core/Containers/HashSet.h",
+        "include/Core/Containers/IndexSpan.h",
         "include/Core/Containers/OpaqueID.h",
         "include/Core/Containers/OrderedMap.h",
         "include/Core/Containers/Queue.h",
+        "include/Core/Containers/Span.h",
+        "include/Core/Containers/internal/Array.inl",
     ],
     strip_include_prefix = "include",
     deps = [

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <span>
 #include <string>
 
 
@@ -25,20 +26,20 @@ public:
         Serializer<T>::serialize(*this, value);
     }
 
-    void write(const std::byte* data, uint64_t size);
+    void write(std::span<const std::byte> data);
 };
 
 template <typename T>
 void Serializer<T>::serialize(OutputStream& stream, const T& value) {
-    static_assert(std::is_trivial_v<T>);
-    stream.write(reinterpret_cast<const std::byte*>(&value), sizeof(T));
+    static_assert(std::is_trivially_copyable_v<T>);
+    stream.write(std::as_bytes(std::span<const T>(&value, 1)));
 }
 
 template <>
 struct Serializer<std::string> {
     static void serialize(OutputStream& stream, const std::string& value) {
         stream.write(value.size());
-        stream.write(reinterpret_cast<const std::byte*>(value.data()), value.size() * sizeof(char));
+        stream.write(std::as_bytes(std::span<const char>(value.data(), value.size())));
     }
 };
 

@@ -1,24 +1,26 @@
 #include "Assets/Model/Mesh.h"
 
+#include <Core/Containers/Array.h>
+
 #include <algorithm>
 
 namespace {
 
 struct VertexProxy {
     size_t index;
-    std::byte* data;
+    std::span<std::byte> data;
 
-    void appendDataTo(std::vector<std::byte>& vertexData, uint32_t count) const {
-        vertexData.insert(vertexData.end(), data, data + count);
+    void appendDataTo(Core::Array<std::byte>& vertexData) const {
+        vertexData.insertAll(data);
     }
 
-    uint32_t firstNotEqualIndex(const VertexProxy& other, uint32_t maxElementsToCheck) const {
-        for(uint32_t i = 0; i < maxElementsToCheck; i++) {
+    uint32_t firstNotEqualIndex(const VertexProxy& other) const {
+        for(uint32_t i = 0; i < data.size(); i++) {
             if(data[i] != other.data[i]) {
                 return i;
             }
         }
-        return maxElementsToCheck;
+        return data.size();
     }
 };
 }    // namespace
@@ -27,32 +29,34 @@ namespace Assets {
 
 void Mesh::deduplicateVertices() {
     uint32_t vertexSize = vertexFormat.byteCount();
-    size_t vertexCount  = vertexData.size() / vertexSize;
+    size_t vertexCount  = vertexData.count() / vertexSize;
     Core::Array<std::byte> dedupedVertexData;
 
     Core::Array<VertexProxy> proxies;
-    proxies.reserve(vertexCount);
 
     for(size_t i = 0; i < vertexCount; i++) {
-        proxies.push_back({i, &vertexData[i * vertexSize]});
+        proxies.insert(VertexProxy{
+              .index = i,
+              .data  = std::span(&vertexData[i * vertexSize], vertexSize),
+        });
     }
 
     std::sort(proxies.begin(), proxies.end(), [=](const VertexProxy& a, const VertexProxy& b) {
-        uint32_t firstNotEqualIndex = a.firstNotEqualIndex(b, vertexSize);
+        uint32_t firstNotEqualIndex = a.firstNotEqualIndex(b);
         return firstNotEqualIndex != vertexSize && a.data[firstNotEqualIndex] < b.data[firstNotEqualIndex];
     });
 
-    Core::Array<uint32_t> indexRedirects(vertexCount);
+    Core::Array<uint32_t> indexRedirects(0, vertexCount);
 
     uint32_t currentUniqueVertexIndex = 0;
     const VertexProxy* uniqueVertex   = &proxies[0];
-    uniqueVertex->appendDataTo(dedupedVertexData, vertexSize);
+    uniqueVertex->appendDataTo(dedupedVertexData);
 
     for(const auto& proxy : proxies) {
-        if(uniqueVertex->firstNotEqualIndex(proxy, vertexSize) != vertexSize) {
+        if(uniqueVertex->firstNotEqualIndex(proxy) != vertexSize) {
             currentUniqueVertexIndex++;
             uniqueVertex = &proxy;
-            uniqueVertex->appendDataTo(dedupedVertexData, vertexSize);
+            uniqueVertex->appendDataTo(dedupedVertexData);
         }
         indexRedirects[proxy.index] = currentUniqueVertexIndex;
     }

@@ -6,6 +6,8 @@
 #include <set>
 #include <unordered_set>
 
+#include <Core/Containers/Array.h>
+
 namespace Core::Algorithms {
 template <typename T, typename U = typename T::value_type>
 bool Contains(const T& container, const U& value) {
@@ -70,6 +72,20 @@ template <typename T,
           typename MAPPING_FUNCTION>
 void Map(const T& before, M& after, MAPPING_FUNCTION mapper) {
     std::transform(std::begin(before), std::end(before), std::inserter(after, std::end(after)), mapper);
+}
+
+
+template <typename T,
+          typename MAPPING_FUNCTION,
+          typename U = std::invoke_result_t<MAPPING_FUNCTION, std::add_lvalue_reference_t<std::add_const_t<T>>>>
+Core::Array<U> Map(const Core::Array<T>& collection, MAPPING_FUNCTION transform) {
+    static_assert(std::is_invocable_r_v<U, MAPPING_FUNCTION, std::add_lvalue_reference_t<std::add_const_t<T>>>);
+
+    Core::Array<U> after;
+    for(const T& element : collection) {
+        after.emplace(transform(element));
+    }
+    return after;
 }
 
 template <typename T, typename U = typename T::value_type, typename P>

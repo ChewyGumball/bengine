@@ -4,18 +4,18 @@
 namespace Renderer::Backends::Vulkan {
 
 
-std::vector<VkCommandBuffer>
+Core::Array<VkCommandBuffer>
 VulkanCommandPool::allocateBuffers(const VkDevice device, uint32_t count, VulkanCommandBufferLevel level) const {
-    std::vector<VkCommandBuffer> buffers(count);
+    Core::Array<VkCommandBuffer> buffers;
 
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType                       = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.commandPool                 = object;
     allocInfo.level = level == VulkanCommandBufferLevel::Primary ? VK_COMMAND_BUFFER_LEVEL_PRIMARY :
                                                                    VK_COMMAND_BUFFER_LEVEL_SECONDARY;
-    allocInfo.commandBufferCount = static_cast<uint32_t>(buffers.size());
+    allocInfo.commandBufferCount = count;
 
-    VK_CHECK(vkAllocateCommandBuffers(device, &allocInfo, buffers.data()));
+    VK_CHECK(vkAllocateCommandBuffers(device, &allocInfo, buffers.insertUninitialized(count).data()));
 
     return buffers;
 }
@@ -45,8 +45,8 @@ VkCommandBuffer VulkanCommandPool::allocateSingleUseBuffer(const VkDevice device
     return buffer;
 }
 
-void VulkanCommandPool::freeBuffers(const VkDevice device, const std::vector<VkCommandBuffer>& buffers) const {
-    vkFreeCommandBuffers(device, object, static_cast<uint32_t>(buffers.size()), buffers.data());
+void VulkanCommandPool::freeBuffers(const VkDevice device, const Core::Array<VkCommandBuffer>& buffers) const {
+    vkFreeCommandBuffers(device, object, static_cast<uint32_t>(buffers.count()), buffers.rawData());
 }
 
 VulkanCommandPool VulkanCommandPool::Create(VkDevice device,

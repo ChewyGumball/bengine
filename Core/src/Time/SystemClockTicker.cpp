@@ -7,7 +7,7 @@ SystemClockTicker::SystemClockTicker() : previousTick(systemClock.now()) {}
 void SystemClockTicker::tick() {
     std::chrono::steady_clock::time_point currentTick = systemClock.now();
 
-    for (Clock* clock : clocksToTick) {
+    for(Clock* clock : clocksToTick) {
         clock->tick(currentTick - previousTick);
     }
 
@@ -15,11 +15,11 @@ void SystemClockTicker::tick() {
 }
 
 void SystemClockTicker::registerClock(Clock* clock) {
-    clocksToTick.push_back(clock);
+    clocksToTick.insert(clock);
 }
 
-const std::vector<Clock*>& SystemClockTicker::clocks() const {
+const Core::Array<Clock*>& SystemClockTicker::clocks() const {
     return clocksToTick;
 }
 
-}
+}    // namespace Core

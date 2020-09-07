@@ -7,8 +7,10 @@ namespace {
 void DebugPrintAvailableExtensions() {
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, availableExtensions.data());
+    Core::Array<VkExtensionProperties> availableExtensions;
+
+    vkEnumerateInstanceExtensionProperties(
+          nullptr, &extensionCount, availableExtensions.insertUninitialized(extensionCount).data());
 
     Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "Vulkan Extension Count: {}", extensionCount);
     for(const auto& extension : availableExtensions) {
@@ -17,36 +19,35 @@ void DebugPrintAvailableExtensions() {
     }
 }
 
-std::vector<std::string> FilterValidationLayers(const std::vector<std::string>& requestedLayers) {
+Core::Array<std::string> FilterValidationLayers(const Core::Array<std::string>& requestedLayers) {
     using Renderer::Backends::Vulkan::Vulkan;
 
-    std::vector<std::string> filteredLayers;
-    if(requestedLayers.size() == 0) {
+    Core::Array<std::string> filteredLayers;
+    if(requestedLayers.isEmpty()) {
         return filteredLayers;
     }
 
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
-    std::vector<VkLayerProperties> availableLayers(layerCount);
-    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
+    Core::Array<VkLayerProperties> availableLayers;
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.insertUninitialized(layerCount).data());
 
-    std::vector<std::string> availableLayerNames;
-    Core::Algorithms::Map(
-          availableLayers, availableLayerNames, [](const auto& layer) { return std::string(layer.layerName); });
+    Core::Array<std::string> availableLayerNames =
+          Core::Algorithms::Map(availableLayers, [](const auto& layer) { return std::string(layer.layerName); });
 
-    std::vector<std::string> unsupportedLayerNames;
+    Core::Array<std::string> unsupportedLayerNames;
 
     for(const std::string& layerName : requestedLayers) {
         if(Core::Algorithms::Contains(availableLayerNames, layerName)) {
-            filteredLayers.push_back(layerName);
+            filteredLayers.insert(layerName);
         } else {
-            unsupportedLayerNames.push_back(layerName);
+            unsupportedLayerNames.insert(layerName);
         }
     }
-    if(!unsupportedLayerNames.empty()) {
+    if(!unsupportedLayerNames.isEmpty()) {
         Core::Log::Warning(Vulkan, "Requested validation layers are not supported!");
-        Core::Log::Debug(Vulkan, "Unsupported Validation Layer Count: {}", unsupportedLayerNames.size());
+        Core::Log::Debug(Vulkan, "Unsupported Validation Layer Count: {}", unsupportedLayerNames.count());
         for(const auto& layer : unsupportedLayerNames) {
             Core::Log::Debug(Vulkan, "- {}", layer);
         }
@@ -122,25 +123,25 @@ VkDebugUtilsMessengerEXT CreateDebugCallback(VkInstance instance) {
 namespace Renderer::Backends::Vulkan {
 
 VulkanInstance VulkanInstance::Create(const std::string& applicationName,
-                                      const std::vector<std::string>& requiredExtensions,
-                                      const std::vector<std::string>& requestedValidationLayers) {
+                                      const Core::Array<std::string>& requiredExtensions,
+                                      const Core::Array<std::string>& requestedValidationLayers) {
     VulkanInstance instance;
 
-    std::vector<const char*> requiredExtensionNames;
-    Core::Algorithms::Map(requiredExtensions, requiredExtensionNames, Core::Algorithms::Mappers::StringToChar());
+    Core::Array<const char*> requiredExtensionNames =
+          Core::Algorithms::Map(requiredExtensions, Core::Algorithms::Mappers::StringToChar());
     Core::Log::Debug(Vulkan, "Creating instance with extensions:");
     for(const auto& extension : requiredExtensionNames) {
         Core::Log::Debug(Vulkan, "\t{}", extension);
     }
 
-    std::vector<std::string> activeValidationLayers = FilterValidationLayers(requestedValidationLayers);
-    Core::Log::Debug(Vulkan, "Supported Validation Layer Count: {}", activeValidationLayers.size());
+    Core::Array<std::string> activeValidationLayers = FilterValidationLayers(requestedValidationLayers);
+    Core::Log::Debug(Vulkan, "Supported Validation Layer Count: {}", activeValidationLayers.count());
     for(const auto& layer : activeValidationLayers) {
         Core::Log::Debug(Vulkan, "\t{}", layer);
     }
 
-    std::vector<const char*> validationLayerNames;
-    Core::Algorithms::Map(activeValidationLayers, validationLayerNames, Core::Algorithms::Mappers::StringToChar());
+    Core::Array<const char*> validationLayerNames =
+          Core::Algorithms::Map(activeValidationLayers, Core::Algorithms::Mappers::StringToChar());
 
     VkApplicationInfo applicationInfo  = {};
     applicationInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
@@ -154,12 +155,12 @@ VulkanInstance VulkanInstance::Create(const std::string& applicationName,
     VkInstanceCreateInfo createInfo    = {};
     createInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo        = &applicationInfo;
-    createInfo.enabledExtensionCount   = static_cast<uint32_t>(requiredExtensionNames.size());
-    createInfo.ppEnabledExtensionNames = requiredExtensionNames.data();
+    createInfo.enabledExtensionCount   = static_cast<uint32_t>(requiredExtensionNames.count());
+    createInfo.ppEnabledExtensionNames = requiredExtensionNames.rawData();
 
-    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayerNames.size());
-    if(!validationLayerNames.empty()) {
-        createInfo.ppEnabledLayerNames = validationLayerNames.data();
+    createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayerNames.count());
+    if(!validationLayerNames.isEmpty()) {
+        createInfo.ppEnabledLayerNames = validationLayerNames.rawData();
     }
 
     VkDebugUtilsMessengerCreateInfoEXT instanceCreateDebugInfo = MakeDebugCallbackCreateInfo();
@@ -168,7 +169,7 @@ VulkanInstance VulkanInstance::Create(const std::string& applicationName,
     VK_CHECK(vkCreateInstance(&createInfo, nullptr, &instance.object));
 
 
-    if(!activeValidationLayers.empty()) {
+    if(!activeValidationLayers.isEmpty()) {
         instance.debugCallback = CreateDebugCallback(instance);
     }
 

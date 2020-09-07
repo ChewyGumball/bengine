@@ -1,6 +1,7 @@
 #pragma once
 
 #include <optional>
+#include <span>
 
 #include "VulkanCore.h"
 
@@ -22,7 +23,7 @@ struct VulkanBuffer : public VulkanObject<VkBuffer> {
     std::byte* map(VkDevice device);
     void unmap(VkDevice device);
 
-    void upload(VkDevice device, const void* data, uint64_t size);
+    void upload(VkDevice device, std::span<const std::byte> data);
 };
 
 }    // namespace Renderer::Backends::Vulkan

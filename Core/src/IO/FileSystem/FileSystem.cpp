@@ -101,7 +101,7 @@ Core::StatusOr<OutputStream> FileSystem::openFileForWrite(const Path& file) cons
     }
 }
 
-void FileSystem::writeBinaryFile(const Path& file, const Core::Array<std::byte>& data) const {
+void FileSystem::writeBinaryFile(const Path& file, std::span<const std::byte> data) const {
     if(file.type == PathType::Explicit) {
         DefaultMount.writeBinaryFile(file, data);
     } else {

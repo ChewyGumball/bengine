@@ -15,7 +15,7 @@ struct VirtualFileSystemMount : public BareFileSystemMount {
     Core::StatusOr<Core::Array<std::byte>> readBinaryFile(const Path& file) const override;
 
     Core::StatusOr<OutputStream> openFileForWrite(const Path& file) const override;
-    void writeBinaryFile(const Path& file, const Core::Array<std::byte>& data) const override;
+    void writeBinaryFile(const Path& file, std::span<const std::byte> data) const override;
 
     void watchForChanges(const Path& file, const std::function<bool()>& observer) const override;
     void updateWatchers() const override;

@@ -4,11 +4,11 @@
 
 namespace Renderer::Backends::Vulkan {
 
-VulkanShaderModule VulkanShaderModule::Create(VkDevice device, const std::vector<std::byte>& code) {
+VulkanShaderModule VulkanShaderModule::Create(VkDevice device, const Core::Array<std::byte>& code) {
     VkShaderModuleCreateInfo createInfo = {};
     createInfo.sType                    = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize                 = code.size();
-    createInfo.pCode                    = reinterpret_cast<const uint32_t*>(code.data());
+    createInfo.codeSize                 = code.count();
+    createInfo.pCode                    = reinterpret_cast<const uint32_t*>(code.rawData());
 
     VulkanShaderModule shaderModule;
     VK_CHECK(vkCreateShaderModule(device, &createInfo, nullptr, &shaderModule.object));
@@ -16,7 +16,7 @@ VulkanShaderModule VulkanShaderModule::Create(VkDevice device, const std::vector
 }
 
 VulkanShaderModule VulkanShaderModule::CreateFromFile(VkDevice device, const Core::IO::Path& filename) {
-    ASSIGN_OR_ASSERT(std::vector<std::byte> vertexShaderCode, Core::IO::ReadBinaryFile(filename));
+    ASSIGN_OR_ASSERT(Core::Array<std::byte> vertexShaderCode, Core::IO::ReadBinaryFile(filename));
 
     return Create(device, vertexShaderCode);
 }
