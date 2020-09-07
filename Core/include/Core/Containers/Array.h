@@ -25,9 +25,7 @@ public:
 
     using ElementType = T;
 
-    Array();
-
-    // Array(uint64_t initialCapacity = 4);
+    Array(uint64_t initialCapacity = 4);
     Array(const T& original, uint64_t repeatCount);
     Array(std::initializer_list<T> initializerList);
     Array(const Array<T>& other);
@@ -47,8 +45,10 @@ public:
     template <typename... ARGS>
     T& emplace(ARGS&&... args);
 
-    T& insertAt(uint64_t index, T elementToInsert);
-    T& insert(T elementToInsert);
+    T& insertAt(uint64_t index, const T& elementToInsert);
+
+    T& insert(const T& elementToInsert);
+    T& insert(T&& elementToInsert);
 
     template <typename U, std::size_t EXTENT>
     void insertAll(std::span<U, EXTENT> elements);

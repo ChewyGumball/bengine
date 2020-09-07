@@ -5,15 +5,8 @@
 #include <Core/Containers/Span.h>
 
 namespace Core {
-// template <typename T>
-// Array<T>::Array(uint64_t initialCapacity) : capacity(initialCapacity) {
-//     data = reinterpret_cast<T*>(malloc(capacity * ElementSize));
-//     ASSERT
-// }
-
-
 template <typename T>
-Array<T>::Array() : capacity(4) {
+Array<T>::Array(uint64_t initialCapacity) : capacity(initialCapacity) {
     data = reinterpret_cast<T*>(malloc(capacity * ElementSize));
 }
 
@@ -32,7 +25,9 @@ Array<T>::Array(std::initializer_list<T> initializerList) : Array() {
 
 template <typename T>
 Array<T>::Array(const Array<T>& other)
-  : capacity(other.capacity), elementCount(other.elementCount), data(reinterpret_cast<T*>(malloc(capacity))) {
+  : capacity(other.capacity),
+    elementCount(other.elementCount),
+    data(reinterpret_cast<T*>(malloc(capacity * ElementSize))) {
     if constexpr(std::is_trivially_copyable_v<T>) {
         std::memcpy(data, other.data, elementCount * ElementSize);
     } else {
@@ -108,6 +103,8 @@ const T& Array<T>::operator[](uint64_t i) const {
 template <typename T>
 template <typename... ARGS>
 T& Array<T>::emplaceAt(uint64_t index, ARGS&&... args) {
+    ASSERT(index <= elementCount);
+
     ensureCapacity(elementCount + 1);
 
     if(index < elementCount) {
@@ -126,13 +123,22 @@ T& Array<T>::emplace(ARGS&&... args) {
 }
 
 template <typename T>
-T& Array<T>::insertAt(uint64_t index, T elementToInsert) {
-    return emplateAt(index, std::move(elementToInsert));
+T& Array<T>::insertAt(uint64_t index, const T& elementToInsert) {
+    return emplaceAt(index, elementToInsert);
 }
 
 template <typename T>
-T& Array<T>::insert(T elementToInsert) {
-    return emplace(std::move(elementToInsert));
+T& Array<T>::insert(const T& elementToInsert) {
+    return emplace(elementToInsert);
+}
+
+template <typename T>
+T& Array<T>::insert(T&& elementToInsert) {
+    if constexpr(std::is_move_constructible_v<T>) {
+        return emplace(std::forward<T>(elementToInsert));
+    } else {
+        return emplace(elementToInsert);
+    }
 }
 
 template <typename T>
@@ -227,7 +233,11 @@ void Array<T>::ensureCapacity(uint64_t requiredCapacity) {
         std::memcpy(newData, data, elementCount * ElementSize);
     } else {
         for(uint64_t i = 0; i < elementCount; i++) {
-            new(newData + i) T(std::move(*(data + i)));
+            if constexpr(std::is_move_constructible_v<T>) {
+                new(newData + i) T(std::move(*(data + i)));
+            } else {
+                new(newData + i) T(*(data + i));
+            }
         }
     }
 
@@ -266,7 +276,11 @@ void Array<T>::moveElements(uint64_t sourceIndex, uint64_t destinationIndex, uin
             if constexpr(std::is_trivially_copyable_v<T>) {
                 std::memcpy(data + destinationIndex + i, data + sourceIndex + i, ElementSize);
             } else {
-                new(data + destinationIndex + i) T(std::move(*(data + sourceIndex + i)));
+                if constexpr(std::is_move_constructible_v<T>) {
+                    new(data + destinationIndex + i) T(std::move(*(data + sourceIndex + i)));
+                } else {
+                    new(data + destinationIndex + i) T(*(data + sourceIndex + i));
+                }
             }
 
             if constexpr(!std::is_trivially_destructible_v<T>) {

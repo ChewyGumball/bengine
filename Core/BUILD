@@ -162,6 +162,16 @@ bengine_cc_library(
 )
 
 bengine_cc_test(
+    name = "array",
+    srcs = [
+        "test/array.cpp",
+    ],
+    deps = [
+        ":containers",
+    ],
+)
+
+bengine_cc_test(
     name = "output_stream",
     srcs = [
         "test/output_stream.cpp",
