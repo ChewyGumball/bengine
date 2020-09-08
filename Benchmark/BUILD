@@ -7,6 +7,7 @@ bengine_cc_binary(
     ],
     deps = [
         "//core:algorithms",
+        "//core:containers",
         "@hayai",
     ],
 )

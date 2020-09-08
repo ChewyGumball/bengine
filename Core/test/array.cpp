@@ -467,3 +467,31 @@ TEMPLATE_TEST_CASE("Ensure Capacity", "", uint64_t, Movable, Copyable, ConstCopy
 
     REQUIRE(array.count() > ENSURED_CAPACITY);
 }
+
+TEMPLATE_TEST_CASE("Insert All", "", uint64_t, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
+    Core::Array<TestType> array;
+
+    array.insert(TestType(0));
+    array.insert(TestType(1));
+    array.insert(TestType(2));
+    array.insert(TestType(3));
+
+    Core::Array<TestType> array2;
+
+    array2.insert(TestType(4));
+    array2.insert(TestType(5));
+    array2.insert(TestType(6));
+    array2.insert(TestType(7));
+
+    REQUIRE(array.count() == 4);
+    REQUIRE(array2.count() == 4);
+
+    array.insertAll(Core::ToSpan(array2));
+
+    REQUIRE(array.count() == 8);
+    REQUIRE(array2.count() == 4);
+
+    for(uint64_t i = 0; i < array.count(); i++) {
+        REQUIRE(array[i] == TestType(i));
+    }
+}

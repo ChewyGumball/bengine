@@ -153,8 +153,6 @@ T& Array<T>::insert(T&& elementToInsert) {
 template <typename T>
 template <typename U, std::size_t EXTENT>
 std::span<T, EXTENT> Array<T>::insertAll(std::span<U, EXTENT> elements) {
-    static_assert(std::is_constructible_v<T, U>);
-
     ensureCapacity(elementCount + elements.size());
     if constexpr(std::is_same_v<std::remove_cv_t<U>, T> && std::is_trivially_copyable_v<T>) {
         std::memcpy(data + elementCount, elements.data(), elements.size() * ElementSize);
