@@ -36,8 +36,8 @@ public:
 
     ~Array();
 
-    T& operator[](uint64_t i);
-    const T& operator[](uint64_t i) const;
+    [[nodiscard]] T& operator[](uint64_t i);
+    [[nodiscard]] const T& operator[](uint64_t i) const;
 
     template <typename... ARGS>
     T& emplaceAt(uint64_t index, ARGS&&... args);
@@ -46,30 +46,28 @@ public:
     T& emplace(ARGS&&... args);
 
     T& insertAt(uint64_t index, const T& elementToInsert);
+    T& insertAt(uint64_t index, T&& elementToInsert);
 
     T& insert(const T& elementToInsert);
     T& insert(T&& elementToInsert);
 
     template <typename U, std::size_t EXTENT>
-    void insertAll(std::span<U, EXTENT> elements);
+    std::span<T, EXTENT> insertAll(std::span<U, EXTENT> elements);
 
-    std::span<T> insertUninitialized(uint64_t newElementCount);
+    [[nodiscard]] std::span<T> insertUninitialized(uint64_t newElementCount);
 
     void eraseAt(uint64_t index);
 
     void clear();
 
-    uint64_t count() const;
-    bool isEmpty() const;
-
-    T* rawData();
-    const T* rawData() const;
-
-    T* begin();
-    const T* begin() const;
-
-    T* end();
-    const T* end() const;
+    [[nodiscard]] uint64_t count() const;
+    [[nodiscard]] bool isEmpty() const;
+    [[nodiscard]] T* rawData();
+    [[nodiscard]] const T* rawData() const;
+    [[nodiscard]] T* begin();
+    [[nodiscard]] const T* begin() const;
+    [[nodiscard]] T* end();
+    [[nodiscard]] const T* end() const;
 
     void ensureCapacity(uint64_t requiredCapacity);
 

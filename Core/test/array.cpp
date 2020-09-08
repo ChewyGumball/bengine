@@ -20,6 +20,10 @@ struct Movable {
     }
 };
 
+std::ostream& operator<<(std::ostream& stream, const Movable& i) {
+    return stream << i.id;
+}
+
 struct Copyable {
     int id;
     bool copiedFrom;
@@ -35,6 +39,10 @@ struct Copyable {
     }
 };
 
+std::ostream& operator<<(std::ostream& stream, const Copyable& i) {
+    return stream << i.id;
+}
+
 struct ConstCopyable {
     int id;
     mutable bool copiedFrom;
@@ -49,6 +57,10 @@ struct ConstCopyable {
         return other.id == id;
     }
 };
+
+std::ostream& operator<<(std::ostream& stream, const ConstCopyable& i) {
+    return stream << i.id;
+}
 
 struct CopyMovable {
     int id;
@@ -72,6 +84,10 @@ struct CopyMovable {
     }
 };
 
+std::ostream& operator<<(std::ostream& stream, const CopyMovable& i) {
+    return stream << i.id;
+}
+
 struct ConstCopyMovable {
     int id;
     bool movedFrom;
@@ -93,6 +109,10 @@ struct ConstCopyMovable {
         return other.id == id;
     }
 };
+
+std::ostream& operator<<(std::ostream& stream, const ConstCopyMovable& i) {
+    return stream << i.id;
+}
 
 
 TEMPLATE_TEST_CASE("Insert Inline Move", "", Movable, CopyMovable, ConstCopyMovable) {
@@ -336,4 +356,114 @@ TEMPLATE_TEST_CASE("Move Assigmnet", "", uint64_t, Movable, Copyable, CopyMovabl
     for(uint64_t i = 0; i < copy.count(); i++) {
         REQUIRE(copy[i] == TestType(i + 1));
     }
+}
+
+TEMPLATE_TEST_CASE("Insert At", "", uint64_t, Movable, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
+    Core::Array<TestType> array;
+
+    array.insert(TestType(0));
+    array.insert(TestType(1));
+    array.insert(TestType(2));
+    array.insert(TestType(3));
+
+    array.insertAt(1, TestType(4));
+
+    REQUIRE(array.count() == 5);
+
+    REQUIRE(array[0] == TestType(0));
+    REQUIRE(array[1] == TestType(4));
+    REQUIRE(array[2] == TestType(1));
+    REQUIRE(array[3] == TestType(2));
+    REQUIRE(array[4] == TestType(3));
+}
+
+TEMPLATE_TEST_CASE("Emplace At", "", uint64_t, Movable, ConstCopyMovable) {
+    Core::Array<TestType> array;
+
+    array.emplace(TestType(0));
+    array.emplace(TestType(1));
+    array.emplace(TestType(2));
+    array.emplace(TestType(3));
+
+    array.emplaceAt(1, TestType(4));
+
+    REQUIRE(array.count() == 5);
+
+    REQUIRE(array[0] == TestType(0));
+    REQUIRE(array[1] == TestType(4));
+    REQUIRE(array[2] == TestType(1));
+    REQUIRE(array[3] == TestType(2));
+    REQUIRE(array[4] == TestType(3));
+}
+
+TEMPLATE_TEST_CASE("Erase At", "", uint64_t, Movable, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
+    Core::Array<TestType> array;
+
+    array.insert(TestType(0));
+    array.insert(TestType(1));
+    array.insert(TestType(2));
+    array.insert(TestType(3));
+
+    array.eraseAt(1);
+
+    REQUIRE(array.count() == 3);
+
+    REQUIRE(array[0] == TestType(0));
+    REQUIRE(array[1] == TestType(2));
+    REQUIRE(array[2] == TestType(3));
+}
+
+
+TEMPLATE_TEST_CASE("Clear", "", uint64_t, Movable, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
+    Core::Array<TestType> array;
+
+    array.insert(TestType(0));
+    array.insert(TestType(1));
+    array.insert(TestType(2));
+    array.insert(TestType(3));
+
+    REQUIRE(array.count() == 4);
+    REQUIRE(!array.isEmpty());
+
+    array.clear();
+
+    REQUIRE(array.count() == 0);
+    REQUIRE(array.isEmpty());
+}
+
+TEST_CASE("Insert Uninitialized") {
+    constexpr uint64_t INSERT_COUNT = 8240;
+
+    Core::Array<double> array;
+
+    std::span<double> elements = array.insertUninitialized(INSERT_COUNT);
+
+    REQUIRE(array.count() == INSERT_COUNT);
+    REQUIRE(elements.size() == INSERT_COUNT);
+}
+
+TEST_CASE("Is Empty") {
+    Core::Array<double> array;
+
+    REQUIRE(array.isEmpty());
+    array.insert(45.0);
+    REQUIRE(!array.isEmpty());
+}
+
+TEMPLATE_TEST_CASE("Ensure Capacity", "", uint64_t, Movable, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
+    constexpr uint64_t ENSURED_CAPACITY = 637;
+
+    Core::Array<TestType> array;
+
+    array.ensureCapacity(ENSURED_CAPACITY);
+
+    array.insert(TestType(0));
+
+    TestType* firstElementPointer = array.begin();
+
+    while(array.begin() == firstElementPointer) {
+        array.insert(TestType(array.count()));
+    }
+
+    REQUIRE(array.count() > ENSURED_CAPACITY);
 }

@@ -128,6 +128,15 @@ T& Array<T>::insertAt(uint64_t index, const T& elementToInsert) {
 }
 
 template <typename T>
+T& Array<T>::insertAt(uint64_t index, T&& elementToInsert) {
+    if constexpr(std::is_move_constructible_v<T>) {
+        return emplaceAt(index, std::move(elementToInsert));
+    } else {
+        return emplaceAt(index, elementToInsert);
+    }
+}
+
+template <typename T>
 T& Array<T>::insert(const T& elementToInsert) {
     return emplace(elementToInsert);
 }
@@ -143,7 +152,7 @@ T& Array<T>::insert(T&& elementToInsert) {
 
 template <typename T>
 template <typename U, std::size_t EXTENT>
-void Array<T>::insertAll(std::span<U, EXTENT> elements) {
+std::span<T, EXTENT> Array<T>::insertAll(std::span<U, EXTENT> elements) {
     static_assert(std::is_constructible_v<T, U>);
 
     ensureCapacity(elementCount + elements.size());
@@ -156,6 +165,8 @@ void Array<T>::insertAll(std::span<U, EXTENT> elements) {
     }
 
     elementCount += elements.size();
+
+    return std::span<T, EXTENT>(data + elementCount - elements.size(), elements.size());
 }
 
 template <typename T>
@@ -269,17 +280,27 @@ void Array<T>::moveElements(uint64_t sourceIndex, uint64_t destinationIndex, uin
         std::memmove(data + destinationIndex, data + sourceIndex, elementCount * ElementSize);
     } else {
         for(uint64_t i = 0; i < elementCount; i++) {
+            uint64_t offset;
+            if(sourceIndex < destinationIndex) {
+                offset = elementCount - i - 1;
+            } else {
+                offset = i;
+            }
+
+            T* sourceElement      = data + sourceIndex + offset;
+            T* destinationElement = data + destinationIndex + offset;
+
             if constexpr(!std::is_trivially_destructible_v<T>) {
-                (data + destinationIndex + i)->~T();
+                destinationElement->~T();
             }
 
             if constexpr(std::is_trivially_copyable_v<T>) {
-                std::memcpy(data + destinationIndex + i, data + sourceIndex + i, ElementSize);
+                std::memcpy(destinationElement, sourceElement, ElementSize);
             } else {
                 if constexpr(std::is_move_constructible_v<T>) {
-                    new(data + destinationIndex + i) T(std::move(*(data + sourceIndex + i)));
+                    new(destinationElement) T(std::move(*sourceElement));
                 } else {
-                    new(data + destinationIndex + i) T(*(data + sourceIndex + i));
+                    new(destinationElement) T(*sourceElement);
                 }
             }
 
