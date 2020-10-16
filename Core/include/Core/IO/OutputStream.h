@@ -1,15 +1,21 @@
 #pragma once
 
+#include <Core/IO/BinarySerializable.h>
+
 #include <memory>
 #include <span>
 #include <string>
-
 
 namespace Core::IO {
 
 template <typename T>
 struct Serializer {
     static void serialize(struct OutputStream& stream, const T& value);
+};
+
+template <typename T>
+concept Serializable = requires(T a) {
+    typename Serializer<T>;
 };
 
 struct OutputStream {
@@ -21,7 +27,7 @@ public:
     OutputStream(std::unique_ptr<class std::basic_ostream<std::byte>>&& stream);
     OutputStream(OutputStream&& other);
 
-    template <typename T>
+    template <Serializable T>
     void write(const T& value) {
         Serializer<T>::serialize(*this, value);
     }
@@ -30,10 +36,11 @@ public:
 };
 
 template <typename T>
-void Serializer<T>::serialize(OutputStream& stream, const T& value) {
-    static_assert(std::is_trivially_copyable_v<T>);
-    stream.write(std::as_bytes(std::span<const T>(&value, 1)));
-}
+requires std::is_trivially_copyable_v<T> struct Serializer<T> {
+    static void serialize(OutputStream& stream, const T& value) {
+        stream.write(std::as_bytes(std::span<const T>(&value, 1)));
+    }
+};
 
 template <>
 struct Serializer<std::string> {

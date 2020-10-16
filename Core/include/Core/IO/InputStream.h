@@ -1,16 +1,22 @@
 #pragma once
 
+#include <Core/IO/BinarySerializable.h>
+
 #include <istream>
 #include <memory>
 #include <span>
 #include <string>
-#include <type_traits>
 
 namespace Core::IO {
 
 template <typename T>
 struct Deserializer {
     static T deserialize(struct InputStream& stream);
+};
+
+template <typename T>
+concept Deserializable = requires(T a) {
+    typename Deserializer<T>;
 };
 
 struct InputStream {
@@ -22,28 +28,27 @@ public:
     InputStream(std::unique_ptr<std::basic_istream<std::byte>>&& stream);
     InputStream(InputStream&& other);
 
-    template <typename T>
+    template <Deserializable T>
     T read() {
         return Deserializer<T>::deserialize(*this);
     }
 
     void readInto(std::byte* buffer, uint64_t size);
 
-    template <typename T>
+    template <BinarySerializable T>
     void readInto(std::span<T> buffer) {
-        static_assert(std::is_trivially_copyable_v<T>);
         readInto(reinterpret_cast<std::byte*>(buffer.data()), buffer.size() * sizeof(T));
     }
 };
 
-template <typename T>
-T Deserializer<T>::deserialize(InputStream& stream) {
-    static_assert(std::is_trivial_v<T>);
-
-    T value;
-    stream.readInto(reinterpret_cast<std::byte*>(&value), sizeof(T));
-    return value;
-}
+template <BinarySerializable T>
+struct Deserializer<T> {
+    static T deserialize(InputStream& stream) {
+        T value;
+        stream.readInto(reinterpret_cast<std::byte*>(&value), sizeof(T));
+        return value;
+    }
+};
 
 template <>
 struct Deserializer<std::string> {

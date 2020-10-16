@@ -38,7 +38,7 @@ public:
         return !isOk();
     }
 
-    bool peekError() const {
+    [[nodiscard]] bool peekError() const {
         return errorMessage != nullptr;
     }
 
@@ -52,12 +52,12 @@ public:
         return std::move(*errorMessage);
     }
 
-    static Status Ok() {
+    static [[nodiscard]] Status Ok() {
         return Status(nullptr);
     }
 
     template <typename... FORMAT_ARGS>
-    static Status Error(std::string_view errorMessage, FORMAT_ARGS && ... args) {
+    static [[nodiscard]] Status Error(std::string_view errorMessage, FORMAT_ARGS && ... args) {
         return Status(std::make_unique<std::string>(fmt::format(errorMessage, std::forward<FORMAT_ARGS>(args)...)));
     }
 

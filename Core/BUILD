@@ -93,6 +93,7 @@ bengine_cc_library(
         "src/IO/OutputStream.cpp",
     ],
     hdrs = [
+        "include/Core/IO/BinarySerializable.h",
         "include/Core/IO/InputStream.h",
         "include/Core/IO/OutputStream.h",
     ],

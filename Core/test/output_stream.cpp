@@ -13,7 +13,7 @@ TEST_CASE("Output integers") {
     size_t value = 2;
     stream.write(value);
 
-    const std::byte* rawBuffer = storage.buffer().data();
+    const std::byte* rawBuffer = storage.buffer().rawData();
     const std::byte* rawValue  = reinterpret_cast<const std::byte*>(&value);
     for(size_t i = 0; i < sizeof(size_t); i++) {
         CHECK(rawBuffer[i] == rawValue[i]);

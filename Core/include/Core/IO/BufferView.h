@@ -3,6 +3,8 @@
 #include <Core/Assert.h>
 #include <Core/Containers/Array.h>
 
+#include <Core/IO/BinarySerializable.h>
+
 #include <cstddef>
 #include <stdint.h>
 
@@ -12,8 +14,8 @@ struct BufferView {
     std::byte* const data;
     const uint64_t size;
 
-    template <typename T>
-    typename std::enable_if_t<std::is_trivially_constructible_v<T>, T&> read(uint64_t position) {
+    template <BinarySerializable T>
+    T& read(uint64_t position) {
         ASSERT(position + sizeof(T) <= size);
         return *reinterpret_cast<T*>(data + position);
     }
@@ -28,8 +30,8 @@ struct BufferViewWindow {
     BufferViewWindow(Core::Array<std::byte>& buffer, uint64_t windowSize);
 
 
-    template <typename T>
-    typename std::enable_if_t<std::is_trivially_constructible_v<T>, T&> read(uint64_t position) const {
+    template <BinarySerializable T>
+    T& read(uint64_t position) const {
         ASSERT(position + sizeof(T) <= window);
         return *reinterpret_cast<T*>(view.data + windowStart + position);
     }

@@ -2,7 +2,6 @@
 
 #include <streambuf>
 
-
 #include "Core/Containers/Array.h"
 
 namespace Core::IO {

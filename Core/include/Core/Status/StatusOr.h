@@ -6,9 +6,9 @@
 
 namespace Core {
 template <typename T>
-class StatusOr {
+requires !std::is_same_v<T, Status> class [[nodiscard]] StatusOr {
 public:
-    StatusOr(Status&& status) : valueOrStatus(std::move(status)) {
+    StatusOr(Status && status) : valueOrStatus(std::move(status)) {
         ASSERT_WITH_MESSAGE(std::get<Status>(valueOrStatus).peekError(),
                             "StatusOr may only be constructed with a Status if that Status is in the error state!");
     }
@@ -17,6 +17,8 @@ public:
 
     [[nodiscard]] bool isOk() const {
         if(std::holds_alternative<Status>(valueOrStatus)) {
+            // We call this function on the status so that it gets its "inspected" state set properly. Otherwise
+            // inspecting the StatusOr will not count as inspecting the Status.
             return std::get<Status>(valueOrStatus).isOk();
         } else {
             return true;
@@ -25,18 +27,16 @@ public:
 
     [[nodiscard]] bool isError() const {
         if(std::holds_alternative<Status>(valueOrStatus)) {
+            // We call this function on the status so that it gets its "inspected" state set properly. Otherwise
+            // inspecting the StatusOr will not count as inspecting the Status.
             return std::get<Status>(valueOrStatus).isError();
         } else {
             return false;
         }
     }
 
-    bool peekError() const {
-        if(std::holds_alternative<Status>(valueOrStatus)) {
-            return std::get<Status>(valueOrStatus).peekError();
-        } else {
-            return false;
-        }
+    [[nodiscard]] bool peekError() const {
+        return std::holds_alternative<Status>(valueOrStatus);
     }
 
     [[nodiscard]] const std::string& message() const& {
@@ -46,7 +46,7 @@ public:
         return std::get<Status>(valueOrStatus).message();
     }
 
-    [[nodiscard]] std::string&& message() && {
+    [[nodiscard]] std::string&& message()&& {
         ASSERT_WITH_MESSAGE(std::holds_alternative<Status>(valueOrStatus),
                             "A StatusOr only has a message if it holds an error Status!");
 
@@ -60,7 +60,7 @@ public:
 
         return std::get<Status>(valueOrStatus);
     }
-    [[nodiscard]] Status&& status() && {
+    [[nodiscard]] Status&& status()&& {
         ASSERT_WITH_MESSAGE(std::holds_alternative<Status>(valueOrStatus),
                             "A StatusOr doesn't have a status if it holds a value!");
 
@@ -74,14 +74,14 @@ public:
         return std::get<T>(valueOrStatus);
     }
 
-    [[nodiscard]] T& value() & {
+    [[nodiscard]] T& value()& {
         ASSERT_WITH_MESSAGE(std::holds_alternative<T>(valueOrStatus),
                             "A StatusOr doesn't have a value if it holds a Status!");
 
         return std::get<T>(valueOrStatus);
     }
 
-    [[nodiscard]] T&& value() && {
+    [[nodiscard]] T&& value()&& {
         ASSERT_WITH_MESSAGE(std::holds_alternative<T>(valueOrStatus),
                             "A StatusOr doesn't have a value if it holds a Status!");
 
