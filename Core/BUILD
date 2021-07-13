@@ -167,6 +167,7 @@ bengine_cc_test(
     srcs = [
         "test/array.cpp",
     ],
+    shard_count = 5,
     deps = [
         ":containers",
     ],

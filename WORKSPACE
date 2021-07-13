@@ -133,9 +133,14 @@ http_archive(
 
 http_archive(
     name = "catch2",
-    sha256 = "e7336f2b02193f3cc65892eaa0830aae90b750980d9395d42b1df687287a6f8e",
-    strip_prefix = "Catch2-2.13.0",
-    url = "https://github.com/catchorg/Catch2/archive/v2.13.0.zip",
+    patch_args = ["-p1"],
+    patches = [
+        "@bengine//:third_party/catch2/0001-allow-sharded-execution-for-bazel-test-sharding-supp.patch",
+        "@bengine//:third_party/catch2/0002-patch-for-bengine.patch",
+    ],
+    sha256 = "8aec86bc5ccfd963caf3dc4cd137001a7f80bf54d44c69b187cc92b40851399a",
+    strip_prefix = "Catch2-6f21a3609cea360846a0ca93be55877cca14c86d",
+    url = "https://github.com/catchorg/Catch2/archive/6f21a3609cea360846a0ca93be55877cca14c86d.zip",
 )
 
 ###############

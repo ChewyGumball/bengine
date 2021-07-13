@@ -1,0 +1,54 @@
+From 98fa98fc743c3a5bba4b9171bf9042056a123405 Mon Sep 17 00:00:00 2001
+From: Ben Dunkin <chewygumball@gmail.com>
+Date: Mon, 12 Jul 2021 20:14:46 -0700
+Subject: [PATCH] patch for bengine
+
+---
+ BUILD.bazel | 24 +++++++++++-------------
+ 1 file changed, 11 insertions(+), 13 deletions(-)
+
+diff --git a/BUILD.bazel b/BUILD.bazel
+index 6dc626d8..49f39c4e 100644
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -1,25 +1,23 @@
+ # Load the cc_library rule.
+-load("@rules_cc//cc:defs.bzl", "cc_library")
++load("@bengine//tools:bengine_rules.bzl", "bengine_cc_library")
+ 
+-# Static library, without main.
+-cc_library(
++# Without main.
++bengine_cc_library(
+     name = "catch2",
++    srcs = glob(
++        ["src/catch2/**/*.cpp"],
++        exclude = ["src/catch2/internal/catch_main.cpp"],
++    ),
+     hdrs = glob(["src/catch2/**/*.hpp"]),
+-    srcs = glob(["src/catch2/**/*.cpp"],
+-                exclude=[ "src/catch2/internal/catch_main.cpp"]),
+-    visibility = ["//visibility:public"],
+-    copts = ["-std=c++14"],
+-    linkstatic = True,
+     includes = ["src/"],
++    visibility = ["//visibility:public"],
+ )
+ 
+-# Static library, with main.
+-cc_library(
++# With main.
++bengine_cc_library(
+     name = "catch2_main",
+     srcs = ["src/catch2/internal/catch_main.cpp"],
+-    deps = [":catch2"],
+-    visibility = ["//visibility:public"],
+-    linkstatic = True,
+-    copts = ["-std=c++14"],
+     includes = ["src/"],
++    visibility = ["//visibility:public"],
++    deps = [":catch2"],
+ )
+-- 
+2.28.0.windows.1
+
