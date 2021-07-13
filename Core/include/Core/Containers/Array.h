@@ -109,7 +109,7 @@ template <typename T>
 struct Serializer<Core::Array<T>> {
     static void serialize(OutputStream& stream, const Core::Array<T>& values) {
         stream.write(values.count());
-        if constexpr(std::is_trivially_copyable_v<T>) {
+        if constexpr(BinarySerializable<T>) {
             stream.write(std::as_bytes(Core::ToSpan(values)));
         } else {
             for(const T& value : values) {
@@ -139,8 +139,8 @@ struct Deserializer<Core::Array<T>> {
         uint64_t elementCount = stream.read<uint64_t>();
         Core::Array<T> value;
 
-        if constexpr(std::is_trivially_copyable_v<T>) {
-            stream.readInto(value.insertUninitialized(elementCount));
+        if constexpr(BinarySerializable<T>) {
+            stream.readInto<T>(value.insertUninitialized(elementCount));
         } else {
             for(size_t i = 0; i < elementCount; i++) {
                 value.emplace(Deserializer<T>::deserialize(stream));

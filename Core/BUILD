@@ -170,6 +170,7 @@ bengine_cc_test(
     shard_count = 5,
     deps = [
         ":containers",
+        ":io",
     ],
 )
 

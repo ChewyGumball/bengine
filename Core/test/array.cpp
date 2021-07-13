@@ -2,6 +2,9 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <Core/Containers/Array.h>
+#include <Core/IO/ArrayBuffer.h>
+#include <Core/IO/InputStream.h>
+#include <Core/IO/OutputStream.h>
 
 #include <type_traits>
 
@@ -494,5 +497,69 @@ TEMPLATE_TEST_CASE("Insert All", "", uint64_t, Copyable, ConstCopyable, CopyMova
 
     for(uint64_t i = 0; i < array.count(); i++) {
         REQUIRE(array[i] == TestType(i));
+    }
+}
+
+struct Trivial {
+    int a;
+    int b;
+
+    Trivial() = default;
+    Trivial(int a, int b) : a(a), b(b) {}
+    bool operator==(const Trivial& other) const {
+        return other.a == a && other.b == b;
+    }
+};
+
+struct NonTrivial {
+    Trivial a;
+    Trivial b;
+
+    NonTrivial() = default;
+    NonTrivial(int a, int b) : a(a, b), b(b, a) {}
+    NonTrivial(Trivial a, Trivial b) : a(a), b(b) {}
+    NonTrivial(const NonTrivial& other) : a(other.a), b(other.b) {}
+
+    bool operator==(const NonTrivial& other) const {
+        return other.a == a && other.b == b;
+    }
+};
+
+template <>
+struct Core::IO::Serializer<NonTrivial> {
+    static void serialize(OutputStream& stream, const NonTrivial& value) {
+        stream.write(value.a);
+        stream.write(value.b);
+    }
+};
+
+template <>
+struct Core::IO::Deserializer<NonTrivial> {
+    static NonTrivial deserialize(InputStream& stream) {
+        Trivial a = stream.read<Trivial>();
+        Trivial b = stream.read<Trivial>();
+        return NonTrivial(a, b);
+    }
+};
+
+TEMPLATE_TEST_CASE("Serialize", "", Trivial, NonTrivial) {
+    Core::Array<TestType> array;
+
+    array.insert(TestType(1, 2));
+    array.insert(TestType(3, 4));
+    array.insert(TestType(5, 6));
+    array.insert(TestType(7, 8));
+
+    Core::IO::ArrayBuffer buffer;
+    Core::IO::OutputStream out(&buffer);
+
+    out.write(array);
+
+    Core::IO::InputStream in(&buffer);
+    Core::Array<TestType> result = in.read<Core::Array<TestType>>();
+
+    REQUIRE(result.count() == array.count());
+    for(uint64_t i = 0; i < array.count(); i++) {
+        REQUIRE(result[i] == array[i]);
     }
 }
