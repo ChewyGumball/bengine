@@ -51,7 +51,7 @@ Array<T>& Array<T>::operator=(const Array<T>& other) {
         ensureCapacity(other.elementCount);
 
         if constexpr(std::is_trivially_copyable_v<T>) {
-            std::memcpy(data, other.data, other.elementCount);
+            std::memcpy(data, other.data, other.elementCount * ElementSize);
         } else {
             for(uint64_t i = 0; i < other.elementCount; i++) {
                 new(data + i) T(other[i]);
@@ -90,7 +90,7 @@ Array<T>::~Array() {
 
 template <typename T>
 T& Array<T>::operator[](uint64_t i) {
-    ASSERT(i < elementCount);
+    ASSERT_WITH_MESSAGE(i < elementCount, "Index: {}, Count: {}", i, elementCount);
     return *(data + i);
 }
 

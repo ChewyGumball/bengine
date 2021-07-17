@@ -323,7 +323,8 @@ TEMPLATE_TEST_CASE("Copy Assignment", "", uint64_t, ConstCopyable, ConstCopyMova
     array.insert(TestType(4));
     array.insert(TestType(5));
 
-    Core::Array<TestType> copy = array;
+    Core::Array<TestType> copy;
+    copy = array;
 
     array.insert(TestType(6));
     array.insert(TestType(7));
@@ -348,7 +349,8 @@ TEMPLATE_TEST_CASE("Move Assigmnet", "", uint64_t, Movable, Copyable, CopyMovabl
 
     REQUIRE(array.count() == 5);
 
-    Core::Array<TestType> copy = std::move(array);
+    Core::Array<TestType> copy;
+    copy = std::move(array);
 
     array.insert(TestType(6));
     array.insert(TestType(7));
