@@ -5,6 +5,7 @@
 #include <Core/Containers/Span.h>
 
 namespace Core {
+
 template <typename T>
 Array<T>::Array(uint64_t initialCapacity) : capacity(initialCapacity) {
     data = reinterpret_cast<T*>(malloc(capacity * ElementSize));
@@ -29,7 +30,7 @@ Array<T>::Array(const Array<T>& other)
     elementCount(other.elementCount),
     data(reinterpret_cast<T*>(malloc(capacity * ElementSize))) {
     if constexpr(std::is_trivially_copyable_v<T>) {
-        std::memcpy(data, other.data, elementCount * ElementSize);
+        CopyElementMemory(data, other.data, elementCount);
     } else {
         for(uint64_t i = 0; i < elementCount; i++) {
             new(data + i) T(other[i]);
@@ -51,7 +52,7 @@ Array<T>& Array<T>::operator=(const Array<T>& other) {
         ensureCapacity(other.elementCount);
 
         if constexpr(std::is_trivially_copyable_v<T>) {
-            std::memcpy(data, other.data, other.elementCount * ElementSize);
+            CopyElementMemory(data, other.data, other.elementCount);
         } else {
             for(uint64_t i = 0; i < other.elementCount; i++) {
                 new(data + i) T(other[i]);
@@ -155,7 +156,7 @@ template <typename U, std::size_t EXTENT>
 std::span<T, EXTENT> Array<T>::insertAll(std::span<U, EXTENT> elements) {
     ensureCapacity(elementCount + elements.size());
     if constexpr(std::is_same_v<std::remove_cv_t<U>, T> && std::is_trivially_copyable_v<T>) {
-        std::memcpy(data + elementCount, elements.data(), elements.size() * ElementSize);
+        CopyElementMemory(data + elementCount, elements.data(), elements.size());
     } else {
         for(uint64_t i = 0; i < elements.size(); i++) {
             new(data + elementCount + i) T(elements[i]);
@@ -239,7 +240,7 @@ void Array<T>::ensureCapacity(uint64_t requiredCapacity) {
 
     T* newData = reinterpret_cast<T*>(malloc(capacity * ElementSize));
     if constexpr(std::is_trivially_copyable_v<T>) {
-        std::memcpy(newData, data, elementCount * ElementSize);
+        CopyElementMemory(newData, data, elementCount);
     } else {
         for(uint64_t i = 0; i < elementCount; i++) {
             if constexpr(std::is_move_constructible_v<T>) {
@@ -275,7 +276,7 @@ void Array<T>::moveElements(uint64_t sourceIndex, uint64_t destinationIndex, uin
     }
 
     if constexpr(std::is_trivially_copyable_v<T> && std::is_trivially_destructible_v<T>) {
-        std::memmove(data + destinationIndex, data + sourceIndex, elementCount * ElementSize);
+        MoveElementMemory(data + destinationIndex, data + sourceIndex, elementCount);
     } else {
         for(uint64_t i = 0; i < elementCount; i++) {
             uint64_t offset;
@@ -293,7 +294,7 @@ void Array<T>::moveElements(uint64_t sourceIndex, uint64_t destinationIndex, uin
             }
 
             if constexpr(std::is_trivially_copyable_v<T>) {
-                std::memcpy(destinationElement, sourceElement, ElementSize);
+                CopyElementMemory(destinationElement, sourceElement, 1);
             } else {
                 if constexpr(std::is_move_constructible_v<T>) {
                     new(destinationElement) T(std::move(*sourceElement));
@@ -308,4 +309,15 @@ void Array<T>::moveElements(uint64_t sourceIndex, uint64_t destinationIndex, uin
         }
     }
 }
+
+template <typename T>
+void Array<T>::CopyElementMemory(T* destination, const T* source, uint64_t elementCount) {
+    std::memcpy(destination, source, elementCount * ElementSize);
+}
+
+template <typename T>
+void Array<T>::MoveElementMemory(T* destination, const T* source, uint64_t elementCount) {
+    std::memmove(destination, source, elementCount * ElementSize);
+}
+
 }    // namespace Core

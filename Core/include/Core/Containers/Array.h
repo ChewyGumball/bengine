@@ -75,6 +75,9 @@ protected:
     void destructElements(uint64_t startIndex, uint64_t elementsToDestruct);
     void moveElements(uint64_t sourceIndex, uint64_t destinationIndex, uint64_t elementCount);
 
+    static void CopyElementMemory(T* destination, const T* source, uint64_t elementCount);
+    static void MoveElementMemory(T* destination, const T* source, uint64_t elementCount);
+
     uint64_t capacity;
     uint64_t elementCount = 0;
     T* data               = nullptr;
