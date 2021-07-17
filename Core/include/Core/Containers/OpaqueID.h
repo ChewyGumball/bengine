@@ -16,11 +16,11 @@ class OpaqueID {
         return id;
     }
 
-    bool operator==(const OpaqueID<LABEL, BASE_TYPE>& other) {
+    bool operator==(const OpaqueID<LABEL, BASE_TYPE>& other) const {
         return other.id == id;
     }
 
-    bool operator!=(const OpaqueID<LABEL, BASE_TYPE>& other) {
+    bool operator!=(const OpaqueID<LABEL, BASE_TYPE>& other) const {
         return !(*this == other);
     }
 
