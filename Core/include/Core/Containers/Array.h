@@ -25,7 +25,7 @@ public:
 
     using ElementType = T;
 
-    Array(uint64_t initialCapacity = 4);
+    explicit Array(uint64_t initialCapacity = 4);
     Array(const T& original, uint64_t repeatCount);
     Array(std::initializer_list<T> initializerList);
     Array(const Array<T>& other);

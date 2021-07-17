@@ -565,3 +565,7 @@ TEMPLATE_TEST_CASE("Serialize", "", Trivial, NonTrivial) {
         REQUIRE(result[i] == array[i]);
     }
 }
+
+TEST_CASE("No Implicit Integer Conversions") {
+    REQUIRE(!std::is_convertible_v<uint64_t, Core::Array<uint64_t>>);
+}
