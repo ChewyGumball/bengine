@@ -5,6 +5,8 @@
 #include <Core/Containers/OpaqueID.h>
 #include <Core/IO/FileSystem/FileSystem.h>
 #include <Core/IO/Serialization/InputStream.h>
+#include <Core/Status/Status.h>
+
 
 #include <filesystem>
 
@@ -25,18 +27,17 @@ protected:
 public:
     AssetCatalog(Core::IO::FileSystem* fileSystem) : fileSystem(fileSystem) {}
 
-    std::optional<ASSET_TYPE*> locate(const Core::IO::Path& assetPath) const {
+    Core::Status<ASSET_TYPE*> locate(const Core::IO::Path& assetPath) const {
         if(assetNames.count(assetPath) == 0) {
-            std::optional<Core::FileSystem::InputStream> assetData = Core::FileSystem::OpenFile(assetPath);
-            ASSERT(assetData);
+            ASSIGN_OR_ASSERT(Core::IO::InputStream assetData, fileSystem->openFile(assetPath));
 
             T* asset              = create(assetData, ++nextID);
             AssetTag<T> tag       = asset->tag;
             assets[tag]           = asset;
             assetNames[assetPath] = tag;
 
-            Core::FileSystem::WatchForChanges(assetPath, [=]() -> bool {
-                std::optional<Core::FileSystem::InputStream> assetData = Core::FileSystem::OpenFile(assetPath);
+            Core::IO::WatchForChanges(assetPath, [=]() -> bool {
+                ASSIGN_OR_ASSERT(Core::IO::InputStream assetData, fileSystem->OpenFile(assetPath));
                 return this->reload(assetData, *resources[tag]);
             });
         }

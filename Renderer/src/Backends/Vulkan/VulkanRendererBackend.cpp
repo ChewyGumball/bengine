@@ -50,6 +50,10 @@ void VulkanRendererBackend::shutdown() {
     Core::Log::Info(Backend, "Destroying backend.");
     vkDeviceWaitIdle(logicalDevice);
 
+    if(swapChainRenderPass) {
+        VulkanRenderPass::Destroy(logicalDevice, *swapChainRenderPass);
+    }
+
     VulkanQueues::Destroy(logicalDevice, queues);
     VulkanLogicalDevice::Destroy(logicalDevice);
 
@@ -73,10 +77,14 @@ VulkanRenderPass VulkanRendererBackend::makeRenderPass(VkFormat colourBufferForm
     return VulkanRenderPass::Create(logicalDevice, colourBufferFormat, depthBufferFormat);
 }
 
-VulkanSwapChain VulkanRendererBackend::makeSwapChain(const VulkanRenderPass& renderPass,
-                                                     VkExtent2D size,
+VulkanSwapChain VulkanRendererBackend::makeSwapChain(VkExtent2D size,
                                                      std::optional<VulkanSwapChain> previousSwapChain) {
     ASSERT_WITH_MESSAGE(surface.has_value(), "There is no surface, so no swap chain can be created!");
+
+    if(!swapChainRenderPass) {
+        VulkanSurfaceFormat surfaceFormat = getSurfaceFormat();
+        swapChainRenderPass               = makeRenderPass(surfaceFormat.colourFormat, surfaceFormat.depthFormat);
+    }
 
     vkDeviceWaitIdle(logicalDevice);
 
@@ -86,8 +94,8 @@ VulkanSwapChain VulkanRendererBackend::makeSwapChain(const VulkanRenderPass& ren
         previousSwapChainHandle = previousSwapChain->object;
     }
 
-    VulkanSwapChain newChain =
-          VulkanSwapChain::Create(logicalDevice, physicalDevice, details, queues, renderPass, previousSwapChainHandle);
+    VulkanSwapChain newChain = VulkanSwapChain::Create(
+          logicalDevice, physicalDevice, details, queues, *swapChainRenderPass, previousSwapChainHandle);
 
     if(previousSwapChain) {
         VulkanSwapChain::Destroy(logicalDevice, *previousSwapChain);
