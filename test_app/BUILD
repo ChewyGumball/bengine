@@ -12,7 +12,8 @@ bengine_cc_binary(
     ],
     deps = [
         "//assets:importers",
-        "//core:time",
+        "//core/io/serialization:buffers",
+        "//core/time",
         "//gui:window",
         "//renderer:vulkan",
         "@com_google_absl//absl/container:flat_hash_map",

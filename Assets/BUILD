@@ -9,7 +9,7 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
-        "//core:logging",
+        "//core/logging",
     ],
 )
 
@@ -22,8 +22,11 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
-        "//core:containers",
-        "//core:io",
+        "//core/containers:array",
+        "//core/containers:hash_map",
+        "//core/containers:opaque_id",
+        "//core/io/file_system",
+        "//core/io/serialization:streams",
     ],
 )
 
@@ -39,9 +42,9 @@ bengine_cc_library(
     deps = [
         ":core",
         ":model",
-        "//core:algorithms",
-        "//core:containers",
-        "//core:io",
+        "//core/algorithms:strings",
+        "//core/containers:array",
+        "//core/io/file_system",
     ],
 )
 
@@ -53,7 +56,7 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
-        "//core:containers",
+        "//core/containers:hash_map",
     ],
 )
 
@@ -70,8 +73,10 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
-        "//core:containers",
-        "//core:logging",
+        "//core/containers:array",
+        "//core/containers:hash_map",
+        "//core/containers:index_span",
+        "//core/logging",
     ],
 )
 
@@ -80,7 +85,7 @@ bengine_cc_test(
     srcs = ["test/mesh_serialization.cpp"],
     deps = [
         "//assets:model",
-        "//core:containers",
-        "//core:io",
+        "//core/io/serialization:buffers",
+        "//core/io/serialization:streams",
     ],
 )

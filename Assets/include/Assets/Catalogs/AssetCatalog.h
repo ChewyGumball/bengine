@@ -1,29 +1,31 @@
 #pragma once
 
-#include <filesystem>
-
 #include <Core/Containers/Array.h>
 #include <Core/Containers/HashMap.h>
+#include <Core/Containers/OpaqueID.h>
+#include <Core/IO/FileSystem/FileSystem.h>
+#include <Core/IO/Serialization/InputStream.h>
 
-#include <Core/FileSystem/FileSystem.h>
-#include <Core/FileSystem/InputStream.h>
-
-#include "AssetTag.h"
+#include <filesystem>
 
 namespace Assets {
 template <typename ASSET_TYPE>
 class AssetCatalog {
 private:
-    mutable uint32_t nextID = 0;
-    mutable Core::HashMap<std::filesystem::path, AssetTag<ASSET_TYPE>> assetNames;
-    mutable Core::HashMap<AssetTag<ASSET_TYPE>, ASSET_TYPE*> assets;
+    Core::IO::FileSystem* fileSystem;
+
+    mutable uint64_t nextID = 0;
+    mutable Core::HashMap<Core::IO::Path, Core::OpaqueID<ASSET_TYPE>> assetNames;
+    mutable Core::HashMap<Core::OpaqueID<ASSET_TYPE>, ASSET_TYPE*> assets;
 
 protected:
-    virtual ASSET_TYPE* create(Core::FileSystem::InputStream& assetData, uint32_t ID) const = 0;
-    virtual bool reload(Core::FileSystem::InputStream& assetData, T& resource) const        = 0;
+    virtual ASSET_TYPE* create(Core::IO::InputStream& assetData, uint64_t ID) const = 0;
+    virtual bool reload(Core::IO::InputStream& assetData, T& resource) const        = 0;
 
 public:
-    std::optional<ASSET_TYPE*> locate(const std::filesystem::path& assetPath) const {
+    AssetCatalog(Core::IO::FileSystem* fileSystem) : fileSystem(fileSystem) {}
+
+    std::optional<ASSET_TYPE*> locate(const Core::IO::Path& assetPath) const {
         if(assetNames.count(assetPath) == 0) {
             std::optional<Core::FileSystem::InputStream> assetData = Core::FileSystem::OpenFile(assetPath);
             ASSERT(assetData);

@@ -56,10 +56,12 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
-        "//core:algorithms",
-        "//core:io",
-        "//core:logging",
-        "//core:status",
+        "//core/algorithms:containers",
+        "//core/algorithms:mappers",
+        "//core/algorithms:optional",
+        "//core/io/file_system",
+        "//core/logging",
+        "//core/status",
         "@vulkan_sdk_windows//:vulkan",
     ],
 )
