@@ -189,6 +189,30 @@ VulkanRendererBackend::createImage(std::span<const std::byte> data, VkFormat for
     return image;
 }
 
+Renderer::Resources::GPUTexture
+VulkanRendererBackend::createTexture(std::span<const std::byte> data, VkFormat format, VkExtent2D dimensions) {
+    VulkanImage image = createImage(data, format, dimensions);
+    return Renderer::Resources::GPUTexture{
+          .image   = image,
+          .view    = VulkanImageView::Create(logicalDevice, image, image.format),
+          .sampler = VulkanSampler::Create(logicalDevice),
+    };
+}
+
+Renderer::Resources::GPUMesh VulkanRendererBackend::createMesh(std::span<const std::byte> vertexData,
+                                                               std::span<const std::byte> indexData,
+                                                               VkIndexType indexType) {
+    uint64_t indexSize = indexType == VK_INDEX_TYPE_UINT32 ? sizeof(uint32_t) : sizeof(uint16_t);
+    return Renderer::Resources::GPUMesh{
+          .vertexBuffer       = createBuffer(vertexData, VulkanBufferUsageType::Vertex),
+          .vertexBufferOffset = 0,
+          .indexBuffer        = createBuffer(indexData, VulkanBufferUsageType::Index),
+          .indexCount         = indexData.size() / indexSize,
+          .indexBufferOffset  = 0,
+          .indexType          = indexType,
+    };
+}
+
 void VulkanRendererBackend::processFinishedSubmitResources() {
     while(!submittedCommandBuffers.empty() &&
           vkGetFenceStatus(logicalDevice, submittedCommandBuffers.front().submitFence)) {

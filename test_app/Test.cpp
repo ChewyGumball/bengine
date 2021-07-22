@@ -29,8 +29,6 @@
 #include <Renderer/Backends/Vulkan/DiagnosticCheckpoint.h>
 #include <Renderer/Backends/Vulkan/VulkanRendererBackend.h>
 
-
-#include <Renderer/Backends/Vulkan/VulkanBuffer.h>
 #include <Renderer/Backends/Vulkan/VulkanCommandPool.h>
 #include <Renderer/Backends/Vulkan/VulkanDescriptorPool.h>
 #include <Renderer/Backends/Vulkan/VulkanFence.h>
@@ -46,6 +44,9 @@
 #include <Renderer/Backends/Vulkan/VulkanSemaphore.h>
 #include <Renderer/Backends/Vulkan/VulkanShaderModule.h>
 #include <Renderer/Backends/Vulkan/VulkanSwapChain.h>
+
+#include <Renderer/Resources/GPUMesh.h>
+#include <Renderer/Resources/GPUTexture.h>
 
 #include <absl/container/flat_hash_map.h>
 
@@ -79,12 +80,8 @@ Core::Array<VulkanFence> queueFences;
 Core::Array<VkCommandBuffer> mainDrawBuffers;
 Core::Array<VkCommandBuffer> guiDrawBuffers;
 
-VulkanBuffer VertexBuffer;
-VulkanBuffer IndexBuffer;
-
-VulkanImage TextureImage;
-VulkanImageView TextureView;
-VulkanSampler TextureSampler;
+Renderer::Resources::GPUMesh mesh;
+Renderer::Resources::GPUTexture texture;
 
 const int MAX_FRAME_IN_FLIGHT = 2;
 size_t currentFrame           = 0;
@@ -125,8 +122,6 @@ struct Vertex {
     }
 };
 
-Core::Array<uint32_t> indices;
-
 struct UniformBufferObject {
     glm::mat4 model;
     glm::mat4 view;
@@ -158,12 +153,12 @@ void cleanupVulkan(VulkanRendererBackend& backend) {
 
     VulkanGraphicsPipeline::Destroy(device, graphicsPipeline);
 
-    VulkanImageView::Destroy(device, TextureView);
-    VulkanSampler::Destroy(device, TextureSampler);
+    VulkanImageView::Destroy(device, texture.view);
+    VulkanSampler::Destroy(device, texture.sampler);
 
-    physicalDevice.DestroyImage(device, TextureImage);
-    physicalDevice.DestroyBuffer(device, VertexBuffer);
-    physicalDevice.DestroyBuffer(device, IndexBuffer);
+    physicalDevice.DestroyImage(device, texture.image);
+    physicalDevice.DestroyBuffer(device, mesh.vertexBuffer);
+    physicalDevice.DestroyBuffer(device, mesh.indexBuffer);
 
     VulkanPipelineLayout::Destroy(device, pipelineLayout);
 
@@ -226,11 +221,11 @@ void recordCommandBuffers(VulkanRendererBackend& backend) {
         vkCmdSetViewport(commandBuffers[i], 0, 1, &swapChain.viewport);
         vkCmdSetScissor(commandBuffers[i], 0, 1, &swapChain.scissor);
 
-        VkBuffer vertexBuffers[] = {VertexBuffer};
-        VkDeviceSize offsets[]   = {0};
+        VkBuffer vertexBuffers[] = {mesh.vertexBuffer};
+        VkDeviceSize offsets[]   = {mesh.vertexBufferOffset};
         vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
 
-        vkCmdBindIndexBuffer(commandBuffers[i], IndexBuffer, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdBindIndexBuffer(commandBuffers[i], mesh.indexBuffer, mesh.indexBufferOffset, mesh.indexType);
         vkCmdBindDescriptorSets(commandBuffers[i],
                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
                                 pipelineLayout,
@@ -239,7 +234,7 @@ void recordCommandBuffers(VulkanRendererBackend& backend) {
                                 &uniformBuffersDescriptors[i],
                                 0,
                                 nullptr);
-        vkCmdDrawIndexed(commandBuffers[i], indices.count(), 1, 0, 0, 0);
+        vkCmdDrawIndexed(commandBuffers[i], mesh.indexCount, 1, 0, 0, 0);
 
         VK_CHECK(vkEndCommandBuffer(commandBuffers[i]));
     }
@@ -268,7 +263,7 @@ void createCommandBuffers(VulkanRendererBackend& backend) {
 
         VulkanDescriptorSetUpdate update;
         update.addBuffer(0, uniformBuffers[i]);
-        update.addSampledImage(1, TextureView, TextureSampler);
+        update.addSampledImage(1, texture.view, texture.sampler);
         update.update(device, uniformBuffersDescriptors[i]);
     }
 
@@ -324,10 +319,7 @@ void createVertexBuffer(VulkanRendererBackend& backend) {
         vertices.insert(vertex);
     }
 
-    indices = model.indexData;
-
-    VertexBuffer = backend.createBuffer(vertices, VulkanBufferUsageType::Vertex);
-    IndexBuffer  = backend.createBuffer(indices, VulkanBufferUsageType::Index);
+    mesh = backend.createMesh(vertices, model.indexData, VK_INDEX_TYPE_UINT32);
 }
 
 void createTextureImage(VulkanRendererBackend& backend) {
@@ -350,11 +342,8 @@ void createTextureImage(VulkanRendererBackend& backend) {
 
     std::span<const std::byte> data(reinterpret_cast<const std::byte*>(pixels), texWidth * texHeight * 4);
 
-    TextureImage = backend.createImage(
+    texture = backend.createTexture(
           data, VK_FORMAT_R8G8B8A8_UNORM, {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)});
-
-    TextureSampler = VulkanSampler::Create(device);
-    TextureView    = VulkanImageView::Create(device, TextureImage, TextureImage.format);
 
     stbi_image_free(pixels);
 }

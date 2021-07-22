@@ -21,7 +21,6 @@ bengine_cc_library(
         "src/Backends/Vulkan/VulkanPipelineLayout.cpp",
         "src/Backends/Vulkan/VulkanQueue.cpp",
         "src/Backends/Vulkan/VulkanRenderPass.cpp",
-        "src/Backends/Vulkan/VulkanRendererBackend.cpp",
         "src/Backends/Vulkan/VulkanSampler.cpp",
         "src/Backends/Vulkan/VulkanSemaphore.cpp",
         "src/Backends/Vulkan/VulkanShaderModule.cpp",
@@ -29,7 +28,6 @@ bengine_cc_library(
         "src/Backends/Vulkan/VulkanSwapChainDetails.cpp",
     ],
     hdrs = [
-        "include/Renderer/Backends/RendererBackend.h",
         "include/Renderer/Backends/Vulkan/DiagnosticCheckpoint.h",
         "include/Renderer/Backends/Vulkan/VulkanBuffer.h",
         "include/Renderer/Backends/Vulkan/VulkanCommandPool.h",
@@ -47,7 +45,6 @@ bengine_cc_library(
         "include/Renderer/Backends/Vulkan/VulkanPipelineShaderStage.h",
         "include/Renderer/Backends/Vulkan/VulkanQueue.h",
         "include/Renderer/Backends/Vulkan/VulkanRenderPass.h",
-        "include/Renderer/Backends/Vulkan/VulkanRendererBackend.h",
         "include/Renderer/Backends/Vulkan/VulkanSampler.h",
         "include/Renderer/Backends/Vulkan/VulkanSemaphore.h",
         "include/Renderer/Backends/Vulkan/VulkanShaderModule.h",
@@ -63,5 +60,34 @@ bengine_cc_library(
         "//core/logging",
         "//core/status",
         "@vulkan_sdk_windows//:vulkan",
+    ],
+)
+
+bengine_cc_library(
+    name = "resources",
+    hdrs = [
+        "include/Renderer/Resources/GPUMesh.h",
+        "include/Renderer/Resources/GPUTexture.h",
+    ],
+    strip_include_prefix = "include",
+    deps = [
+        ":vulkan",
+    ],
+)
+
+bengine_cc_library(
+    name = "vulkan_backend",
+    srcs = ["src/Backends/Vulkan/VulkanRendererBackend.cpp"],
+    hdrs = [
+        "include/Renderer/Backends/RendererBackend.h",
+        "include/Renderer/Backends/Vulkan/VulkanRendererBackend.h",
+    ],
+    strip_include_prefix = "include",
+    deps = [
+        ":resources",
+        ":vulkan",
+        "//core/containers:array",
+        "//core/containers:hash_set",
+        "//core/status",
     ],
 )

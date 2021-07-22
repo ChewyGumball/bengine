@@ -15,7 +15,7 @@ bengine_cc_binary(
         "//core/io/serialization:buffers",
         "//core/time",
         "//gui:window",
-        "//renderer:vulkan",
+        "//renderer:vulkan_backend",
         "@com_google_absl//absl/container:flat_hash_map",
         "@glfw",
         "@glm",

@@ -9,6 +9,9 @@
 #include <Renderer/Backends/Vulkan/VulkanRenderPass.h>
 #include <Renderer/Backends/Vulkan/VulkanSwapChain.h>
 
+#include <Renderer/Resources/GPUMesh.h>
+#include <Renderer/Resources/GPUTexture.h>
+
 #include <Core/Containers/Array.h>
 #include <Core/Containers/HashSet.h>
 #include <Core/Status/StatusOr.h>
@@ -54,11 +57,23 @@ public:
     VulkanBuffer createBuffer(std::span<const std::byte> data, VulkanBufferUsageType bufferType);
     VulkanImage createImage(std::span<const std::byte> data, VkFormat format, VkExtent2D dimensions);
 
+    Renderer::Resources::GPUTexture
+    createTexture(std::span<const std::byte> data, VkFormat format, VkExtent2D dimensions);
+    Renderer::Resources::GPUMesh
+    createMesh(std::span<const std::byte> vertexData, std::span<const std::byte> indexData, VkIndexType indexType);
+
     void processFinishedSubmitResources();
 
     template <typename T>
     VulkanBuffer createBuffer(const Core::Array<T>& data, VulkanBufferUsageType bufferType) {
-        return createBuffer(std::as_bytes(Core::ToSpan(data)), bufferType);
+        return createBuffer(Core::AsBytes(data), bufferType);
+    }
+
+    template <typename VERTEX_TYPE, typename INDEX_TYPE>
+    Renderer::Resources::GPUMesh createMesh(const Core::Array<VERTEX_TYPE>& vertexData,
+                                            const Core::Array<INDEX_TYPE>& indexData,
+                                            VkIndexType indexType) {
+        return createMesh(Core::AsBytes(vertexData), Core::AsBytes(indexData), indexType);
     }
 
     static Core::StatusOr<VulkanRendererBackend>

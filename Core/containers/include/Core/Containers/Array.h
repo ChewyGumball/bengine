@@ -83,7 +83,6 @@ protected:
     T* data               = nullptr;
 };
 
-
 template <typename T>
 std::span<T> ToSpan(Core::Array<T>& array) {
     return std::span<T>(array.rawData(), array.count());
@@ -102,6 +101,16 @@ std::span<T, SIZE> ToSpan(Core::FixedArray<T, SIZE>& array) {
 template <typename T, uint64_t SIZE>
 std::span<const T, SIZE> ToSpan(const Core::FixedArray<T, SIZE>& array) {
     return std::span<T>(array.data(), SIZE);
+}
+
+template <typename T>
+std::span<std::byte> AsBytes(Core::Array<T>& array) requires std::is_trivially_copyable_v<T> {
+    return std::as_writeable_bytes(ToSpan(array));
+}
+
+template <typename T>
+std::span<const std::byte> AsBytes(const Core::Array<T>& array) requires std::is_trivially_copyable_v<T> {
+    return std::as_bytes(ToSpan(array));
 }
 
 }    // namespace Core
