@@ -7,11 +7,13 @@ bengine_cc_library(
     srcs = [
         "src/Clock.cpp",
         "src/SystemClockTicker.cpp",
+        "src/SystemTimer.cpp",
         "src/Timer.cpp",
     ],
     hdrs = [
         "include/Core/Time/Clock.h",
         "include/Core/Time/SystemClockTicker.h",
+        "include/Core/Time/SystemTimer.h",
         "include/Core/Time/Timer.h",
     ],
     strip_include_prefix = "include",

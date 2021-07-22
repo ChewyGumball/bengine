@@ -98,7 +98,8 @@ Mesh Import(const std::filesystem::path& filename) {
         if(elements[0] == "v") {
             positions.emplace(elements);
         } else if(elements[0] == "vt") {
-            textureCoordinates.emplace(elements);
+            Vector2& coords = textureCoordinates.emplace(elements);
+            coords.y        = 1.0f - coords.y;
         } else if(elements[0] == "vn") {
             normals.emplace(elements);
         } else if(elements[0] == "usemtl") {

@@ -86,42 +86,6 @@ Renderer::Resources::GPUTexture texture;
 const int MAX_FRAME_IN_FLIGHT = 2;
 size_t currentFrame           = 0;
 
-struct Vertex {
-    glm::vec3 pos;
-    glm::vec3 color;
-    glm::vec2 texCoord;
-
-    static VkVertexInputBindingDescription getBindingDescription() {
-        VkVertexInputBindingDescription bindingDescription = {};
-        bindingDescription.binding                         = 0;
-        bindingDescription.stride                          = sizeof(Vertex);
-        bindingDescription.inputRate                       = VK_VERTEX_INPUT_RATE_VERTEX;
-
-        return bindingDescription;
-    }
-
-    static std::array<VkVertexInputAttributeDescription, 3> getAttributeDescriptions() {
-        std::array<VkVertexInputAttributeDescription, 3> attributeDescriptions = {};
-
-        attributeDescriptions[0].binding  = 0;
-        attributeDescriptions[0].location = 0;
-        attributeDescriptions[0].format   = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[0].offset   = offsetof(Vertex, pos);
-
-        attributeDescriptions[1].binding  = 0;
-        attributeDescriptions[1].location = 1;
-        attributeDescriptions[1].format   = VK_FORMAT_R32G32B32_SFLOAT;
-        attributeDescriptions[1].offset   = offsetof(Vertex, color);
-
-        attributeDescriptions[2].binding  = 0;
-        attributeDescriptions[2].location = 2;
-        attributeDescriptions[2].format   = VK_FORMAT_R32G32_SFLOAT;
-        attributeDescriptions[2].offset   = offsetof(Vertex, texCoord);
-
-        return attributeDescriptions;
-    }
-};
-
 struct UniformBufferObject {
     glm::mat4 model;
     glm::mat4 view;
@@ -173,7 +137,7 @@ void cleanupVulkan(VulkanRendererBackend& backend) {
     backend.shutdown();
 }
 
-void createGraphicsPipeline(VulkanRendererBackend& backend) {
+void createGraphicsPipeline(VulkanRendererBackend& backend, const Assets::Mesh& meshData) {
     VulkanLogicalDevice& device       = backend.getLogicalDevice();
     VulkanShaderModule vertexShader   = VulkanShaderModule::CreateFromFile(device, "Shaders/triangle/vert.spv");
     VulkanShaderModule fragmentShader = VulkanShaderModule::CreateFromFile(device, "Shaders/triangle/frag.spv");
@@ -183,8 +147,23 @@ void createGraphicsPipeline(VulkanRendererBackend& backend) {
 
     VulkanGraphicsPipelineInfo info(pipelineLayout, *backend.getSwapChainRenderPass());
 
-    auto bindingDescription    = Vertex::getBindingDescription();
-    auto attributeDescriptions = Vertex::getAttributeDescriptions();
+
+    VkVertexInputBindingDescription bindingDescription = {};
+    bindingDescription.binding                         = 0;
+    bindingDescription.stride                          = meshData.vertexFormat.byteCount();
+    bindingDescription.inputRate                       = VK_VERTEX_INPUT_RATE_VERTEX;
+
+    std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = {};
+
+    attributeDescriptions[0].binding  = 0;
+    attributeDescriptions[0].location = 0;
+    attributeDescriptions[0].format   = VK_FORMAT_R32G32B32_SFLOAT;
+    attributeDescriptions[0].offset   = meshData.vertexFormat.properties.at(Assets::VertexUsage::POSITION).byteOffset;
+
+    attributeDescriptions[1].binding  = 0;
+    attributeDescriptions[1].location = 1;
+    attributeDescriptions[1].format   = VK_FORMAT_R32G32_SFLOAT;
+    attributeDescriptions[1].offset   = meshData.vertexFormat.properties.at(Assets::VertexUsage::TEXTURE).byteOffset;
 
     info.shaderStages.push_back(vertexStage);
     info.shaderStages.push_back(fragmentStage);
@@ -301,25 +280,9 @@ void createVertexBuffer(VulkanRendererBackend& backend) {
     ASSIGN_OR_ASSERT(Core::IO::InputStream input, Core::IO::OpenFileForRead(file));
 
     auto model = input.read<Assets::Mesh>();
+    createGraphicsPipeline(backend, model);
 
-    model.deduplicateVertices();
-    uint32_t positionOffset = model.vertexFormat.properties[Assets::VertexUsage::POSITION].byteOffset;
-    uint32_t textureOffset  = model.vertexFormat.properties[Assets::VertexUsage::TEXTURE].byteOffset;
-
-    Core::Array<Vertex> vertices;
-    for(Core::IO::BufferViewWindow view(model.vertexData, model.vertexFormat.byteCount()); view; ++view) {
-        Vertex vertex = {};
-
-        vertex.pos      = view.read<glm::vec3>(positionOffset);
-        vertex.texCoord = view.read<glm::vec2>(textureOffset);
-        vertex.color    = {1.0f, 1.0f, 1.0f};
-
-        vertex.texCoord.y = 1.0f - vertex.texCoord.y;
-
-        vertices.insert(vertex);
-    }
-
-    mesh = backend.createMesh(vertices, model.indexData, VK_INDEX_TYPE_UINT32);
+    mesh = backend.createMesh(model.vertexData, model.indexData, VK_INDEX_TYPE_UINT32);
 }
 
 void createTextureImage(VulkanRendererBackend& backend) {
@@ -353,8 +316,6 @@ Core::Status initVulkanBackend(VulkanRendererBackend& backend, GUI::Window& wind
 
     createDescriptorSetLayout(backend);
     pipelineLayout = VulkanPipelineLayout::Create(backend.getLogicalDevice(), {descriptorSetLayout});
-
-    createGraphicsPipeline(backend);
 
     createVertexBuffer(backend);
     createTextureImage(backend);
