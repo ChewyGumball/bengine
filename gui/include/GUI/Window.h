@@ -22,6 +22,7 @@ public:
     Core::HashSet<std::string> getRequiredVulkanExtensions();
 
     bool hasResized() const;
+    void clearResized();
     VkExtent2D getSize() const;
 
     bool shouldClose() const;

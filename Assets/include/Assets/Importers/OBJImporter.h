@@ -2,8 +2,6 @@
 
 #include "Assets/Model/Mesh.h"
 
-#include <Core/Containers/Array.h>
-
 #include <filesystem>
 
 namespace Assets::OBJ {

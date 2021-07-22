@@ -7,6 +7,7 @@
 #include <GLFW/glfw3.h>
 
 #include <mutex>
+#include <shared_mutex>
 
 namespace GUI {
 
@@ -45,8 +46,10 @@ void TerminateGLFW() {
     }
 }
 
+std::shared_mutex glfwWindowResizedMutex;
 Core::HashMap<GLFWwindow*, bool> WINDOW_RESIZED;
 void WindowResizeHandler(GLFWwindow* window, int width, int height) {
+    std::unique_lock lock(glfwWindowResizedMutex);
     WINDOW_RESIZED[window] = true;
 }
 
@@ -54,7 +57,7 @@ void WindowResizeHandler(GLFWwindow* window, int width, int height) {
 
 
 Window::Window(const std::string& name, GLFWwindow* handle) : name(name), handle(handle) {
-    internal::WINDOW_RESIZED[handle] = false;
+    clearResized();
 }
 
 Window::~Window() {
@@ -70,8 +73,15 @@ VkSurfaceKHR Window::createSurface(Renderer::Backends::Vulkan::VulkanInstance& i
 }
 
 bool Window::hasResized() const {
+    std::shared_lock lock(internal::glfwWindowResizedMutex);
     return internal::WINDOW_RESIZED[handle];
 }
+
+void Window::clearResized() {
+    std::unique_lock lock(internal::glfwWindowResizedMutex);
+    internal::WINDOW_RESIZED[handle] = false;
+}
+
 VkExtent2D Window::getSize() const {
     int32_t width, height;
     glfwGetFramebufferSize(handle, &width, &height);

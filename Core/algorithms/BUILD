@@ -31,6 +31,7 @@ bengine_cc_library(
 
 bengine_cc_library(
     name = "strings",
+    srcs = ["src/Strings.cpp"],
     hdrs = ["include/Core/Algorithms/Strings.h"],
     strip_include_prefix = "include",
     deps = [
