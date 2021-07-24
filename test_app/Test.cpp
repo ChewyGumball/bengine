@@ -24,6 +24,8 @@
 
 #include <Core/IO/Serialization/BufferView.h>
 
+#include <Assets/Materials/Shader.h>
+
 #include <GUI/Window.h>
 
 #include <Renderer/Backends/Vulkan/DiagnosticCheckpoint.h>
@@ -138,7 +140,21 @@ void cleanupVulkan(VulkanRendererBackend& backend) {
 }
 
 void createGraphicsPipeline(VulkanRendererBackend& backend, const Assets::Mesh& meshData) {
-    VulkanLogicalDevice& device       = backend.getLogicalDevice();
+    VulkanLogicalDevice& device = backend.getLogicalDevice();
+
+    Assets::Shader shader;
+    shader.stageSources.emplace(Assets::PipelineStage::VERTEX, "Shaders/triangle/vert.spv");
+    shader.stageSources.emplace(Assets::PipelineStage::FRAGMENT, "Shaders/triangle/frag.spv");
+
+    Assets::Property mat4{.type = Assets::PropertyType::FLOAT_32, .elementCount = 16};
+    Assets::ShaderUniform uboDescription{.bindingIndex = 0, .stage = Assets::PipelineStage::VERTEX};
+    uboDescription.description = Assets::BufferDescription{
+          .properties = {{"model", {.property = mat4, .byteOffset = 0}},
+                         {"view", {.property = mat4, .byteOffset = 16 * sizeof(float)}},
+                         {"projection", {.property = mat4, .byteOffset = 32 * sizeof(float)}}}};
+
+    shader.uniforms.emplace("ubo", uboDescription);
+
     VulkanShaderModule vertexShader   = VulkanShaderModule::CreateFromFile(device, "Shaders/triangle/vert.spv");
     VulkanShaderModule fragmentShader = VulkanShaderModule::CreateFromFile(device, "Shaders/triangle/frag.spv");
 

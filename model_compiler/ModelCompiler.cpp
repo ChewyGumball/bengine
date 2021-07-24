@@ -38,13 +38,13 @@ Core::Status run(std::filesystem::path& file) {
     Core::Log::Info(
           ModelCompiler, "Indices: {} ({} bytes)", mesh.indexData.count(), mesh.indexData.count() * sizeof(uint32_t));
     Core::Log::Info(ModelCompiler, "Format:");
-    for(auto& property : mesh.vertexFormat.properties) {
+    for(auto& [usage, property] : mesh.vertexFormat.properties) {
         Core::Log::Info(ModelCompiler,
                         "\t{}: {} {} elements at offset {}",
-                        Assets::VertexUsage::AsString(property.second.usage),
-                        property.second.elementCount,
-                        Assets::VertexPropertyFormat::AsString(property.second.format),
-                        property.second.byteOffset);
+                        Assets::VertexUsage::AsString(usage),
+                        property.property.elementCount,
+                        Assets::PropertyType::AsString(property.property.type),
+                        property.byteOffset);
     }
 
     return Core::Status::Ok();

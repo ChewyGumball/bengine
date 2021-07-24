@@ -1,7 +1,7 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <Core/IO/ArrayBuffer.h>
-#include <Core/IO/OutputStream.h>
+#include <Core/IO/Serialization/ArrayBuffer.h>
+#include <Core/IO/Serialization/OutputStream.h>
 
 #include <Assets/Model/VertexFormat.h>
 
@@ -11,18 +11,14 @@ TEST_CASE("Vertex Format Serialization", "Serialization") {
     Core::IO::ArrayBuffer storage;
     Core::IO::OutputStream outStream(&storage);
 
-    VertexFormat format{.properties = {
-                              {VertexUsage::POSITION,
-                               VertexProperty{.format       = VertexPropertyFormat::FLOAT_32,
-                                              .usage        = VertexUsage::POSITION,
-                                              .byteOffset   = 0,
-                                              .elementCount = 3}},
-                              {VertexUsage::TEXTURE,
-                               VertexProperty{.format       = VertexPropertyFormat::FLOAT_32,
-                                              .usage        = VertexUsage::TEXTURE,
-                                              .byteOffset   = 3 * sizeof(float),
-                                              .elementCount = 2}},
-                        }};
+    VertexFormat format{
+          .properties = {
+                {VertexUsage::POSITION,
+                 BufferProperty{.property = {.type = PropertyType::FLOAT_32, .elementCount = 3}, .byteOffset = 0}},
+                {VertexUsage::TEXTURE,
+                 BufferProperty{.property   = {.type = PropertyType::FLOAT_32, .elementCount = 2},
+                                .byteOffset = 3 * sizeof(float)}},
+          }};
 
     outStream.write(format);
 
@@ -34,11 +30,10 @@ TEST_CASE("Vertex Format Serialization", "Serialization") {
 
     for(auto& [usage, property] : format.properties) {
         REQUIRE(readFormat.properties.contains(usage));
-        VertexProperty& readProperty = readFormat.properties[usage];
+        BufferProperty& readProperty = readFormat.properties[usage];
 
-        CHECK(readProperty.format == property.format);
-        CHECK(readProperty.usage == property.usage);
+        CHECK(readProperty.property.type == property.property.type);
         CHECK(readProperty.byteOffset == property.byteOffset);
-        CHECK(readProperty.elementCount == property.elementCount);
+        CHECK(readProperty.property.elementCount == property.property.elementCount);
     }
 }

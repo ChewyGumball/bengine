@@ -14,6 +14,17 @@ bengine_cc_library(
 )
 
 bengine_cc_library(
+    name = "buffer_layout",
+    srcs = ["src/BufferLayout.cpp"],
+    hdrs = ["include/Assets/BufferLayout.h"],
+    strip_include_prefix = "include",
+    deps = [
+        "//core/containers:hash_map",
+        "//core/io/serialization:streams",
+    ],
+)
+
+bengine_cc_library(
     name = "catalogs",
     srcs = [],
     hdrs = [
@@ -49,13 +60,14 @@ bengine_cc_library(
 )
 
 bengine_cc_library(
-    name = "material",
+    name = "materials",
     hdrs = [
-        "include/Assets/Material/Material.h",
-        "include/Assets/Material/Shader.h",
+        "include/Assets/Materials/Material.h",
+        "include/Assets/Materials/Shader.h",
     ],
     strip_include_prefix = "include",
     deps = [
+        ":buffer_layout",
         "//core/containers:hash_map",
     ],
 )
@@ -64,7 +76,6 @@ bengine_cc_library(
     name = "model",
     srcs = [
         "src/Model/Mesh.cpp",
-        "src/Model/VertexFormat.cpp",
     ],
     hdrs = [
         "include/Assets/Model/Mesh.h",
@@ -73,6 +84,7 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
+        ":buffer_layout",
         "//core/containers:array",
         "//core/containers:hash_map",
         "//core/containers:index_span",

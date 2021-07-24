@@ -59,7 +59,8 @@ constexpr exp_index_t IDENTITY_EXPONENT_INDEX = 308;
 bool passesFilter(std::string_view s, Core::Algorithms::String::Filter filter) {
     using Core::Algorithms::String::Filter;
     return (filter == Filter::None) || (filter == Filter::Empty && !s.empty()) ||
-           (filter == Filter::Whitespace && !s.empty() && !std::all_of(s.begin(), s.end(), std::isspace));
+           (filter == Filter::Whitespace && !s.empty() &&
+            !std::all_of(s.begin(), s.end(), [](char c) { return std::isspace(c); }));
 }
 
 std::string_view skipWhitespace(const std::string_view string) {

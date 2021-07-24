@@ -12,6 +12,7 @@ bengine_cc_binary(
     ],
     deps = [
         "//assets:importers",
+        "//assets:materials",
         "//core/io/serialization:buffers",
         "//core/time",
         "//gui:window",

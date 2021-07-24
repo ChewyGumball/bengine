@@ -2,9 +2,9 @@
 #include <catch2/catch_test_macros.hpp>
 
 #include <Core/Containers/Array.h>
-#include <Core/IO/ArrayBuffer.h>
-#include <Core/IO/InputStream.h>
-#include <Core/IO/OutputStream.h>
+#include <Core/IO/Serialization/ArrayBuffer.h>
+#include <Core/IO/Serialization/InputStream.h>
+#include <Core/IO/Serialization/OutputStream.h>
 
 #include <type_traits>
 

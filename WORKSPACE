@@ -33,9 +33,9 @@ http_archive(
 http_archive(
     name = "spdlog",
     build_file = "@bengine//:third_party/spdlog/BUILD",
-    sha256 = "c8f1e1103e0b148eb8832275d8e68036f2fdd3975a1199af0e844908c56f6ea5",
-    strip_prefix = "spdlog-1.7.0",
-    urls = ["https://github.com/gabime/spdlog/archive/v1.7.0.zip"],
+    sha256 = "61f751265cfce8fb17f67e18fa1ad00077280c080008252d9e8f0fbab5c30662",
+    strip_prefix = "spdlog-1.9.0",
+    urls = ["https://github.com/gabime/spdlog/archive/v1.9.0.zip"],
 )
 
 ###############

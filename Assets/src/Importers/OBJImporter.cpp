@@ -141,31 +141,29 @@ Mesh Import(const std::filesystem::path& filename) {
                 }
 
                 OBJIndexFind(positions, vertexIndex).appendTo(mesh.vertexData);
-                auto& vertexProperty        = mesh.vertexFormat.properties[Assets::VertexUsage::POSITION];
-                vertexProperty.usage        = Assets::VertexUsage::POSITION;
-                vertexProperty.byteOffset   = 0;
-                vertexProperty.elementCount = 3;
+                auto& vertexProperty = mesh.vertexFormat.properties[Assets::VertexUsage::POSITION];
+
+                vertexProperty.property   = {.type = Assets::PropertyType::FLOAT_32, .elementCount = 3};
+                vertexProperty.byteOffset = 0;
 
                 uint32_t currentOffset = PositionElements * sizeof(float);
 
                 if(normalIndex) {
                     auto& vertexProperty = mesh.vertexFormat.properties[Assets::VertexUsage::NORMAL];
-                    ASSERT(vertexProperty.elementCount == 0 || vertexProperty.byteOffset == currentOffset);
+                    ASSERT(vertexProperty.property.elementCount == 0 || vertexProperty.byteOffset == currentOffset);
 
-                    vertexProperty.usage        = Assets::VertexUsage::NORMAL;
-                    vertexProperty.byteOffset   = currentOffset;
-                    vertexProperty.elementCount = 3;
+                    vertexProperty.property   = {.type = Assets::PropertyType::FLOAT_32, .elementCount = 3};
+                    vertexProperty.byteOffset = currentOffset;
 
                     OBJIndexFind(normals, *normalIndex).appendTo(mesh.vertexData);
                     currentOffset += NormalElements * sizeof(float);
                 }
                 if(textureCoordinateIndex) {
                     auto& vertexProperty = mesh.vertexFormat.properties[Assets::VertexUsage::TEXTURE];
-                    ASSERT(vertexProperty.elementCount == 0 || vertexProperty.byteOffset == currentOffset);
+                    ASSERT(vertexProperty.property.elementCount == 0 || vertexProperty.byteOffset == currentOffset);
 
-                    vertexProperty.usage        = Assets::VertexUsage::TEXTURE;
-                    vertexProperty.byteOffset   = currentOffset;
-                    vertexProperty.elementCount = 2;
+                    vertexProperty.property   = {.type = Assets::PropertyType::FLOAT_32, .elementCount = 2};
+                    vertexProperty.byteOffset = currentOffset;
 
                     OBJIndexFind(textureCoordinates, *textureCoordinateIndex).appendTo(mesh.vertexData);
                     currentOffset += TextureElements * sizeof(float);

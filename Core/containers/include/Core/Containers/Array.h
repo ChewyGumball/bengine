@@ -105,7 +105,7 @@ std::span<const T, SIZE> ToSpan(const Core::FixedArray<T, SIZE>& array) {
 
 template <typename T>
 std::span<std::byte> AsBytes(Core::Array<T>& array) requires std::is_trivially_copyable_v<T> {
-    return std::as_writeable_bytes(ToSpan(array));
+    return std::as_writable_bytes(ToSpan(array));
 }
 
 template <typename T>

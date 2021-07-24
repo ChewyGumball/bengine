@@ -68,11 +68,11 @@ bengine_cc_library(
 bengine_cc_test(
     name = "test_array",
     srcs = [
-        "test/Array.cpp",
+        "test/test_array.cpp",
     ],
     shard_count = 5,
     deps = [
         ":array",
-        ":io",
+        "//core/io/serialization:buffers",
     ],
 )

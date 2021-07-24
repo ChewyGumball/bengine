@@ -6,8 +6,8 @@ bengine_cc_binary(
         "Benchmark.cpp",
     ],
     deps = [
-        "//core:algorithms",
-        "//core:containers",
+        "//core/algorithms:strings",
+        "//core/containers:array",
         "@hayai",
     ],
 )
