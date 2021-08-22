@@ -81,15 +81,20 @@ VulkanGraphicsPipelineInfo::VulkanGraphicsPipelineInfo(VkPipelineLayout layout, 
     colourBlending.blendConstants[3] = 0.0f;    // Optional
 
     dynamicState.sType             = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
-    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
-    dynamicState.pDynamicStates    = dynamicStates.data();
+    dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.count());
+    dynamicState.pDynamicStates    = dynamicStates.rawData();
 }
 
 VulkanGraphicsPipeline VulkanGraphicsPipeline::Create(VkDevice device, const VulkanGraphicsPipelineInfo& pipelineInfo) {
+    Core::Array<VkPipelineShaderStageCreateInfo> stages(pipelineInfo.shaderStages.count());
+    for(const auto& stage : pipelineInfo.shaderStages) {
+        stages.emplace(stage);
+    }
+
     VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};
     pipelineCreateInfo.sType                        = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineCreateInfo.stageCount                   = static_cast<uint32_t>(pipelineInfo.shaderStages.size());
-    pipelineCreateInfo.pStages                      = pipelineInfo.shaderStages.data();
+    pipelineCreateInfo.stageCount                   = static_cast<uint32_t>(stages.count());
+    pipelineCreateInfo.pStages                      = stages.rawData();
     pipelineCreateInfo.pVertexInputState            = &pipelineInfo.vertexInput;
     pipelineCreateInfo.pInputAssemblyState          = &pipelineInfo.inputAssembly;
     pipelineCreateInfo.pViewportState               = &pipelineInfo.viewportState;

@@ -19,6 +19,7 @@ bengine_cc_library(
     hdrs = ["include/Assets/BufferLayout.h"],
     strip_include_prefix = "include",
     deps = [
+        "//core/algorithms:hashing",
         "//core/containers:hash_map",
         "//core/io/serialization:streams",
     ],
@@ -68,6 +69,7 @@ bengine_cc_library(
     strip_include_prefix = "include",
     deps = [
         ":buffer_layout",
+        ":model",
         "//core/containers:hash_map",
     ],
 )

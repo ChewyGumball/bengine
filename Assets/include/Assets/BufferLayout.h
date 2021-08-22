@@ -1,5 +1,6 @@
 #pragma once
 
+#include <Core/Algorithms/Hashing.h>
 #include <Core/Containers/HashMap.h>
 #include <Core/IO/Serialization/InputStream.h>
 #include <Core/IO/Serialization/OutputStream.h>
@@ -47,6 +48,9 @@ struct Property {
     uint8_t byteCount() const;
 };
 
+bool operator==(const Property& a, const Property& b);
+bool operator!=(const Property& a, const Property& b);
+
 struct BufferProperty {
     Property property;
     uint8_t byteOffset;
@@ -86,3 +90,12 @@ struct Deserializer<Assets::BufferLayout<INDEX_TYPE>> {
     }
 };
 }    // namespace Core::IO
+
+namespace std {
+template <>
+struct hash<Assets::Property> {
+    size_t operator()(const Assets::Property& property) const noexcept {
+        return Core::Algorithms::CombineHashes(property.type, property.elementCount);
+    }
+};
+}    // namespace std

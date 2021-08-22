@@ -8,7 +8,7 @@ struct VulkanPipelineShaderStage {
     const VkShaderModule shaderModule;
     const std::string entryPoint;
 
-    VulkanPipelineShaderStage(VkShaderStageFlagBits stage, VkShaderModule module, std::string entryPointName)
+    VulkanPipelineShaderStage(VkShaderStageFlagBits stage, VkShaderModule module, const std::string& entryPointName)
       : pipelineStage(stage), shaderModule(module), entryPoint(entryPointName) {}
 
     inline operator VkPipelineShaderStageCreateInfo() const {

@@ -28,11 +28,14 @@
 
 #include <GUI/Window.h>
 
+#include <iostream>
+
 #include <Renderer/Backends/Vulkan/DiagnosticCheckpoint.h>
 #include <Renderer/Backends/Vulkan/VulkanRendererBackend.h>
 
 #include <Renderer/Backends/Vulkan/VulkanCommandPool.h>
 #include <Renderer/Backends/Vulkan/VulkanDescriptorPool.h>
+#include <Renderer/Backends/Vulkan/VulkanEnums.h>
 #include <Renderer/Backends/Vulkan/VulkanFence.h>
 #include <Renderer/Backends/Vulkan/VulkanGraphicsPipeline.h>
 #include <Renderer/Backends/Vulkan/VulkanImage.h>
@@ -46,6 +49,7 @@
 #include <Renderer/Backends/Vulkan/VulkanSemaphore.h>
 #include <Renderer/Backends/Vulkan/VulkanShaderModule.h>
 #include <Renderer/Backends/Vulkan/VulkanSwapChain.h>
+
 
 #include <Renderer/Resources/GPUMesh.h>
 #include <Renderer/Resources/GPUTexture.h>
@@ -143,10 +147,15 @@ void createGraphicsPipeline(VulkanRendererBackend& backend, const Assets::Mesh& 
     VulkanLogicalDevice& device = backend.getLogicalDevice();
 
     Assets::Shader shader;
-    shader.stageSources.emplace(Assets::PipelineStage::VERTEX, "Shaders/triangle/vert.spv");
-    shader.stageSources.emplace(Assets::PipelineStage::FRAGMENT, "Shaders/triangle/frag.spv");
+    shader.stageSources.emplace(Assets::PipelineStage::VERTEX,
+                                Assets::ShaderSource{.filePath = "Shaders/triangle/vert.spv", .entryPoint = "main"});
+    shader.stageSources.emplace(Assets::PipelineStage::FRAGMENT,
+                                Assets::ShaderSource{.filePath = "Shaders/triangle/frag.spv", .entryPoint = "main"});
 
     Assets::Property mat4{.type = Assets::PropertyType::FLOAT_32, .elementCount = 16};
+    Assets::Property vec3{.type = Assets::PropertyType::FLOAT_32, .elementCount = 3};
+    Assets::Property vec2{.type = Assets::PropertyType::FLOAT_32, .elementCount = 2};
+
     Assets::ShaderUniform uboDescription{.bindingIndex = 0, .stage = Assets::PipelineStage::VERTEX};
     uboDescription.description = Assets::BufferDescription{
           .properties = {{"model", {.property = mat4, .byteOffset = 0}},
@@ -155,43 +164,58 @@ void createGraphicsPipeline(VulkanRendererBackend& backend, const Assets::Mesh& 
 
     shader.uniforms.emplace("ubo", uboDescription);
 
-    VulkanShaderModule vertexShader   = VulkanShaderModule::CreateFromFile(device, "Shaders/triangle/vert.spv");
-    VulkanShaderModule fragmentShader = VulkanShaderModule::CreateFromFile(device, "Shaders/triangle/frag.spv");
+    Assets::ShaderUniform textureSampler{.bindingIndex = 1, .stage = Assets::PipelineStage::FRAGMENT};
+    textureSampler.description = Assets::SamplerDescription();
+    shader.uniforms.emplace("texSampler", textureSampler);
 
-    VulkanPipelineShaderStage vertexStage(VK_SHADER_STAGE_VERTEX_BIT, vertexShader, "main");
-    VulkanPipelineShaderStage fragmentStage(VK_SHADER_STAGE_FRAGMENT_BIT, fragmentShader, "main");
+    shader.vertexInputs.emplace("inPosition",
+                                Assets::VertexInput{.bindingIndex = 0,
+                                                    .location     = 0,
+                                                    .rate         = Assets::VertexInputRate::PER_VERTEX,
+                                                    .property     = vec3,
+                                                    .usage        = Assets::VertexUsage::POSITION});
+    shader.vertexInputs.emplace("inTexCoord",
+                                Assets::VertexInput{.bindingIndex = 0,
+                                                    .location     = 1,
+                                                    .rate         = Assets::VertexInputRate::PER_VERTEX,
+                                                    .property     = vec2,
+                                                    .usage        = Assets::VertexUsage::TEXTURE});
 
     VulkanGraphicsPipelineInfo info(pipelineLayout, *backend.getSwapChainRenderPass());
 
+    Core::Array<VulkanShaderModule> modules;
+    for(auto& [stage, source] : shader.stageSources) {
+        VulkanShaderModule& shaderModule = modules.insert(VulkanShaderModule::CreateFromFile(device, source.filePath));
+
+        VkShaderStageFlagBits vulkanStage = ToVulkanShaderStage(stage);
+        info.shaderStages.emplace(VulkanPipelineShaderStage(vulkanStage, shaderModule, source.entryPoint));
+    }
+
+    Core::Array<VkVertexInputAttributeDescription> attributes;
+    for(auto& [name, input] : shader.vertexInputs) {
+        attributes.emplace(VkVertexInputAttributeDescription{
+              .location = input.location,
+              .binding  = input.bindingIndex,
+              .format   = ToVulkanFormat(input.property),
+              .offset   = meshData.vertexFormat.properties.at(input.usage).byteOffset,
+        });
+    }
 
     VkVertexInputBindingDescription bindingDescription = {};
     bindingDescription.binding                         = 0;
     bindingDescription.stride                          = meshData.vertexFormat.byteCount();
     bindingDescription.inputRate                       = VK_VERTEX_INPUT_RATE_VERTEX;
 
-    std::array<VkVertexInputAttributeDescription, 2> attributeDescriptions = {};
-
-    attributeDescriptions[0].binding  = 0;
-    attributeDescriptions[0].location = 0;
-    attributeDescriptions[0].format   = VK_FORMAT_R32G32B32_SFLOAT;
-    attributeDescriptions[0].offset   = meshData.vertexFormat.properties.at(Assets::VertexUsage::POSITION).byteOffset;
-
-    attributeDescriptions[1].binding  = 0;
-    attributeDescriptions[1].location = 1;
-    attributeDescriptions[1].format   = VK_FORMAT_R32G32_SFLOAT;
-    attributeDescriptions[1].offset   = meshData.vertexFormat.properties.at(Assets::VertexUsage::TEXTURE).byteOffset;
-
-    info.shaderStages.push_back(vertexStage);
-    info.shaderStages.push_back(fragmentStage);
     info.vertexInput.vertexBindingDescriptionCount   = 1;
-    info.vertexInput.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+    info.vertexInput.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributes.count());
     info.vertexInput.pVertexBindingDescriptions      = &bindingDescription;
-    info.vertexInput.pVertexAttributeDescriptions    = attributeDescriptions.data();
+    info.vertexInput.pVertexAttributeDescriptions    = attributes.rawData();
 
     graphicsPipeline = VulkanGraphicsPipeline::Create(device, info);
 
-    VulkanShaderModule::Destroy(device, vertexShader);
-    VulkanShaderModule::Destroy(device, fragmentShader);
+    for(auto& module : modules) {
+        VulkanShaderModule::Destroy(device, module);
+    }
 }
 
 void recordCommandBuffers(VulkanRendererBackend& backend) {

@@ -1,14 +1,16 @@
 #pragma once
 
-#include <vector>
+#include "VulkanPipelineShaderStage.h"
+
+#include <Core/Containers/Array.h>
 
 #include "VulkanCore.h"
 
 namespace Renderer::Backends::Vulkan {
 
 struct VulkanGraphicsPipelineInfo {
-    std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-    std::vector<VkDynamicState> dynamicStates;
+    Core::Array<VulkanPipelineShaderStage> shaderStages;
+    Core::Array<VkDynamicState> dynamicStates;
 
     VkPipelineVertexInputStateCreateInfo vertexInput;
     VkPipelineInputAssemblyStateCreateInfo inputAssembly;

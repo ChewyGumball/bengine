@@ -10,6 +10,7 @@ bengine_cc_library(
         "src/Backends/Vulkan/VulkanCommandPool.cpp",
         "src/Backends/Vulkan/VulkanCore.cpp",
         "src/Backends/Vulkan/VulkanDescriptorPool.cpp",
+        "src/Backends/Vulkan/VulkanEnums.cpp",
         "src/Backends/Vulkan/VulkanFence.cpp",
         "src/Backends/Vulkan/VulkanFramebuffer.cpp",
         "src/Backends/Vulkan/VulkanGraphicsPipeline.cpp",
@@ -33,6 +34,7 @@ bengine_cc_library(
         "include/Renderer/Backends/Vulkan/VulkanCommandPool.h",
         "include/Renderer/Backends/Vulkan/VulkanCore.h",
         "include/Renderer/Backends/Vulkan/VulkanDescriptorPool.h",
+        "include/Renderer/Backends/Vulkan/VulkanEnums.h",
         "include/Renderer/Backends/Vulkan/VulkanFence.h",
         "include/Renderer/Backends/Vulkan/VulkanFramebuffer.h",
         "include/Renderer/Backends/Vulkan/VulkanGraphicsPipeline.h",
@@ -53,6 +55,7 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
+        "//assets:materials",
         "//core/algorithms:containers",
         "//core/algorithms:mappers",
         "//core/algorithms:optional",

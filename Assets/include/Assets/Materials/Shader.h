@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Assets/BufferLayout.h>
+#include <Assets/Model/VertexFormat.h>
 
 #include <Core/Containers/HashMap.h>
 
@@ -17,7 +18,7 @@ constexpr PipelineStageType TESSELATION = 1;
 constexpr PipelineStageType GEOMETRY    = 2;
 constexpr PipelineStageType FRAGMENT    = 3;
 
-constexpr std::string_view AsString(const PipelineStageType& type) {
+constexpr std::string_view AsString(const PipelineStageType type) {
     switch(type) {
         case VERTEX: return "vertex";
         case TESSELATION: return "tesselation";
@@ -42,14 +43,35 @@ struct ShaderUniform {
     ShaderUniformDescription description;
 };
 
+using VertexInputRateType = uint8_t;
+namespace VertexInputRate {
+constexpr VertexInputRateType PER_VERTEX   = 0;
+constexpr VertexInputRateType PER_INSTANCE = 1;
+
+constexpr std::string_view AsString(const VertexInputRateType type) {
+    switch(type) {
+        case PER_VERTEX: return "per vertex";
+        case PER_INSTANCE: return "per instance";
+        default: return "unknown vertex input rate";
+    }
+}
+}    // namespace VertexInputRate
+
 struct VertexInput {
     uint32_t bindingIndex;
     uint32_t location;
+    VertexInputRateType rate;
     Property property;
+    VertexUsageName usage;
+};
+
+struct ShaderSource {
+    std::filesystem::path filePath;
+    std::string entryPoint;
 };
 
 struct Shader {
-    Core::HashMap<PipelineStageType, std::filesystem::path> stageSources;
+    Core::HashMap<PipelineStageType, ShaderSource> stageSources;
     Core::HashMap<std::string, ShaderUniform> uniforms;
     Core::HashMap<std::string, VertexInput> vertexInputs;
 };
