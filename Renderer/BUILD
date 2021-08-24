@@ -55,7 +55,7 @@ bengine_cc_library(
     ],
     strip_include_prefix = "include",
     deps = [
-        "//assets:materials",
+        "//assets/materials",
         "//core/algorithms:containers",
         "//core/algorithms:mappers",
         "//core/algorithms:optional",

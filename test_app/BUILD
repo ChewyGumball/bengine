@@ -6,13 +6,13 @@ bengine_cc_binary(
         "Test.cpp",
     ],
     data = [
-        "//content:models",
+        "//content:chalet",
         "//content:shaders",
         "//content:textures",
     ],
     deps = [
-        "//assets:importers",
-        "//assets:materials",
+        "//assets/importers:obj_importer",
+        "//assets/materials",
         "//core/io/serialization:buffers",
         "//core/time",
         "//gui:window",
