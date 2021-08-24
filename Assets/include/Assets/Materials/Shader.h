@@ -4,6 +4,8 @@
 #include <Assets/Model/VertexFormat.h>
 
 #include <Core/Containers/HashMap.h>
+#include <Core/IO/Serialization/InputStream.h>
+#include <Core/IO/Serialization/OutputStream.h>
 
 #include <filesystem>
 #include <variant>
@@ -76,3 +78,14 @@ struct Shader {
     Core::HashMap<std::string, VertexInput> vertexInputs;
 };
 }    // namespace Assets
+
+namespace Core::IO {
+template <>
+struct Serializer<Assets::Shader> {
+    static void serialize(OutputStream& stream, const Assets::Shader& shader) {
+        stream.write(shader.stageSources);
+        stream.write(shader.uniforms);
+        stream.write(shader.vertexInputs);
+    }
+}
+}    // namespace Core::IO
