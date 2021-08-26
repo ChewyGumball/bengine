@@ -7,6 +7,7 @@
 #include <unordered_set>
 
 #include <Core/Containers/Array.h>
+#include <Core/Status/StatusOr.h>
 
 namespace Core::Algorithms {
 template <typename T, typename U = typename T::value_type>
@@ -84,6 +85,22 @@ Core::Array<U> Map(const Core::Array<T>& collection, MAPPING_FUNCTION transform)
     Core::Array<U> after;
     for(const T& element : collection) {
         after.emplace(transform(element));
+    }
+    return after;
+}
+
+template <
+      typename T,
+      typename MAPPING_FUNCTION,
+      typename STATUS_TYPE = std::invoke_result_t<MAPPING_FUNCTION, std::add_lvalue_reference_t<std::add_const_t<T>>>,
+      typename U           = STATUS_TYPE::value_type>
+Core::StatusOr<Core::Array<U>> MapWithStatus(const Core::Array<T>& collection, MAPPING_FUNCTION transform) {
+    static_assert(std::is_invocable_r_v<U, MAPPING_FUNCTION, std::add_lvalue_reference_t<std::add_const_t<T>>>);
+
+    Core::Array<U> after;
+    for(const T& element : collection) {
+        ASSIGN_OR_RETURN(U transformedElement, transform(element));
+        after.emplace(std::move(element));
     }
     return after;
 }

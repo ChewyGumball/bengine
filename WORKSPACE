@@ -173,3 +173,26 @@ http_archive(
     strip_prefix = "fmt-7.0.3",
     url = "https://github.com/fmtlib/fmt/archive/7.0.3.zip",
 )
+
+#################
+# Setup glslang #
+#################
+
+http_archive(
+    name = "glslang",
+    sha256 = "5ba7c7d8cbe33a8c6e9bd2a6127a80b22506e968b45f5c2da1cd2fc54d91b27b",
+    strip_prefix = "glslang-11.5.0",
+    url = "https://github.com/KhronosGroup/glslang/archive/refs/tags/11.5.0.zip",
+)
+
+#################
+# Setup CLI11 #
+#################
+
+http_archive(
+    name = "cli11",
+    build_file = "@bengine//:third_party/cli11/BUILD",
+    sha256 = "e488c75ca5077c302dfea153c4b67bda7fff53c470a8cedf9d7efbea169cca4a",
+    strip_prefix = "CLI11-2.0.0",
+    url = "https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.0.0.zip",
+)

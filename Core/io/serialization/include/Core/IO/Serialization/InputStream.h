@@ -6,6 +6,7 @@
 #include <memory>
 #include <span>
 #include <string>
+#include <variant>
 
 namespace Core::IO {
 
@@ -41,6 +42,7 @@ public:
     }
 };
 
+// Deserialize types which can just be read as bytes
 template <BinarySerializable T>
 struct Deserializer<T> {
     static T deserialize(InputStream& stream) {
@@ -50,11 +52,38 @@ struct Deserializer<T> {
     }
 };
 
+// Deserialize strings
 template <>
 struct Deserializer<std::string> {
     static std::string deserialize(InputStream& stream) {
         std::string value(stream.read<std::string::size_type>(), 0);
         stream.readInto(reinterpret_cast<std::byte*>(value.data()), value.size());
+        return value;
+    }
+};
+
+// Deserialize variants
+template <typename... Ts>
+struct Deserializer<std::variant<Ts...>> {
+    static std::variant<Ts...> deserialize(InputStream& stream) {
+        std::size_t typeIndex = stream.read<std::size_t>();
+
+        std::variant<Ts...> value;
+
+        auto ReadIfTypeIndexIs = [&]<std::size_t INDEX>() {
+            if(INDEX == typeIndex) {
+                value = stream.read<std::variant_alternative_t<INDEX, std::variant<Ts...>>>();
+            }
+        };
+
+        const auto indexSequence = std::make_index_sequence<std::variant_size_v<std::variant<Ts...>>>();
+
+        [&]<std::size_t... N>(std::index_sequence<N...>) {
+            ((ReadIfTypeIndexIs.operator()<N>()), ...);
+        }
+        (indexSequence);
+
+
         return value;
     }
 };

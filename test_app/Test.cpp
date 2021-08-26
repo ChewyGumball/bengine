@@ -146,46 +146,14 @@ void cleanupVulkan(VulkanRendererBackend& backend) {
 void createGraphicsPipeline(VulkanRendererBackend& backend, const Assets::Mesh& meshData) {
     VulkanLogicalDevice& device = backend.getLogicalDevice();
 
-    Assets::Shader shader;
-    shader.stageSources.emplace(Assets::PipelineStage::VERTEX,
-                                Assets::ShaderSource{.filePath = "Shaders/triangle/vert.spv", .entryPoint = "main"});
-    shader.stageSources.emplace(Assets::PipelineStage::FRAGMENT,
-                                Assets::ShaderSource{.filePath = "Shaders/triangle/frag.spv", .entryPoint = "main"});
-
-    Assets::Property mat4{.type = Assets::PropertyType::FLOAT_32, .elementCount = 16};
-    Assets::Property vec3{.type = Assets::PropertyType::FLOAT_32, .elementCount = 3};
-    Assets::Property vec2{.type = Assets::PropertyType::FLOAT_32, .elementCount = 2};
-
-    Assets::ShaderUniform uboDescription{.bindingIndex = 0, .stage = Assets::PipelineStage::VERTEX};
-    uboDescription.description = Assets::BufferDescription{
-          .properties = {{"model", {.property = mat4, .byteOffset = 0}},
-                         {"view", {.property = mat4, .byteOffset = 16 * sizeof(float)}},
-                         {"projection", {.property = mat4, .byteOffset = 32 * sizeof(float)}}}};
-
-    shader.uniforms.emplace("ubo", uboDescription);
-
-    Assets::ShaderUniform textureSampler{.bindingIndex = 1, .stage = Assets::PipelineStage::FRAGMENT};
-    textureSampler.description = Assets::SamplerDescription();
-    shader.uniforms.emplace("texSampler", textureSampler);
-
-    shader.vertexInputs.emplace("inPosition",
-                                Assets::VertexInput{.bindingIndex = 0,
-                                                    .location     = 0,
-                                                    .rate         = Assets::VertexInputRate::PER_VERTEX,
-                                                    .property     = vec3,
-                                                    .usage        = Assets::VertexUsage::POSITION});
-    shader.vertexInputs.emplace("inTexCoord",
-                                Assets::VertexInput{.bindingIndex = 0,
-                                                    .location     = 1,
-                                                    .rate         = Assets::VertexInputRate::PER_VERTEX,
-                                                    .property     = vec2,
-                                                    .usage        = Assets::VertexUsage::TEXTURE});
+    ASSIGN_OR_ASSERT(Core::IO::InputStream input, Core::IO::OpenFileForRead("Shaders/triangle.shader"));
+    Assets::Shader shader = input.read<Assets::Shader>();
 
     VulkanGraphicsPipelineInfo info(pipelineLayout, *backend.getSwapChainRenderPass());
 
     Core::Array<VulkanShaderModule> modules;
     for(auto& [stage, source] : shader.stageSources) {
-        VulkanShaderModule& shaderModule = modules.insert(VulkanShaderModule::CreateFromFile(device, source.filePath));
+        VulkanShaderModule& shaderModule = modules.insert(VulkanShaderModule::Create(device, source.spirv));
 
         VkShaderStageFlagBits vulkanStage = ToVulkanShaderStage(stage);
         info.shaderStages.emplace(VulkanPipelineShaderStage(vulkanStage, shaderModule, source.entryPoint));

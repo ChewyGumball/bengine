@@ -3,6 +3,7 @@
 #include <Assets/Buffers/BufferLayout.h>
 #include <Assets/Models/VertexFormat.h>
 
+#include <Core/Containers/Array.h>
 #include <Core/Containers/HashMap.h>
 #include <Core/IO/Serialization/InputStream.h>
 #include <Core/IO/Serialization/OutputStream.h>
@@ -68,7 +69,7 @@ struct VertexInput {
 };
 
 struct ShaderSource {
-    std::filesystem::path filePath;
+    Core::Array<std::byte> spirv;
     std::string entryPoint;
 };
 
@@ -80,12 +81,73 @@ struct Shader {
 }    // namespace Assets
 
 namespace Core::IO {
+
+template <>
+struct Serializer<Assets::ShaderUniform> {
+    static void serialize(OutputStream& stream, const Assets::ShaderUniform& uniform) {
+        stream.write(uniform.bindingIndex);
+        stream.write(uniform.stage);
+        stream.write(uniform.description);
+    }
+};
+
+template <>
+struct Deserializer<Assets::ShaderUniform> {
+    static Assets::ShaderUniform deserialize(InputStream& stream) {
+        auto binding     = stream.read<uint32_t>();
+        auto stage       = stream.read<Assets::PipelineStageType>();
+        auto description = stream.read<Assets::ShaderUniformDescription>();
+
+        return Assets::ShaderUniform{
+              .bindingIndex = binding,
+              .stage        = stage,
+              .description  = std::move(description),
+        };
+    }
+};
+
+template <>
+struct Serializer<Assets::ShaderSource> {
+    static void serialize(OutputStream& stream, const Assets::ShaderSource& source) {
+        stream.write(source.spirv);
+        stream.write(source.entryPoint);
+    }
+};
+
+template <>
+struct Deserializer<Assets::ShaderSource> {
+    static Assets::ShaderSource deserialize(InputStream& stream) {
+        auto spirv      = stream.read<Core::Array<std::byte>>();
+        auto entryPoint = stream.read<std::string>();
+
+        return Assets::ShaderSource{
+              .spirv      = std::move(spirv),
+              .entryPoint = std::move(entryPoint),
+        };
+    }
+};
+
 template <>
 struct Serializer<Assets::Shader> {
     static void serialize(OutputStream& stream, const Assets::Shader& shader) {
         stream.write(shader.stageSources);
         stream.write(shader.uniforms);
         stream.write(shader.vertexInputs);
+    }
+};
+
+template <>
+struct Deserializer<Assets::Shader> {
+    static Assets::Shader deserialize(InputStream& stream) {
+        auto sources  = stream.read<Core::HashMap<Assets::PipelineStageType, Assets::ShaderSource>>();
+        auto uniforms = stream.read<Core::HashMap<std::string, Assets::ShaderUniform>>();
+        auto inputs   = stream.read<Core::HashMap<std::string, Assets::VertexInput>>();
+
+        return Assets::Shader{
+              .stageSources = std::move(sources),
+              .uniforms     = std::move(uniforms),
+              .vertexInputs = std::move(inputs),
+        };
     }
 };
 }    // namespace Core::IO

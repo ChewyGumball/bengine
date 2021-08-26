@@ -8,6 +8,8 @@ namespace Core {
 template <typename T>
 requires !std::is_same_v<T, Status> class [[nodiscard]] StatusOr {
 public:
+    using value_type = T;
+
     StatusOr(Status && status) : valueOrStatus(std::move(status)) {
         ASSERT_WITH_MESSAGE(std::get<Status>(valueOrStatus).peekError(),
                             "StatusOr may only be constructed with a Status if that Status is in the error state!");

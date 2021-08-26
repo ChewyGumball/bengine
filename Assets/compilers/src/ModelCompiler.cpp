@@ -12,6 +12,11 @@
 
 #include <Assets/Importers/OBJImporter.h>
 
+#include <CLI/App.hpp>
+#include <CLI/Config.hpp>
+#include <CLI/Formatter.hpp>
+
+
 Core::LogCategory ModelCompiler("Model Compiler");
 
 Core::Status run(const std::filesystem::path& inputFile, const std::filesystem::path& outputFile) {
@@ -53,14 +58,22 @@ Core::Status run(const std::filesystem::path& inputFile, const std::filesystem::
 int main(int argc, char** argv) {
     Core::LogManager::SetGlobalMinimumLevel(Core::LogLevel::Info);
 
-    Core::Array<std::string> args(argc);
-    for(int i = 0; i < argc; i++) {
-        args.emplace(argv[i]);
-    }
+    CLI::App app("Bengine Model Compiler");
 
-    std::filesystem::path inputFile  = args[1];
-    std::filesystem::path outputFile = args[2];
-    Core::Status status              = run(inputFile, outputFile);
+    std::filesystem::path inputFile;
+    app.add_option("--input", inputFile, "Input file to compile")->required()->check(CLI::ExistingFile);
+
+    std::filesystem::path outputFile;
+    app.add_option("--output", outputFile, "Path to write the compiled output to")->required();
+
+    app.add_flag_callback(
+          "--quiet",
+          []() { Core::LogManager::SetGlobalMinimumLevel(Core::LogLevel::Error); },
+          "Only print error messages");
+
+    CLI11_PARSE(app, argc, argv);
+
+    Core::Status status = run(inputFile, outputFile);
 
     if(status.isError()) {
         Core::Log::Error(ModelCompiler, "Error compiling model: {}", status.message());

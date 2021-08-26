@@ -16,9 +16,9 @@ VulkanShaderModule VulkanShaderModule::Create(VkDevice device, const Core::Array
 }
 
 VulkanShaderModule VulkanShaderModule::CreateFromFile(VkDevice device, const Core::IO::Path& filename) {
-    ASSIGN_OR_ASSERT(Core::Array<std::byte> vertexShaderCode, Core::IO::ReadBinaryFile(filename));
+    ASSIGN_OR_ASSERT(Core::Array<std::byte> shaderCode, Core::IO::ReadBinaryFile(filename));
 
-    return Create(device, vertexShaderCode);
+    return Create(device, shaderCode);
 }
 
 void VulkanShaderModule::Destroy(VkDevice device, VulkanShaderModule& shaderModule) {

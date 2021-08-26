@@ -7,8 +7,8 @@ bengine_cc_binary(
     ],
     data = [
         "//content:chalet",
-        "//content:shaders",
         "//content:textures",
+        "//content:triangle",
     ],
     deps = [
         "//assets/importers:obj_importer",

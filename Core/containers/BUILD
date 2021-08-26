@@ -65,6 +65,12 @@ bengine_cc_library(
     ],
 )
 
+bengine_cc_library(
+    name = "visitor",
+    hdrs = ["include/Core/Containers/Visitor.h"],
+    strip_include_prefix = "include",
+)
+
 bengine_cc_test(
     name = "test_array",
     srcs = [

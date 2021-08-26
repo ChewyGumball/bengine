@@ -15,8 +15,9 @@ def _bengine_obj_mesh_impl(ctx):
     output_file = ctx.actions.declare_file(output_file_name)
 
     args = ctx.actions.args()
-    args.add(input_file)
-    args.add(output_file)
+    args.add("--input", input_file)
+    args.add("--output", output_file)
+    args.add("--quiet")
 
     ctx.actions.run(
         mnemonic = "MeshCompiler",

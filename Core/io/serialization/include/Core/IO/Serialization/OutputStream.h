@@ -5,6 +5,7 @@
 #include <memory>
 #include <span>
 #include <string>
+#include <variant>
 
 namespace Core::IO {
 
@@ -47,6 +48,14 @@ struct Serializer<std::string> {
     static void serialize(OutputStream& stream, const std::string& value) {
         stream.write(value.size());
         stream.write(std::as_bytes(std::span<const char>(value.data(), value.size())));
+    }
+};
+
+template <typename... Ts>
+struct Serializer<std::variant<Ts...>> {
+    static void serialize(OutputStream& stream, const std::variant<Ts...>& variant) {
+        stream.write(variant.index());
+        std::visit([&](const auto& value) { stream.write(value); }, variant);
     }
 };
 
