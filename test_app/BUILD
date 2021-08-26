@@ -13,7 +13,6 @@ bengine_cc_binary(
     deps = [
         "//assets/importers:obj_importer",
         "//assets/materials",
-        "//core/containers:visitor",
         "//core/io/serialization:buffers",
         "//core/time",
         "//gui:window",

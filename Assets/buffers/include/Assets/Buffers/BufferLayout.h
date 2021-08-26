@@ -71,6 +71,14 @@ struct BufferLayout {
         }
         return bytes;
     }
+
+    bool operator==(const BufferLayout<INDEX_TYPE>& other) {
+        return properties == other.properties;
+    }
+
+    bool operator!=(const BufferLayout<INDEX_TYPE>& other) {
+        return !(*this == other);
+    }
 };
 }    // namespace Assets
 

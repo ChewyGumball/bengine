@@ -16,7 +16,6 @@
 #include <chrono>
 #include <optional>
 
-#include <Core/Containers/Visitor.h>
 #include <Core/IO/FileSystem/FileSystem.h>
 #include <Core/IO/FileSystem/Path.h>
 #include <Core/IO/FileSystem/VirtualFileSystemMount.h>
@@ -74,10 +73,8 @@
 Core::LogCategory Test("Test");
 using namespace Renderer::Backends::Vulkan;
 
-VkDescriptorSetLayout descriptorSetLayout;
 VulkanDescriptorPool descriptorPool;
 VulkanSwapChain swapChain;
-VulkanPipelineLayout pipelineLayout;
 VulkanGraphicsPipeline graphicsPipeline;
 Core::Array<VkDescriptorSet> uniformBuffersDescriptors;
 Core::Array<VulkanBuffer> uniformBuffers;
@@ -132,99 +129,23 @@ void cleanupVulkan(VulkanRendererBackend& backend) {
     physicalDevice.DestroyBuffer(device, mesh.vertexBuffer);
     physicalDevice.DestroyBuffer(device, mesh.indexBuffer);
 
-    VulkanPipelineLayout::Destroy(device, pipelineLayout);
-
     VulkanDescriptorPool::Destroy(device, descriptorPool);
 
     for(size_t i = 0; i < uniformBuffers.count(); i++) {
         physicalDevice.DestroyBuffer(device, uniformBuffers[i]);
     }
 
-    vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
-
     backend.shutdown();
-}
-
-Core::Status createDescriptorSetLayout(VulkanRendererBackend& backend, const Assets::Shader& shader) {
-    Core::Array<VkDescriptorSetLayoutBinding> bindings(shader.uniforms.size());
-    for(const auto& [name, definition] : shader.uniforms) {
-        VkDescriptorSetLayoutBinding& binding = bindings.emplace();
-        binding.binding                       = definition.bindingIndex;
-        binding.descriptorCount               = 1;
-
-        binding.descriptorType = std::visit(
-              Core::Visitor{
-                    [](const Assets::BufferDescription&) { return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; },
-                    [](const Assets::SamplerDescription&) { return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; },
-              },
-              definition.description);
-
-        if(definition.stage == Assets::PipelineStage::VERTEX) {
-            binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-        } else if(definition.stage == Assets::PipelineStage::FRAGMENT) {
-            binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-        } else {
-            return Core::Status::Error("Uniforms for stage '{}' are not supported.",
-                                       Assets::PipelineStage::AsString(definition.stage));
-        }
-
-        binding.pImmutableSamplers = nullptr;    // Optional
-    }
-
-    VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-    layoutInfo.sType                           = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount                    = static_cast<uint32_t>(bindings.count());
-    layoutInfo.pBindings                       = bindings.rawData();
-
-    VK_CHECK(vkCreateDescriptorSetLayout(backend.getLogicalDevice(), &layoutInfo, nullptr, &descriptorSetLayout));
-
-    return Core::Status::Ok();
 }
 
 Core::Status createGraphicsPipeline(VulkanRendererBackend& backend, const Assets::Mesh& meshData) {
     VulkanLogicalDevice& device = backend.getLogicalDevice();
+    VulkanRenderPass renderPass = *backend.getSwapChainRenderPass();
 
     ASSIGN_OR_RETURN(Core::IO::InputStream input, Core::IO::OpenFileForRead("Shaders/triangle.shader"));
     Assets::Shader shader = input.read<Assets::Shader>();
 
-    RETURN_IF_ERROR(createDescriptorSetLayout(backend, shader));
-    pipelineLayout = VulkanPipelineLayout::Create(backend.getLogicalDevice(), {descriptorSetLayout});
-
-    VulkanGraphicsPipelineInfo info(pipelineLayout, *backend.getSwapChainRenderPass());
-
-    Core::Array<VulkanShaderModule> modules;
-    for(auto& [stage, source] : shader.stageSources) {
-        VulkanShaderModule& shaderModule = modules.insert(VulkanShaderModule::Create(device, source.spirv));
-
-        VkShaderStageFlagBits vulkanStage = ToVulkanShaderStage(stage);
-        info.shaderStages.emplace(VulkanPipelineShaderStage(vulkanStage, shaderModule, source.entryPoint));
-    }
-
-    Core::Array<VkVertexInputAttributeDescription> attributes;
-    for(auto& [name, input] : shader.vertexInputs) {
-        attributes.emplace(VkVertexInputAttributeDescription{
-              .location = input.location,
-              .binding  = input.bindingIndex,
-              .format   = ToVulkanFormat(input.property),
-              .offset   = meshData.vertexFormat.properties.at(input.usage).byteOffset,
-        });
-    }
-
-    VkVertexInputBindingDescription bindingDescription = {};
-    bindingDescription.binding                         = 0;
-    bindingDescription.stride                          = meshData.vertexFormat.byteCount();
-    bindingDescription.inputRate                       = VK_VERTEX_INPUT_RATE_VERTEX;
-
-    info.vertexInput.vertexBindingDescriptionCount   = 1;
-    info.vertexInput.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributes.count());
-    info.vertexInput.pVertexBindingDescriptions      = &bindingDescription;
-    info.vertexInput.pVertexAttributeDescriptions    = attributes.rawData();
-
-    graphicsPipeline = VulkanGraphicsPipeline::Create(device, info);
-
-    for(auto& module : modules) {
-        VulkanShaderModule::Destroy(device, module);
-    }
+    graphicsPipeline = VulkanGraphicsPipeline::Create(device, shader, meshData.vertexFormat, renderPass);
 
     return Core::Status::Ok();
 }
@@ -258,7 +179,7 @@ void recordCommandBuffers(VulkanRendererBackend& backend) {
         vkCmdBindIndexBuffer(commandBuffers[i], mesh.indexBuffer, mesh.indexBufferOffset, mesh.indexType);
         vkCmdBindDescriptorSets(commandBuffers[i],
                                 VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                pipelineLayout,
+                                graphicsPipeline.pipelineLayout,
                                 0,
                                 1,
                                 &uniformBuffersDescriptors[i],
@@ -283,7 +204,8 @@ void createCommandBuffers(VulkanRendererBackend& backend) {
 
     descriptorPool = VulkanDescriptorPool::Create(
           device, swapChainCount + 1, {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
-    uniformBuffersDescriptors = descriptorPool.allocateSets(device, commandBuffers.count(), descriptorSetLayout);
+    uniformBuffersDescriptors =
+          descriptorPool.allocateSets(device, commandBuffers.count(), graphicsPipeline.descriptorSetLayout);
 
     uniformBuffers.ensureCapacity(commandBuffers.count());
 

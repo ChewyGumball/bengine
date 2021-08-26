@@ -1,18 +1,25 @@
 #pragma once
 
+#include "VulkanDescriptorSetLayout.h"
+#include "VulkanPipelineLayout.h"
 #include "VulkanPipelineShaderStage.h"
+#include "VulkanRenderPass.h"
+
 
 #include <Core/Containers/Array.h>
+
+#include <Assets/Materials/Shader.h>
+#include <Assets/Models/VertexFormat.h>
+
 
 #include "VulkanCore.h"
 
 namespace Renderer::Backends::Vulkan {
 
 struct VulkanGraphicsPipelineInfo {
-    Core::Array<VulkanPipelineShaderStage> shaderStages;
+    Core::Array<VkPipelineShaderStageCreateInfo> shaderStages;
     Core::Array<VkDynamicState> dynamicStates;
 
-    VkPipelineVertexInputStateCreateInfo vertexInput;
     VkPipelineInputAssemblyStateCreateInfo inputAssembly;
     VkPipelineViewportStateCreateInfo viewportState;
     VkPipelineRasterizationStateCreateInfo rasterizer;
@@ -21,14 +28,19 @@ struct VulkanGraphicsPipelineInfo {
     VkPipelineColorBlendAttachmentState colourBlendAttachment;
     VkPipelineColorBlendStateCreateInfo colourBlending;
     VkPipelineDynamicStateCreateInfo dynamicState;
-    VkPipelineLayout pipelineLayout;
-    VkRenderPass renderPass;
 
-    VulkanGraphicsPipelineInfo(VkPipelineLayout layout, VkRenderPass pass);
+    VulkanGraphicsPipelineInfo();
 };
 
 struct VulkanGraphicsPipeline : public VulkanObject<VkPipeline> {
-    static VulkanGraphicsPipeline Create(VkDevice device, const VulkanGraphicsPipelineInfo& pipelineInfo);
+    VulkanDescriptorSetLayout descriptorSetLayout;
+    VulkanPipelineLayout pipelineLayout;
+
+    static VulkanGraphicsPipeline Create(VkDevice device,
+                                         const Assets::Shader& shader,
+                                         const Assets::VertexFormat& vertexFormat,
+                                         const VulkanRenderPass& renderPass);
+
     static void Destroy(VkDevice device, VulkanGraphicsPipeline& pipeline);
 };
 
