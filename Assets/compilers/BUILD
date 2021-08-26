@@ -37,5 +37,6 @@ bengine_cc_binary(
         "@glslang",
         "@glslang//:SPIRV",
         "@glslang//:glslang-default-resource-limits",
+        "@nlohmann-json",
     ],
 )

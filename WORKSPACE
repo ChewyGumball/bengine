@@ -196,3 +196,15 @@ http_archive(
     strip_prefix = "CLI11-2.0.0",
     url = "https://github.com/CLIUtils/CLI11/archive/refs/tags/v2.0.0.zip",
 )
+
+#################
+# Setup CLI11 #
+#################
+
+http_archive(
+    name = "nlohmann-json",
+    build_file = "@bengine//:third_party/nlohmann-json/BUILD",
+    sha256 = "b8ba5f82a64f0526c218fb8e5013eee002a0d39e25e18bfd0f59dfd3d3a01d3e",
+    strip_prefix = "json-3.10.1",
+    url = "https://github.com/nlohmann/json/archive/refs/tags/v3.10.1.zip",
+)

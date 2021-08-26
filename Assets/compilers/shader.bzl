@@ -40,6 +40,7 @@ bengine_shader_library = rule(
 def _bengine_shader_impl(ctx):
     vertex_file = ctx.file.vertex_src
     fragment_file = ctx.file.fragment_src
+    semantics_file = ctx.file.semantics_file
 
     if ctx.attr.output_prefix_path != "":
         output_file_name = "{}/{}.shader".format(ctx.attr.output_prefix_path, ctx.label.name)
@@ -55,6 +56,7 @@ def _bengine_shader_impl(ctx):
     args = ctx.actions.args()
     args.add("--vertex-source", vertex_file)
     args.add("--fragment-source", fragment_file)
+    args.add("--semantics-file", semantics_file)
     args.add_joined("--include-directories", include_directories, join_with = ",")
     args.add("--output", output_file)
     args.add("--quiet")
@@ -64,7 +66,7 @@ def _bengine_shader_impl(ctx):
         executable = ctx.executable._compiler,
         arguments = [args],
         progress_message = "{}: compiling {}".format(ctx.label.name, output_file_name),
-        inputs = [vertex_file, fragment_file],
+        inputs = [vertex_file, fragment_file, semantics_file],
         outputs = [output_file],
     )
 
@@ -80,6 +82,7 @@ bengine_shader = rule(
     attrs = {
         "vertex_src": attr.label(allow_single_file = True),
         "fragment_src": attr.label(allow_single_file = True),
+        "semantics_file": attr.label(allow_single_file = True),
         "deps": attr.label_list(providers = [ShaderLibraryInfo]),
         "output_prefix_path": attr.string(),
         "_compiler": attr.label(

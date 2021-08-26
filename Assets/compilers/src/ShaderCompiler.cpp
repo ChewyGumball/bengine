@@ -18,6 +18,8 @@
 #include <StandAlone/ResourceLimits.h>
 #include <glslang/Public/ShaderLang.h>
 
+#include <nlohmann/json.hpp>
+
 #include <cstdlib>
 #include <filesystem>
 #include <memory>
@@ -29,6 +31,7 @@ Core::LogCategory Glslang("glslang");
 struct SourceFiles {
     std::filesystem::path vertexFile;
     std::filesystem::path fragmentFile;
+    std::filesystem::path semanticsFile;
     std::vector<std::filesystem::path> includeDirectories;
 };
 
@@ -187,6 +190,31 @@ ToShaderUniform(const glslang::TObjectReflection& reflection,
     return Assets::ShaderUniform{.bindingIndex = binding, .stage = pipelineStage, .description = description};
 }
 
+Core::StatusOr<Assets::VertexUsageName> GetVertexUsage(const std::string& name, const nlohmann::json& mapping) {
+    auto usageNode = mapping[name]["usage"];
+    if(usageNode.is_null()) {
+        return Core::Status::Error("Missing usage semantic for '{}'", name);
+    } else if(!usageNode.is_string()) {
+        return Core::Status::Error("Invalid usage semantic for '{}': {}", name, usageNode);
+    }
+
+    std::string usage = usageNode.get<std::string>();
+    if(usage == "position") {
+        return Assets::VertexUsage::POSITION;
+    } else if(usage == "texture") {
+        return Assets::VertexUsage::TEXTURE;
+    } else if(usage == "texture2") {
+        return Assets::VertexUsage::TEXTURE2;
+    } else if(usage == "normal") {
+        return Assets::VertexUsage::NORMAL;
+    } else if(usage == "colour") {
+        return Assets::VertexUsage::COLOUR;
+    } else {
+        return Core::Status::Error("Unknown usage semantic for '{}': {}", name, usage);
+    }
+}
+
+
 Core::Status run(const SourceFiles& inputFiles, const std::filesystem::path& outputFile) {
     DirStackFileIncluder includer;
     for(const auto& path : inputFiles.includeDirectories) {
@@ -213,6 +241,9 @@ Core::Status run(const SourceFiles& inputFiles, const std::filesystem::path& out
         return Core::Status::Error("Failed to build reflection data");
     }
 
+    ASSIGN_OR_RETURN(std::string semanticsDefinitionsText, Core::IO::ReadTextFile(inputFiles.semanticsFile));
+    auto semanticsDefinitions = nlohmann::json::parse(semanticsDefinitionsText);
+
     // We don't really care about outputs in the shader
     int pipeOutputCount = program.getNumPipeOutputs();
     Core::Log::Info(ShaderCompiler, "Pipe Outputs ({}):", pipeOutputCount);
@@ -221,25 +252,24 @@ Core::Status run(const SourceFiles& inputFiles, const std::filesystem::path& out
         Core::Log::Info(ShaderCompiler, "\t{}: {}", pipeOutput.name, pipeOutput.getType()->getCompleteString());
     }
 
+
     int bufferCount = program.getNumBufferVariables();
-    Core::Log::Info(ShaderCompiler, "Buffers ({}):", bufferCount);
-    for(int i = 0; i < bufferCount; i++) {
-        const glslang::TObjectReflection& buffer = program.getBufferVariable(i);
-        Core::Log::Info(ShaderCompiler, "\t{}: {}", buffer.name, buffer.getType()->getCompleteString());
-    }
-
-    int bufferBlockCount = program.getNumBufferBlocks();
-    Core::Log::Info(ShaderCompiler, "Buffer Blocks ({}):", bufferBlockCount);
-    for(int i = 0; i < bufferBlockCount; i++) {
-        const glslang::TObjectReflection& bufferBlock = program.getBufferBlock(i);
-        Core::Log::Info(ShaderCompiler, "\t{}: {}", bufferBlock.name, bufferBlock.getType()->getCompleteString());
-    }
-
     if(bufferCount != 0) {
+        Core::Log::Error(ShaderCompiler, "Buffers ({}):", bufferCount);
+        for(int i = 0; i < bufferCount; i++) {
+            const glslang::TObjectReflection& buffer = program.getBufferVariable(i);
+            Core::Log::Error(ShaderCompiler, "\t{}: {}", buffer.name, buffer.getType()->getCompleteString());
+        }
         return Core::Status::Error("Buffer variables are not currently supported");
     }
 
+    int bufferBlockCount = program.getNumBufferBlocks();
     if(bufferBlockCount != 0) {
+        Core::Log::Info(ShaderCompiler, "Buffer Blocks ({}):", bufferBlockCount);
+        for(int i = 0; i < bufferBlockCount; i++) {
+            const glslang::TObjectReflection& bufferBlock = program.getBufferBlock(i);
+            Core::Log::Info(ShaderCompiler, "\t{}: {}", bufferBlock.name, bufferBlock.getType()->getCompleteString());
+        }
         return Core::Status::Error("Buffer blocks are not currently supported");
     }
 
@@ -257,14 +287,7 @@ Core::Status run(const SourceFiles& inputFiles, const std::filesystem::path& out
         const glslang::TObjectReflection& pipeInput = program.getPipeInput(i);
         Core::Log::Info(ShaderCompiler, "\t{}: {}", pipeInput.name, pipeInput.getType()->getCompleteString());
 
-        // SUPER HACK UNTIL USAGE IS DEFINED WITH INPUT
-        Assets::VertexUsageName usage = Assets::VertexUsage::POSITION;
-        if(pipeInput.name == "inPosition") {
-            usage = Assets::VertexUsage::POSITION;
-        } else if(pipeInput.name == "inTexCoord") {
-            usage = Assets::VertexUsage::TEXTURE;
-        }
-
+        ASSIGN_OR_RETURN(Assets::VertexUsageName usage, GetVertexUsage(pipeInput.name, semanticsDefinitions));
         ASSIGN_OR_RETURN(Assets::VertexInput input, ToVertexInput(*pipeInput.getType(), usage));
         shader.vertexInputs.emplace(pipeInput.name, input);
     }
@@ -328,7 +351,12 @@ int main(int argc, char** argv) {
           ->required()
           ->check(CLI::ExistingFile);
 
+    app.add_option("--semantics-file", sources.semanticsFile, "Json file defining semantics for shader inputs")
+          ->required()
+          ->check(CLI::ExistingFile);
+
     app.add_option("--include-directories", sources.includeDirectories)->check(CLI::ExistingDirectory);
+
 
     std::filesystem::path outputFile;
     app.add_option("--output", outputFile, "Path to write the compiled output to")->required();

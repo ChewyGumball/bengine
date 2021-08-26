@@ -16,11 +16,13 @@
 #include <chrono>
 #include <optional>
 
+#include <Core/Containers/Visitor.h>
 #include <Core/IO/FileSystem/FileSystem.h>
 #include <Core/IO/FileSystem/Path.h>
 #include <Core/IO/FileSystem/VirtualFileSystemMount.h>
 #include <Core/Time/SystemClockTicker.h>
 #include <Core/Time/Timer.h>
+
 
 #include <Core/IO/Serialization/BufferView.h>
 
@@ -143,11 +145,50 @@ void cleanupVulkan(VulkanRendererBackend& backend) {
     backend.shutdown();
 }
 
-void createGraphicsPipeline(VulkanRendererBackend& backend, const Assets::Mesh& meshData) {
+Core::Status createDescriptorSetLayout(VulkanRendererBackend& backend, const Assets::Shader& shader) {
+    Core::Array<VkDescriptorSetLayoutBinding> bindings(shader.uniforms.size());
+    for(const auto& [name, definition] : shader.uniforms) {
+        VkDescriptorSetLayoutBinding& binding = bindings.emplace();
+        binding.binding                       = definition.bindingIndex;
+        binding.descriptorCount               = 1;
+
+        binding.descriptorType = std::visit(
+              Core::Visitor{
+                    [](const Assets::BufferDescription&) { return VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; },
+                    [](const Assets::SamplerDescription&) { return VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER; },
+              },
+              definition.description);
+
+        if(definition.stage == Assets::PipelineStage::VERTEX) {
+            binding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+        } else if(definition.stage == Assets::PipelineStage::FRAGMENT) {
+            binding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        } else {
+            return Core::Status::Error("Uniforms for stage '{}' are not supported.",
+                                       Assets::PipelineStage::AsString(definition.stage));
+        }
+
+        binding.pImmutableSamplers = nullptr;    // Optional
+    }
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo = {};
+    layoutInfo.sType                           = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount                    = static_cast<uint32_t>(bindings.count());
+    layoutInfo.pBindings                       = bindings.rawData();
+
+    VK_CHECK(vkCreateDescriptorSetLayout(backend.getLogicalDevice(), &layoutInfo, nullptr, &descriptorSetLayout));
+
+    return Core::Status::Ok();
+}
+
+Core::Status createGraphicsPipeline(VulkanRendererBackend& backend, const Assets::Mesh& meshData) {
     VulkanLogicalDevice& device = backend.getLogicalDevice();
 
-    ASSIGN_OR_ASSERT(Core::IO::InputStream input, Core::IO::OpenFileForRead("Shaders/triangle.shader"));
+    ASSIGN_OR_RETURN(Core::IO::InputStream input, Core::IO::OpenFileForRead("Shaders/triangle.shader"));
     Assets::Shader shader = input.read<Assets::Shader>();
+
+    RETURN_IF_ERROR(createDescriptorSetLayout(backend, shader));
+    pipelineLayout = VulkanPipelineLayout::Create(backend.getLogicalDevice(), {descriptorSetLayout});
 
     VulkanGraphicsPipelineInfo info(pipelineLayout, *backend.getSwapChainRenderPass());
 
@@ -184,6 +225,8 @@ void createGraphicsPipeline(VulkanRendererBackend& backend, const Assets::Mesh& 
     for(auto& module : modules) {
         VulkanShaderModule::Destroy(device, module);
     }
+
+    return Core::Status::Ok();
 }
 
 void recordCommandBuffers(VulkanRendererBackend& backend) {
@@ -257,47 +300,25 @@ void createCommandBuffers(VulkanRendererBackend& backend) {
     recordCommandBuffers(backend);
 }
 
-void createDescriptorSetLayout(VulkanRendererBackend& backend) {
-    VkDescriptorSetLayoutBinding uboLayoutBinding = {};
-    uboLayoutBinding.binding                      = 0;
-    uboLayoutBinding.descriptorType               = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding.descriptorCount              = 1;
-    uboLayoutBinding.stageFlags                   = VK_SHADER_STAGE_VERTEX_BIT;
-    uboLayoutBinding.pImmutableSamplers           = nullptr;    // Optional
 
-    VkDescriptorSetLayoutBinding samplerLayoutBinding = {};
-    samplerLayoutBinding.binding                      = 1;
-    samplerLayoutBinding.descriptorType               = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    samplerLayoutBinding.descriptorCount              = 1;
-    samplerLayoutBinding.stageFlags                   = VK_SHADER_STAGE_FRAGMENT_BIT;
-    samplerLayoutBinding.pImmutableSamplers           = nullptr;    // Optional
-
-    std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
-
-    VkDescriptorSetLayoutCreateInfo layoutInfo = {};
-    layoutInfo.sType                           = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount                    = static_cast<uint32_t>(bindings.size());
-    layoutInfo.pBindings                       = bindings.data();
-
-    VK_CHECK(vkCreateDescriptorSetLayout(backend.getLogicalDevice(), &layoutInfo, nullptr, &descriptorSetLayout));
-}
-
-void createVertexBuffer(VulkanRendererBackend& backend) {
+Core::Status createVertexBuffer(VulkanRendererBackend& backend) {
     std::string file = "Models/chalet.mesh";
 
-    ASSIGN_OR_ASSERT(Core::IO::InputStream input, Core::IO::OpenFileForRead(file));
+    ASSIGN_OR_RETURN(Core::IO::InputStream input, Core::IO::OpenFileForRead(file));
 
     auto model = input.read<Assets::Mesh>();
-    createGraphicsPipeline(backend, model);
+    RETURN_IF_ERROR(createGraphicsPipeline(backend, model));
 
     mesh = backend.createMesh(model.vertexData, model.indexData, VK_INDEX_TYPE_UINT32);
+
+    return Core::Status::Ok();
 }
 
-void createTextureImage(VulkanRendererBackend& backend) {
+Core::Status createTextureImage(VulkanRendererBackend& backend) {
     VulkanLogicalDevice& device = backend.getLogicalDevice();
 
     std::string file = "Textures/chalet.jpg";
-    ASSIGN_OR_ASSERT(Core::Array<std::byte> imageData, Core::IO::ReadBinaryFile(file))
+    ASSIGN_OR_RETURN(Core::Array<std::byte> imageData, Core::IO::ReadBinaryFile(file));
 
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels = stbi_load_from_memory(reinterpret_cast<unsigned char*>(imageData.rawData()),
@@ -307,8 +328,7 @@ void createTextureImage(VulkanRendererBackend& backend) {
                                             &texChannels,
                                             STBI_rgb_alpha);
     if(pixels == nullptr) {
-        Core::Log::Error(Test, "Failed to load texture.");
-        return;
+        return Core::Status::Error("Failed to load texture '{}'", file);
     }
 
     std::span<const std::byte> data(reinterpret_cast<const std::byte*>(pixels), texWidth * texHeight * 4);
@@ -317,16 +337,15 @@ void createTextureImage(VulkanRendererBackend& backend) {
           data, VK_FORMAT_R8G8B8A8_UNORM, {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)});
 
     stbi_image_free(pixels);
+
+    return Core::Status::Ok();
 }
 
 Core::Status initVulkanBackend(VulkanRendererBackend& backend, GUI::Window& window) {
     swapChain = backend.makeSwapChain(window.getSize());
 
-    createDescriptorSetLayout(backend);
-    pipelineLayout = VulkanPipelineLayout::Create(backend.getLogicalDevice(), {descriptorSetLayout});
-
-    createVertexBuffer(backend);
-    createTextureImage(backend);
+    RETURN_IF_ERROR(createVertexBuffer(backend));
+    RETURN_IF_ERROR(createTextureImage(backend));
 
     vkQueueWaitIdle(backend.getQueues().transfer);
     backend.processFinishedSubmitResources();
