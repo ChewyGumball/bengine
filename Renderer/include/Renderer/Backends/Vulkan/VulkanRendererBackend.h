@@ -52,7 +52,7 @@ public:
 
     VulkanRenderPass makeRenderPass(VkFormat colourBufferFormat, VkFormat depthBufferFormat);
 
-    VulkanSwapChain makeSwapChain(VkExtent2D size, std::optional<VulkanSwapChain> previousSwapChain = std::nullopt);
+    void remakeSwapChain();
 
     VulkanBuffer createBuffer(std::span<const std::byte> data, VulkanBufferUsageType bufferType);
     VulkanImage createImage(std::span<const std::byte> data, VkFormat format, VkExtent2D dimensions);
@@ -96,8 +96,12 @@ public:
         return queues;
     }
 
-    std::optional<VulkanRenderPass> getSwapChainRenderPass() {
+    std::optional<VulkanRenderPass>& getSwapChainRenderPass() {
         return swapChainRenderPass;
+    }
+
+    std::optional<VulkanSwapChain>& getSwapChain() {
+        return swapChain;
     }
 
 private:
@@ -109,6 +113,7 @@ private:
 
     std::optional<VkSurfaceKHR> surface;
     std::optional<VulkanRenderPass> swapChainRenderPass;
+    std::optional<VulkanSwapChain> swapChain;
 
     std::queue<SubmittedCommandBuffers> submittedCommandBuffers;
 };

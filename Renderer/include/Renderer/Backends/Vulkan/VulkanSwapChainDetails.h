@@ -14,6 +14,6 @@ struct VulkanSwapChainDetails {
     uint32_t desiredImageCount;
     VkSurfaceTransformFlagBitsKHR transform;
 
-    static VulkanSwapChainDetails Find(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkExtent2D windowSize);
+    static VulkanSwapChainDetails Find(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface);
 };
 }    // namespace Renderer::Backends::Vulkan

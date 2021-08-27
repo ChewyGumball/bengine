@@ -43,12 +43,19 @@ VulkanRendererBackend::VulkanRendererBackend(VulkanInstance instance,
           VulkanLogicalDevice::Create(physicalDevice.queueIndices, requiredDeviceExtensions, requiredValidationLayers)),
     queues(VulkanQueues::Create(logicalDevice, physicalDevice.queueIndices)),
     surface(surface) {
+    if(surface.has_value()) {
+        remakeSwapChain();
+    }
     Core::Log::Debug(Vulkan, "Backend initialized.");
 }
 
 void VulkanRendererBackend::shutdown() {
     Core::Log::Info(Backend, "Destroying backend.");
     vkDeviceWaitIdle(logicalDevice);
+
+    if(swapChain) {
+        VulkanSwapChain::Destroy(logicalDevice, *swapChain);
+    }
 
     if(swapChainRenderPass) {
         VulkanRenderPass::Destroy(logicalDevice, *swapChainRenderPass);
@@ -67,8 +74,7 @@ void VulkanRendererBackend::shutdown() {
 VulkanSurfaceFormat VulkanRendererBackend::getSurfaceFormat() const {
     ASSERT_WITH_MESSAGE(surface.has_value(), "The surface format can only be retrieved if there is a surface!");
 
-    VkExtent2D unusedSize{.width = 0, .height = 0};
-    VulkanSwapChainDetails details = VulkanSwapChainDetails::Find(physicalDevice, *surface, unusedSize);
+    VulkanSwapChainDetails details = VulkanSwapChainDetails::Find(physicalDevice, *surface);
 
     return VulkanSurfaceFormat{.colourFormat = details.format.format, .depthFormat = details.depthFormat};
 }
@@ -77,8 +83,7 @@ VulkanRenderPass VulkanRendererBackend::makeRenderPass(VkFormat colourBufferForm
     return VulkanRenderPass::Create(logicalDevice, colourBufferFormat, depthBufferFormat);
 }
 
-VulkanSwapChain VulkanRendererBackend::makeSwapChain(VkExtent2D size,
-                                                     std::optional<VulkanSwapChain> previousSwapChain) {
+void VulkanRendererBackend::remakeSwapChain() {
     ASSERT_WITH_MESSAGE(surface.has_value(), "There is no surface, so no swap chain can be created!");
 
     if(!swapChainRenderPass) {
@@ -88,20 +93,22 @@ VulkanSwapChain VulkanRendererBackend::makeSwapChain(VkExtent2D size,
 
     vkDeviceWaitIdle(logicalDevice);
 
-    VulkanSwapChainDetails details         = VulkanSwapChainDetails::Find(physicalDevice, *surface, size);
+    VulkanSwapChainDetails details         = VulkanSwapChainDetails::Find(physicalDevice, *surface);
     VkSwapchainKHR previousSwapChainHandle = VK_NULL_HANDLE;
-    if(previousSwapChain) {
-        previousSwapChainHandle = previousSwapChain->object;
+    if(swapChain) {
+        previousSwapChainHandle = swapChain->object;
     }
+
+    Core::Log::Debug(Vulkan, "Creating {}x{} swap chain", details.extent.width, details.extent.height);
 
     VulkanSwapChain newChain = VulkanSwapChain::Create(
           logicalDevice, physicalDevice, details, queues, *swapChainRenderPass, previousSwapChainHandle);
 
-    if(previousSwapChain) {
-        VulkanSwapChain::Destroy(logicalDevice, *previousSwapChain);
+    if(swapChain) {
+        VulkanSwapChain::Destroy(logicalDevice, *swapChain);
     }
 
-    return newChain;
+    swapChain = newChain;
 }
 
 VulkanBuffer VulkanRendererBackend::createBuffer(std::span<const std::byte> data, VulkanBufferUsageType bufferType) {

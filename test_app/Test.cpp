@@ -74,7 +74,6 @@ Core::LogCategory Test("Test");
 using namespace Renderer::Backends::Vulkan;
 
 VulkanDescriptorPool descriptorPool;
-VulkanSwapChain swapChain;
 VulkanGraphicsPipeline graphicsPipeline;
 Core::Array<VkDescriptorSet> uniformBuffersDescriptors;
 Core::Array<VulkanBuffer> uniformBuffers;
@@ -114,8 +113,6 @@ void cleanupVulkan(VulkanRendererBackend& backend) {
         VulkanFence::Destroy(device, queueFences[i]);
     }
 
-    VulkanSwapChain::Destroy(device, swapChain);
-
     queues.graphics.pool.freeBuffers(device, commandBuffers);
     queues.graphics.pool.freeBuffers(device, mainDrawBuffers);
     queues.graphics.pool.freeBuffers(device, guiDrawBuffers);
@@ -153,6 +150,8 @@ Core::Status createGraphicsPipeline(VulkanRendererBackend& backend, const Assets
 void recordCommandBuffers(VulkanRendererBackend& backend) {
     for(size_t i = 0; i < commandBuffers.count(); i++) {
         VK_CHECK(vkResetCommandBuffer(commandBuffers[i], 0));
+
+        VulkanSwapChain& swapChain = *backend.getSwapChain();
 
         VkCommandBufferInheritanceInfo inheritance = {};
         inheritance.sType                          = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
@@ -195,6 +194,7 @@ void createCommandBuffers(VulkanRendererBackend& backend) {
     VulkanLogicalDevice& device          = backend.getLogicalDevice();
     VulkanPhysicalDevice& physicalDevice = backend.getPhysicalDevice();
     VulkanQueues& queues                 = backend.getQueues();
+    VulkanSwapChain& swapChain           = *backend.getSwapChain();
 
     uint32_t swapChainCount = swapChain.framebuffers.size();
 
@@ -263,9 +263,7 @@ Core::Status createTextureImage(VulkanRendererBackend& backend) {
     return Core::Status::Ok();
 }
 
-Core::Status initVulkanBackend(VulkanRendererBackend& backend, GUI::Window& window) {
-    swapChain = backend.makeSwapChain(window.getSize());
-
+Core::Status initVulkanBackend(VulkanRendererBackend& backend) {
     RETURN_IF_ERROR(createVertexBuffer(backend));
     RETURN_IF_ERROR(createTextureImage(backend));
 
@@ -293,9 +291,7 @@ void recreateSwapChain(GUI::Window& window, VulkanRendererBackend& backend) {
         glfwWaitEvents();
     }
 
-    Core::Log::Info(Test, "Resizing swapchain to {}x{}", width, height);
-
-    swapChain = backend.makeSwapChain(window.getSize(), swapChain);
+    backend.remakeSwapChain();
 
     recordCommandBuffers(backend);
     vkDeviceWaitIdle(backend.getLogicalDevice());
@@ -313,6 +309,8 @@ VkCommandBuffer RenderGUI(uint32_t framebufferIndex, VulkanRendererBackend& back
 
     VkCommandBuffer GuiCommandBuffer = guiDrawBuffers[framebufferIndex];
     VK_CHECK(vkResetCommandBuffer(GuiCommandBuffer, 0));
+
+    VulkanSwapChain& swapChain = *backend.getSwapChain();
 
     VkCommandBufferInheritanceInfo inheritance = {};
     inheritance.sType                          = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
@@ -362,6 +360,7 @@ VkCommandBuffer RenderGUI(uint32_t framebufferIndex, VulkanRendererBackend& back
 void drawFrame(GUI::Window& window, Core::Clock::Seconds delta, VulkanRendererBackend& backend) {
     VulkanLogicalDevice& device = backend.getLogicalDevice();
     VulkanQueues& queues        = backend.getQueues();
+    VulkanSwapChain& swapChain  = *backend.getSwapChain();
 
     static UniformBufferObject ubo = {
           glm::mat4(1.0f),
@@ -420,14 +419,6 @@ void drawFrame(GUI::Window& window, Core::Clock::Seconds delta, VulkanRendererBa
     }
 }
 
-GLFWwindow* initWindow() {
-    glfwInit();
-
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-
-    return glfwCreateWindow(800, 600, "Vulkan", nullptr, nullptr);
-}
-
 Core::Status run() {
     using namespace std::chrono_literals;
     using namespace Renderer::Backends::Vulkan;
@@ -448,8 +439,9 @@ Core::Status run() {
                                                    {},
                                                    {}));
 
-    RETURN_IF_ERROR(initVulkanBackend(backend, *window));
+    RETURN_IF_ERROR(initVulkanBackend(backend));
 
+    VulkanSwapChain& swapChain = *backend.getSwapChain();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
 

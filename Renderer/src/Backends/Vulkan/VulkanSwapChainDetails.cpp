@@ -55,18 +55,11 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR>& avai
     return Core::Algorithms::Find(availablePresentModes, VK_PRESENT_MODE_IMMEDIATE_KHR).value_or(fallbackMode);
 }
 
-VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities, VkExtent2D windowSize) {
+VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR& capabilities) {
     if(capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) {
         return capabilities.currentExtent;
     } else {
-        VkExtent2D actualExtent = windowSize;
-
-        actualExtent.width =
-              std::clamp(actualExtent.width, capabilities.minImageExtent.width, capabilities.maxImageExtent.width);
-        actualExtent.height =
-              std::clamp(actualExtent.height, capabilities.minImageExtent.height, capabilities.maxImageExtent.height);
-
-        return actualExtent;
+        Core::AbortWithMessage("Could not detect surface size.");
     }
 }
 
@@ -90,8 +83,7 @@ VkFormat findBestDepthFormat(VkPhysicalDevice device) {
 
 namespace Renderer::Backends::Vulkan {
 
-VulkanSwapChainDetails
-VulkanSwapChainDetails::Find(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface, VkExtent2D windowSize) {
+VulkanSwapChainDetails VulkanSwapChainDetails::Find(VkPhysicalDevice physicalDevice, VkSurfaceKHR surface) {
     SwapChainSupportDetails swapChainSupport = querySwapChainSupport(physicalDevice, surface);
 
     // maxImageCount == 0 means only limited by memory
@@ -106,7 +98,7 @@ VulkanSwapChainDetails::Find(VkPhysicalDevice physicalDevice, VkSurfaceKHR surfa
           .format            = chooseSwapSurfaceFormat(swapChainSupport.formats),
           .depthFormat       = findBestDepthFormat(physicalDevice),
           .presentMode       = chooseSwapPresentMode(swapChainSupport.presentModes),
-          .extent            = chooseSwapExtent(swapChainSupport.capabilities, windowSize),
+          .extent            = chooseSwapExtent(swapChainSupport.capabilities),
           .desiredImageCount = clampedImageCount,
           .transform         = swapChainSupport.capabilities.currentTransform,
     };
