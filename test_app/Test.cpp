@@ -147,47 +147,46 @@ Core::Status createGraphicsPipeline(VulkanRendererBackend& backend, const Assets
     return Core::Status::Ok();
 }
 
-void recordCommandBuffers(VulkanRendererBackend& backend) {
-    for(size_t i = 0; i < commandBuffers.count(); i++) {
-        VK_CHECK(vkResetCommandBuffer(commandBuffers[i], 0));
+void recordCommandBuffers(uint32_t framebufferIndex, VulkanRendererBackend& backend) {
+    VkCommandBuffer commandBuffer = commandBuffers[framebufferIndex];
 
-        VulkanSwapChain& swapChain = *backend.getSwapChain();
+    VK_CHECK(vkResetCommandBuffer(commandBuffer, 0));
 
-        VkCommandBufferInheritanceInfo inheritance = {};
-        inheritance.sType                          = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-        inheritance.renderPass                     = *backend.getSwapChainRenderPass();
-        inheritance.subpass                        = 0;
-        inheritance.framebuffer                    = swapChain.framebuffers[i];
+    VulkanSwapChain& swapChain = *backend.getSwapChain();
 
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags =
-              VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-        beginInfo.pInheritanceInfo = &inheritance;    // Optional
+    VkCommandBufferInheritanceInfo inheritance = {};
+    inheritance.sType                          = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+    inheritance.renderPass                     = *backend.getSwapChainRenderPass();
+    inheritance.subpass                        = 0;
+    inheritance.framebuffer                    = swapChain.framebuffers[framebufferIndex];
 
-        VK_CHECK(vkBeginCommandBuffer(commandBuffers[i], &beginInfo));
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+    beginInfo.pInheritanceInfo = &inheritance;    // Optional
 
-        vkCmdBindPipeline(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-        vkCmdSetViewport(commandBuffers[i], 0, 1, &swapChain.viewport);
-        vkCmdSetScissor(commandBuffers[i], 0, 1, &swapChain.scissor);
+    VK_CHECK(vkBeginCommandBuffer(commandBuffer, &beginInfo));
 
-        VkBuffer vertexBuffers[] = {mesh.vertexBuffer};
-        VkDeviceSize offsets[]   = {mesh.vertexBufferOffset};
-        vkCmdBindVertexBuffers(commandBuffers[i], 0, 1, vertexBuffers, offsets);
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
+    vkCmdSetViewport(commandBuffer, 0, 1, &swapChain.viewport);
+    vkCmdSetScissor(commandBuffer, 0, 1, &swapChain.scissor);
 
-        vkCmdBindIndexBuffer(commandBuffers[i], mesh.indexBuffer, mesh.indexBufferOffset, mesh.indexType);
-        vkCmdBindDescriptorSets(commandBuffers[i],
-                                VK_PIPELINE_BIND_POINT_GRAPHICS,
-                                graphicsPipeline.pipelineLayout,
-                                0,
-                                1,
-                                &uniformBuffersDescriptors[i],
-                                0,
-                                nullptr);
-        vkCmdDrawIndexed(commandBuffers[i], mesh.indexCount, 1, 0, 0, 0);
+    VkBuffer vertexBuffers[] = {mesh.vertexBuffer};
+    VkDeviceSize offsets[]   = {mesh.vertexBufferOffset};
+    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
 
-        VK_CHECK(vkEndCommandBuffer(commandBuffers[i]));
-    }
+    vkCmdBindIndexBuffer(commandBuffer, mesh.indexBuffer, mesh.indexBufferOffset, mesh.indexType);
+    vkCmdBindDescriptorSets(commandBuffer,
+                            VK_PIPELINE_BIND_POINT_GRAPHICS,
+                            graphicsPipeline.pipelineLayout,
+                            0,
+                            1,
+                            &uniformBuffersDescriptors[framebufferIndex],
+                            0,
+                            nullptr);
+    vkCmdDrawIndexed(commandBuffer, mesh.indexCount, 1, 0, 0, 0);
+
+    VK_CHECK(vkEndCommandBuffer(commandBuffer));
 }
 
 void createCommandBuffers(VulkanRendererBackend& backend) {
@@ -218,8 +217,6 @@ void createCommandBuffers(VulkanRendererBackend& backend) {
         update.addSampledImage(1, texture.view, texture.sampler);
         update.update(device, uniformBuffersDescriptors[i]);
     }
-
-    recordCommandBuffers(backend);
 }
 
 
@@ -293,15 +290,15 @@ void recreateSwapChain(GUI::Window& window, VulkanRendererBackend& backend) {
 
     backend.remakeSwapChain();
 
-    recordCommandBuffers(backend);
     vkDeviceWaitIdle(backend.getLogicalDevice());
 }
 
-bool windowShowned = true;
 VkCommandBuffer RenderGUI(uint32_t framebufferIndex, VulkanRendererBackend& backend) {
     ImGui_ImplVulkan_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
+
+    static bool windowShowned = true;
 
     ImGui::ShowDemoWindow(&windowShowned);
     VkCommandBuffer MainBuffer = mainDrawBuffers[framebufferIndex];
@@ -398,6 +395,7 @@ void drawFrame(GUI::Window& window, Core::Clock::Seconds delta, VulkanRendererBa
     ubo.model = glm::rotate(ubo.model, angle, glm::vec3(0, 0, 1));
     uniformBuffers[acquisitionResult.imageIndex].upload(device, Core::ToBytes(ubo));
 
+    recordCommandBuffers(acquisitionResult.imageIndex, backend);
     VkCommandBuffer buffer = RenderGUI(acquisitionResult.imageIndex, backend);
 
     queues.graphics.submit(buffer,
