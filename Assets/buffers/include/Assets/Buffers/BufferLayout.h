@@ -51,12 +51,19 @@ struct Property {
 bool operator==(const Property& a, const Property& b);
 bool operator!=(const Property& a, const Property& b);
 
+constexpr Property GLSL_ATTRIBUTE_TEMPLATE{
+      .type         = PropertyType::FLOAT_32,
+      .elementCount = 4,
+};
+
 struct BufferProperty {
     Property property;
-    uint8_t byteOffset;
+    uint16_t byteOffset;
+    uint8_t count;    // how many values of the type are there (matrices are represented with 4 vec values, rather than
+                      // 1 mat value)
 
     uint8_t byteCount() const {
-        return property.byteCount();
+        return property.byteCount() * count;
     }
 };
 

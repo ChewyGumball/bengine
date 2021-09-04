@@ -61,8 +61,8 @@ constexpr std::string_view AsString(const VertexInputRateType type) {
 }    // namespace VertexInputRate
 
 struct VertexInput {
-    uint32_t bindingIndex;
-    uint32_t location;
+    uint32_t startLocation;
+    uint32_t locationCount;
     VertexInputRateType rate;
     Property property;
     VertexUsageName usage;
@@ -77,6 +77,7 @@ struct Shader {
     Core::HashMap<PipelineStageType, ShaderSource> stageSources;
     Core::HashMap<std::string, ShaderUniform> uniforms;
     Core::HashMap<std::string, VertexInput> vertexInputs;
+    VertexFormat instanceFormat;
 };
 }    // namespace Assets
 
@@ -133,6 +134,7 @@ struct Serializer<Assets::Shader> {
         stream.write(shader.stageSources);
         stream.write(shader.uniforms);
         stream.write(shader.vertexInputs);
+        stream.write(shader.instanceFormat);
     }
 };
 
@@ -142,11 +144,13 @@ struct Deserializer<Assets::Shader> {
         auto sources  = stream.read<Core::HashMap<Assets::PipelineStageType, Assets::ShaderSource>>();
         auto uniforms = stream.read<Core::HashMap<std::string, Assets::ShaderUniform>>();
         auto inputs   = stream.read<Core::HashMap<std::string, Assets::VertexInput>>();
+        auto format   = stream.read<Assets::VertexFormat>();
 
         return Assets::Shader{
-              .stageSources = std::move(sources),
-              .uniforms     = std::move(uniforms),
-              .vertexInputs = std::move(inputs),
+              .stageSources   = std::move(sources),
+              .uniforms       = std::move(uniforms),
+              .vertexInputs   = std::move(inputs),
+              .instanceFormat = std::move(format),
         };
     }
 };

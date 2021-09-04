@@ -64,12 +64,16 @@ compileShader(EShLanguage stage, const std::filesystem::path& sourceFile, DirSta
     bool compiledSuccessfully = shader->parse(
           &glslang::DefaultTBuiltInResource, version, forwardCompatible, EShMessages::EShMsgDefault, includer);
 
-    printLog(shader->getInfoLog(), Core::LogLevel::Info);
-    printLog(shader->getInfoDebugLog(), Core::LogLevel::Debug);
 
     if(!compiledSuccessfully) {
+        printLog(shader->getInfoLog(), Core::LogLevel::Error);
+        printLog(shader->getInfoDebugLog(), Core::LogLevel::Debug);
+
         return Core::Status::Error("Compilation failed");
     } else {
+        printLog(shader->getInfoLog(), Core::LogLevel::Info);
+        printLog(shader->getInfoDebugLog(), Core::LogLevel::Debug);
+
         return shader;
     }
 }
@@ -107,20 +111,33 @@ Core::StatusOr<Assets::PropertyTypeName> ToPropertyTypeName(const glslang::TBasi
     }
 }
 
-Core::StatusOr<Assets::Property> ToProperty(const glslang::TType& type) {
-    uint8_t elementCount = 1;
+struct Attribute {
+    Assets::Property property;
+    uint8_t count;
+};
+
+Core::StatusOr<Attribute> ToProperty(const glslang::TType& type) {
+    uint8_t elementCount  = 1;
+    uint8_t propertyCount = 1;
     if(type.isVector()) {
         elementCount = type.getVectorSize();
     } else if(type.isMatrix()) {
-        elementCount = type.getMatrixCols() * type.getMatrixRows();
+        // Matricies are column major, meaning there are 'column' count attributes, of size 'row'
+        elementCount  = type.getMatrixRows();
+        propertyCount = type.getMatrixCols();
+    } else if(type.isArray()) {
+        // Arrays always have one element per attribute, no matter their size
+        propertyCount = type.getCumulativeArraySize();
     }
 
     ASSIGN_OR_RETURN(Assets::PropertyTypeName propertyType, ToPropertyTypeName(type.getBasicType()));
 
-    return Assets::Property{
-          .type         = propertyType,
-          .elementCount = elementCount,
-    };
+    return Attribute{.property =
+                           {
+                                 .type         = propertyType,
+                                 .elementCount = elementCount,
+                           },
+                     .count = propertyCount};
 }
 
 uint32_t ToBinding(const glslang::TType& type) {
@@ -128,19 +145,18 @@ uint32_t ToBinding(const glslang::TType& type) {
     return qualifier.hasBinding() ? qualifier.layoutBinding : 0;
 }
 
-Core::StatusOr<Assets::VertexInput> ToVertexInput(const glslang::TType& type, Assets::VertexUsageName usage) {
+Core::StatusOr<Assets::VertexInput>
+ToVertexInput(const glslang::TType& type, Assets::VertexUsageName usage, Assets::VertexInputRateType rate) {
     const glslang::TQualifier& qualifier = type.getQualifier();
 
-    uint32_t binding = ToBinding(type);
-
     uint32_t location = qualifier.layoutLocation;
-    ASSIGN_OR_RETURN(Assets::Property property, ToProperty(type));
+    ASSIGN_OR_RETURN(Attribute attribute, ToProperty(type));
 
-    return Assets::VertexInput{.bindingIndex = binding,
-                               .location     = location,
-                               .rate         = Assets::VertexInputRate::PER_VERTEX,
-                               .property     = property,
-                               .usage        = usage};
+    return Assets::VertexInput{.startLocation = location,
+                               .locationCount = attribute.count,
+                               .rate          = rate,
+                               .property      = attribute.property,
+                               .usage         = usage};
 }
 
 Core::StatusOr<Assets::ShaderUniformDescription>
@@ -157,13 +173,14 @@ ToUniformDescription(const glslang::TType& type, Core::HashMap<std::string, uint
     for(const auto& t : members) {
         const glslang::TType& fieldType = *t.type;
 
-        ASSIGN_OR_RETURN(Assets::Property property, ToProperty(fieldType));
+        ASSIGN_OR_RETURN(Attribute property, ToProperty(fieldType));
 
         std::string fieldName = std::string(fieldType.getFieldName());
 
         buffer.properties[fieldName] = Assets::BufferProperty{
-              .property   = property,
+              .property   = property.property,
               .byteOffset = bufferOffsets[fieldName],
+              .count      = 1,
         };
     }
 
@@ -195,7 +212,7 @@ Core::StatusOr<Assets::VertexUsageName> GetVertexUsage(const std::string& name, 
     if(usageNode.is_null()) {
         return Core::Status::Error("Missing usage semantic for '{}'", name);
     } else if(!usageNode.is_string()) {
-        return Core::Status::Error("Invalid usage semantic for '{}': {}", name, usageNode);
+        return Core::Status::Error("Invalid usage semantic for '{}': {}", name, usageNode.dump());
     }
 
     std::string usage = usageNode.get<std::string>();
@@ -209,11 +226,30 @@ Core::StatusOr<Assets::VertexUsageName> GetVertexUsage(const std::string& name, 
         return Assets::VertexUsage::NORMAL;
     } else if(usage == "colour") {
         return Assets::VertexUsage::COLOUR;
+    } else if(usage == "transform") {
+        return Assets::VertexUsage::TRANSFORM;
     } else {
         return Core::Status::Error("Unknown usage semantic for '{}': {}", name, usage);
     }
 }
 
+Core::StatusOr<Assets::VertexInputRateType> GetVertexRate(const std::string& name, const nlohmann::json& mapping) {
+    auto rateNode = mapping[name]["rate"];
+    if(rateNode.is_null()) {
+        return Core::Status::Error("Missing rate semantic for '{}'", name);
+    } else if(!rateNode.is_string()) {
+        return Core::Status::Error("Invalid rate semantic for '{}': {}", name, rateNode.dump());
+    }
+
+    std::string rate = rateNode.get<std::string>();
+    if(rate == "vertex") {
+        return Assets::VertexInputRate::PER_VERTEX;
+    } else if(rate == "instance") {
+        return Assets::VertexInputRate::PER_INSTANCE;
+    } else {
+        return Core::Status::Error("Unknown rate semantic for '{}': {}", name, rate);
+    }
+}
 
 Core::Status run(const SourceFiles& inputFiles, const std::filesystem::path& outputFile) {
     DirStackFileIncluder includer;
@@ -283,13 +319,25 @@ Core::Status run(const SourceFiles& inputFiles, const std::filesystem::path& out
 
     int pipeInputCount = program.getNumPipeInputs();
     Core::Log::Info(ShaderCompiler, "Pipe Inputs ({}):", pipeInputCount);
+
+    uint16_t nextInstanceAttributeByteOffset = 0;
     for(int i = 0; i < pipeInputCount; i++) {
         const glslang::TObjectReflection& pipeInput = program.getPipeInput(i);
         Core::Log::Info(ShaderCompiler, "\t{}: {}", pipeInput.name, pipeInput.getType()->getCompleteString());
 
         ASSIGN_OR_RETURN(Assets::VertexUsageName usage, GetVertexUsage(pipeInput.name, semanticsDefinitions));
-        ASSIGN_OR_RETURN(Assets::VertexInput input, ToVertexInput(*pipeInput.getType(), usage));
+        ASSIGN_OR_RETURN(Assets::VertexInputRateType rate, GetVertexRate(pipeInput.name, semanticsDefinitions));
+        ASSIGN_OR_RETURN(Assets::VertexInput input, ToVertexInput(*pipeInput.getType(), usage, rate));
         shader.vertexInputs.emplace(pipeInput.name, input);
+
+        if(rate == Assets::VertexInputRate::PER_INSTANCE) {
+            shader.instanceFormat.properties.emplace(
+                  usage,
+                  Assets::BufferProperty{.property   = Assets::GLSL_ATTRIBUTE_TEMPLATE,
+                                         .byteOffset = nextInstanceAttributeByteOffset,
+                                         .count      = static_cast<uint8_t>(input.locationCount)});
+            nextInstanceAttributeByteOffset += input.locationCount * Assets::GLSL_ATTRIBUTE_TEMPLATE.byteCount();
+        }
     }
 
     Core::HashMap<std::string, Core::HashMap<std::string, uint8_t>> bufferOffsets;
@@ -363,7 +411,8 @@ int main(int argc, char** argv) {
 
     app.add_flag_callback(
           "--quiet",
-          []() { Core::LogManager::SetGlobalMinimumLevel(Core::LogLevel::Error); },
+          //[]() { Core::LogManager::SetGlobalMinimumLevel(Core::LogLevel::Error); },
+          []() {},
           "Only print error messages");
 
     CLI11_PARSE(app, argc, argv);

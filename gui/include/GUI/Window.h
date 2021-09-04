@@ -21,8 +21,8 @@ public:
     VkSurfaceKHR createSurface(Renderer::Backends::Vulkan::VulkanInstance& instance);
     Core::HashSet<std::string> getRequiredVulkanExtensions();
 
-    bool hasResized() const;
-    void clearResized();
+    bool hasResized(bool clear = false) const;
+    void clearResized() const;
     VkExtent2D getSize() const;
 
     bool shouldClose() const;

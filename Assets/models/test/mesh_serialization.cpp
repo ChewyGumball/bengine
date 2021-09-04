@@ -14,10 +14,12 @@ TEST_CASE("Vertex Format Serialization", "Serialization") {
     VertexFormat format{
           .properties = {
                 {VertexUsage::POSITION,
-                 BufferProperty{.property = {.type = PropertyType::FLOAT_32, .elementCount = 3}, .byteOffset = 0}},
+                 BufferProperty{
+                       .property = {.type = PropertyType::FLOAT_32, .elementCount = 3}, .byteOffset = 0, .count = 1}},
                 {VertexUsage::TEXTURE,
                  BufferProperty{.property   = {.type = PropertyType::FLOAT_32, .elementCount = 2},
-                                .byteOffset = 3 * sizeof(float)}},
+                                .byteOffset = 3 * sizeof(float),
+                                .count      = 2}},
           }};
 
     outStream.write(format);

@@ -77,6 +77,7 @@ VulkanDescriptorPool descriptorPool;
 VulkanGraphicsPipeline graphicsPipeline;
 Core::Array<VkDescriptorSet> uniformBuffersDescriptors;
 Core::Array<VulkanBuffer> uniformBuffers;
+Core::Array<VulkanBuffer> instanceBuffers;
 Core::Array<VkCommandBuffer> commandBuffers;
 Core::Array<VulkanSemaphore> imageAvailableSemaphores;
 Core::Array<VulkanSemaphore> renderFinishedSemaphores;
@@ -91,9 +92,12 @@ const int MAX_FRAME_IN_FLIGHT = 2;
 size_t currentFrame           = 0;
 
 struct UniformBufferObject {
-    glm::mat4 model;
     glm::mat4 view;
     glm::mat4 projection;
+};
+
+struct InstanceBufferObject {
+    glm::mat4 model;
 };
 
 void cleanupVulkan(VulkanRendererBackend& backend) {
@@ -162,8 +166,8 @@ void recordCommandBuffers(uint32_t framebufferIndex, VulkanRendererBackend& back
 
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-    beginInfo.pInheritanceInfo = &inheritance;    // Optional
+    beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+    beginInfo.pInheritanceInfo         = &inheritance;    // Optional
 
     VK_CHECK(vkBeginCommandBuffer(commandBuffer, &beginInfo));
 
@@ -171,9 +175,9 @@ void recordCommandBuffers(uint32_t framebufferIndex, VulkanRendererBackend& back
     vkCmdSetViewport(commandBuffer, 0, 1, &swapChain.viewport);
     vkCmdSetScissor(commandBuffer, 0, 1, &swapChain.scissor);
 
-    VkBuffer vertexBuffers[] = {mesh.vertexBuffer};
-    VkDeviceSize offsets[]   = {mesh.vertexBufferOffset};
-    vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+    VkBuffer vertexBuffers[] = {mesh.vertexBuffer, instanceBuffers[framebufferIndex]};
+    VkDeviceSize offsets[]   = {mesh.vertexBufferOffset, 0};
+    vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
 
     vkCmdBindIndexBuffer(commandBuffer, mesh.indexBuffer, mesh.indexBufferOffset, mesh.indexType);
     vkCmdBindDescriptorSets(commandBuffer,
@@ -184,7 +188,7 @@ void recordCommandBuffers(uint32_t framebufferIndex, VulkanRendererBackend& back
                             &uniformBuffersDescriptors[framebufferIndex],
                             0,
                             nullptr);
-    vkCmdDrawIndexed(commandBuffer, mesh.indexCount, 1, 0, 0, 0);
+    vkCmdDrawIndexed(commandBuffer, mesh.indexCount, 2, 0, 0, 0);
 
     VK_CHECK(vkEndCommandBuffer(commandBuffer));
 }
@@ -206,7 +210,9 @@ void createCommandBuffers(VulkanRendererBackend& backend) {
     uniformBuffersDescriptors =
           descriptorPool.allocateSets(device, commandBuffers.count(), graphicsPipeline.descriptorSetLayout);
 
+    instanceBuffers.ensureCapacity(commandBuffers.count());
     uniformBuffers.ensureCapacity(commandBuffers.count());
+
 
     for(uint64_t i = 0; i < commandBuffers.count(); i++) {
         uniformBuffers.emplace(
@@ -216,6 +222,9 @@ void createCommandBuffers(VulkanRendererBackend& backend) {
         update.addBuffer(0, uniformBuffers[i]);
         update.addSampledImage(1, texture.view, texture.sampler);
         update.update(device, uniformBuffersDescriptors[i]);
+
+        instanceBuffers.emplace(
+              physicalDevice.createBuffer(device, sizeof(InstanceBufferObject) * 2, VulkanBufferUsageType::Vertex));
     }
 }
 
@@ -282,14 +291,15 @@ Core::Status initVulkanBackend(VulkanRendererBackend& backend) {
 }
 
 void recreateSwapChain(GUI::Window& window, VulkanRendererBackend& backend) {
+    // Handle minimization (extent becomes 0)
     int width = 0, height = 0;
+    glfwGetFramebufferSize(window.getHandle(), &width, &height);
     while(width == 0 || height == 0) {
         glfwGetFramebufferSize(window.getHandle(), &width, &height);
         glfwWaitEvents();
     }
 
     backend.remakeSwapChain();
-
     vkDeviceWaitIdle(backend.getLogicalDevice());
 }
 
@@ -317,8 +327,8 @@ VkCommandBuffer RenderGUI(uint32_t framebufferIndex, VulkanRendererBackend& back
 
     VkCommandBufferBeginInfo beginInfo = {};
     beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT | VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-    beginInfo.pInheritanceInfo = &inheritance;    // Optional
+    beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+    beginInfo.pInheritanceInfo         = &inheritance;    // Optional
 
     VK_CHECK(vkBeginCommandBuffer(GuiCommandBuffer, &beginInfo));
     ImGui::Render();
@@ -360,14 +370,26 @@ void drawFrame(GUI::Window& window, Core::Clock::Seconds delta, VulkanRendererBa
     VulkanSwapChain& swapChain  = *backend.getSwapChain();
 
     static UniformBufferObject ubo = {
-          glm::mat4(1.0f),
           glm::lookAt(glm::vec3(2, 2, 2), glm::vec3(0, 0, 0), glm::vec3(0, 0, -1)),
           glm::perspective(glm::radians(45.0f),
                            swapChain.viewport.width / static_cast<float>(swapChain.viewport.height),
                            0.1f,
                            10000.0f)};
 
-    if(window.hasResized()) {
+    static Core::Array<InstanceBufferObject> instances = {
+          InstanceBufferObject{glm::mat4(1.0f)},
+          InstanceBufferObject{glm::mat4(1.0f)},
+    };
+
+    for(uint32_t i = 0; i < instances.count(); i++) {
+        float rads  = glm::radians(90.0f);
+        float angle = delta.count() * rads * (i + 1);
+
+        instances[i].model = glm::rotate(instances[i].model, angle, glm::vec3(0, 0, 1));
+    }
+
+
+    if(window.hasResized(true)) {
         Core::Log::Info(Test, "Recreating swap chain");
         recreateSwapChain(window, backend);
         ubo.projection = glm::perspective(glm::radians(45.0f),
@@ -385,18 +407,14 @@ void drawFrame(GUI::Window& window, Core::Clock::Seconds delta, VulkanRendererBa
         Core::Log::Error(Test, "Couldn't acquire swap chain image: {}", acquisitionResult.result);
         return;
     }
-    window.clearResized();
 
     ASSERT_WITH_MESSAGE(queueFences[currentFrame].waitAndReset(device), "Failed to wait for queue fence!");
 
-    float rads  = glm::radians(90.0f);
-    float angle = delta.count() * rads;
+    uniformBuffers[currentFrame].upload(device, Core::ToBytes(ubo));
+    instanceBuffers[currentFrame].upload(device, Core::AsBytes(instances));
 
-    ubo.model = glm::rotate(ubo.model, angle, glm::vec3(0, 0, 1));
-    uniformBuffers[acquisitionResult.imageIndex].upload(device, Core::ToBytes(ubo));
-
-    recordCommandBuffers(acquisitionResult.imageIndex, backend);
-    VkCommandBuffer buffer = RenderGUI(acquisitionResult.imageIndex, backend);
+    recordCommandBuffers(currentFrame, backend);
+    VkCommandBuffer buffer = RenderGUI(currentFrame, backend);
 
     queues.graphics.submit(buffer,
                            VulkanQueueSubmitType::Graphics,
@@ -404,14 +422,13 @@ void drawFrame(GUI::Window& window, Core::Clock::Seconds delta, VulkanRendererBa
                            renderFinishedSemaphores[currentFrame],
                            queueFences[currentFrame]);
 
-    VkResult presentResult =
-          queues.present.present(swapChain, renderFinishedSemaphores[currentFrame], acquisitionResult.imageIndex);
+    VkResult presentResult = queues.present.present(swapChain, renderFinishedSemaphores[currentFrame], currentFrame);
 
     currentFrame = (currentFrame + 1) % MAX_FRAME_IN_FLIGHT;
 
     if(presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR) {
         Core::Log::Info(Test, "Not recreating swap chain");
-        // recreateSwapChain(window);
+        recreateSwapChain(window, backend);
     } else if(presentResult != VK_SUCCESS) {
         Core::Log::Error(Test, "Failed to present image: {}", presentResult);
     }
@@ -485,28 +502,33 @@ Core::Status run() {
 
     Core::Clock::Seconds lastFPSCalculation = clock.totalElapsedSeconds();
 
+    std::thread drawThread([&]() {
+        while(!window->shouldClose()) {
+            frameCount++;
+            ticker.tick();
+            drawFrame(*window, clock.tickedTime(), backend);
+
+            // clock.timeScale += changePerSecond * clock2.tickedSeconds().count();
+
+            if(timer.elapsedTime() > period) {
+                changePerSecond *= -1;
+                timer.reset();
+            }
+
+            if(frameCount == 100) {
+                Core::Clock::Seconds now = clock.totalElapsedSeconds();
+
+                // Core::Log::Info(Test, "{}ms", (now - lastFPSCalculation).count() /
+                // frameCount);
+                frameCount         = 0;
+                lastFPSCalculation = now;
+            }
+        }
+    });
     while(!window->shouldClose()) {
-        frameCount++;
-        ticker.tick();
         glfwPollEvents();
-        drawFrame(*window, clock.tickedTime(), backend);
-
-        // clock.timeScale += changePerSecond * clock2.tickedSeconds().count();
-
-        if(timer.elapsedTime() > period) {
-            changePerSecond *= -1;
-            timer.reset();
-        }
-
-        if(frameCount == 100) {
-            Core::Clock::Seconds now = clock.totalElapsedSeconds();
-
-            // Core::Log::Info(Test, "{}ms", (now - lastFPSCalculation).count() /
-            // frameCount);
-            frameCount         = 0;
-            lastFPSCalculation = now;
-        }
     }
+    drawThread.join();
 
     Core::Clock::Seconds elapsedTime = clock.totalElapsedTime();
     Core::Log::Info(Test, "Elapsed time: {:f}s", elapsedTime.count());

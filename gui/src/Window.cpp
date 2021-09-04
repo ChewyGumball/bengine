@@ -72,12 +72,21 @@ VkSurfaceKHR Window::createSurface(Renderer::Backends::Vulkan::VulkanInstance& i
     return surface;
 }
 
-bool Window::hasResized() const {
-    std::shared_lock lock(internal::glfwWindowResizedMutex);
-    return internal::WINDOW_RESIZED[handle];
+bool Window::hasResized(bool clear) const {
+    if(clear) {
+        std::unique_lock lock(internal::glfwWindowResizedMutex);
+
+        bool resized                     = internal::WINDOW_RESIZED[handle];
+        internal::WINDOW_RESIZED[handle] = false;
+
+        return resized;
+    } else {
+        std::shared_lock lock(internal::glfwWindowResizedMutex);
+        return internal::WINDOW_RESIZED[handle];
+    }
 }
 
-void Window::clearResized() {
+void Window::clearResized() const {
     std::unique_lock lock(internal::glfwWindowResizedMutex);
     internal::WINDOW_RESIZED[handle] = false;
 }

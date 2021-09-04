@@ -104,26 +104,47 @@ VulkanGraphicsPipeline VulkanGraphicsPipeline::Create(VkDevice device,
         info.shaderStages.emplace(shaderStage);
     }
 
+    Core::Array<VkVertexInputBindingDescription> bindings;
     Core::Array<VkVertexInputAttributeDescription> attributes;
     for(auto& [name, input] : shader.vertexInputs) {
-        attributes.emplace(VkVertexInputAttributeDescription{
-              .location = input.location,
-              .binding  = input.bindingIndex,
-              .format   = ToVulkanFormat(input.property),
-              .offset   = vertexFormat.properties.at(input.usage).byteOffset,
-        });
+        uint32_t bindingIndex = 0;
+        uint32_t byteOffset   = 0;
+        if(input.rate == Assets::VertexInputRate::PER_VERTEX) {
+            byteOffset = vertexFormat.properties.at(input.usage).byteOffset;
+        } else {
+            bindingIndex = 1;
+            byteOffset   = shader.instanceFormat.properties.at(input.usage).byteOffset;
+        }
+
+        for(uint32_t i = 0; i < input.locationCount; i++) {
+            attributes.emplace(VkVertexInputAttributeDescription{
+                  .location = input.startLocation + i,
+                  .binding  = bindingIndex,
+                  .format   = ToVulkanFormat(input.property),
+                  .offset   = byteOffset + Assets::GLSL_ATTRIBUTE_TEMPLATE.byteCount() * i,
+            });
+        }
     }
 
-    VkVertexInputBindingDescription bindingDescription = {};
-    bindingDescription.binding                         = 0;
-    bindingDescription.stride                          = vertexFormat.byteCount();
-    bindingDescription.inputRate                       = VK_VERTEX_INPUT_RATE_VERTEX;
+    if(vertexFormat.byteCount() > 0) {
+        VkVertexInputBindingDescription& bindingDescription = bindings.emplace();
+        bindingDescription.binding                          = 0;
+        bindingDescription.stride                           = vertexFormat.byteCount();
+        bindingDescription.inputRate                        = ToVulkanVertexRate(Assets::VertexInputRate::PER_VERTEX);
+    }
+
+    if(shader.instanceFormat.byteCount() > 0) {
+        VkVertexInputBindingDescription& bindingDescription = bindings.emplace();
+        bindingDescription.binding                          = 1;
+        bindingDescription.stride                           = shader.instanceFormat.byteCount();
+        bindingDescription.inputRate                        = ToVulkanVertexRate(Assets::VertexInputRate::PER_INSTANCE);
+    }
 
     VkPipelineVertexInputStateCreateInfo vertexInput = {};
     vertexInput.sType                                = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInput.vertexBindingDescriptionCount        = 1;
+    vertexInput.vertexBindingDescriptionCount        = static_cast<uint32_t>(bindings.count());
     vertexInput.vertexAttributeDescriptionCount      = static_cast<uint32_t>(attributes.count());
-    vertexInput.pVertexBindingDescriptions           = &bindingDescription;
+    vertexInput.pVertexBindingDescriptions           = bindings.rawData();
     vertexInput.pVertexAttributeDescriptions         = attributes.rawData();
 
     VkGraphicsPipelineCreateInfo pipelineCreateInfo = {};

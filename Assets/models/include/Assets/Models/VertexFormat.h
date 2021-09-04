@@ -11,11 +11,12 @@ namespace Assets {
 using VertexUsageName = uint32_t;
 
 namespace VertexUsage {
-constexpr VertexUsageName POSITION = 0;
-constexpr VertexUsageName NORMAL   = 1;
-constexpr VertexUsageName COLOUR   = 2;
-constexpr VertexUsageName TEXTURE  = 3;
-constexpr VertexUsageName TEXTURE2 = 4;
+constexpr VertexUsageName POSITION  = 0;
+constexpr VertexUsageName NORMAL    = 1;
+constexpr VertexUsageName COLOUR    = 2;
+constexpr VertexUsageName TEXTURE   = 3;
+constexpr VertexUsageName TEXTURE2  = 4;
+constexpr VertexUsageName TRANSFORM = 5;
 
 constexpr std::string_view AsString(const VertexUsageName usage) {
     switch(usage) {

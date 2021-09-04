@@ -140,6 +140,7 @@ Mesh Import(const std::filesystem::path& filename) {
 
                 vertexProperty.property   = {.type = Assets::PropertyType::FLOAT_32, .elementCount = 3};
                 vertexProperty.byteOffset = 0;
+                vertexProperty.count      = 1;
 
                 uint32_t currentOffset = PositionElements * sizeof(float);
 
@@ -149,6 +150,7 @@ Mesh Import(const std::filesystem::path& filename) {
 
                     vertexProperty.property   = {.type = Assets::PropertyType::FLOAT_32, .elementCount = 3};
                     vertexProperty.byteOffset = currentOffset;
+                    vertexProperty.count      = 1;
 
                     OBJIndexFind(normals, *normalIndex).appendTo(mesh.vertexData);
                     currentOffset += NormalElements * sizeof(float);
@@ -159,6 +161,7 @@ Mesh Import(const std::filesystem::path& filename) {
 
                     vertexProperty.property   = {.type = Assets::PropertyType::FLOAT_32, .elementCount = 2};
                     vertexProperty.byteOffset = currentOffset;
+                    vertexProperty.count      = 1;
 
                     OBJIndexFind(textureCoordinates, *textureCoordinateIndex).appendTo(mesh.vertexData);
                     currentOffset += TextureElements * sizeof(float);
