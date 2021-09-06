@@ -33,12 +33,12 @@ void VirtualFileSystemMount::writeBinaryFile(const Path& file, std::span<const s
     BareFileSystemMount::writeBinaryFile(translatedPath, data);
 }
 
-void VirtualFileSystemMount::watchForChanges(const Path& file, const std::function<bool()>& observer) const {
+void VirtualFileSystemMount::watchForChanges(const Path& file, const std::function<Core::Status()>& observer) const {
     Path translatedPath(translatePath(file), file.type);
     BareFileSystemMount::watchForChanges(translatedPath, observer);
 }
 
-void VirtualFileSystemMount::updateWatchers() const {
-    BareFileSystemMount::updateWatchers();
+Core::Status VirtualFileSystemMount::updateWatchers() const {
+    return BareFileSystemMount::updateWatchers();
 }
 }    // namespace Core::IO

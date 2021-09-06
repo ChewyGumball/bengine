@@ -57,10 +57,8 @@
 
 #include <absl/container/flat_hash_map.h>
 
-#include <Assets/Importers/OBJImporter.h>
-
-#define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
+#include <Assets/Models/Mesh.h>
+#include <Assets/Textures/Texture.h>
 
 #include <imgui.h>
 #include <imgui/imgui_impl_glfw.h>
@@ -243,28 +241,14 @@ Core::Status createVertexBuffer(VulkanRendererBackend& backend) {
 }
 
 Core::Status createTextureImage(VulkanRendererBackend& backend) {
+    std::string file = "Textures/chalet_texture.texture";
+    ASSIGN_OR_RETURN(Core::IO::InputStream input, Core::IO::OpenFileForRead(file));
+
+    auto textureAsset = input.read<Assets::Texture>();
+
     VulkanLogicalDevice& device = backend.getLogicalDevice();
-
-    std::string file = "Textures/chalet.jpg";
-    ASSIGN_OR_RETURN(Core::Array<std::byte> imageData, Core::IO::ReadBinaryFile(file));
-
-    int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load_from_memory(reinterpret_cast<unsigned char*>(imageData.rawData()),
-                                            imageData.count(),
-                                            &texWidth,
-                                            &texHeight,
-                                            &texChannels,
-                                            STBI_rgb_alpha);
-    if(pixels == nullptr) {
-        return Core::Status::Error("Failed to load texture '{}'", file);
-    }
-
-    std::span<const std::byte> data(reinterpret_cast<const std::byte*>(pixels), texWidth * texHeight * 4);
-
-    texture = backend.createTexture(
-          data, VK_FORMAT_R8G8B8A8_UNORM, {static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight)});
-
-    stbi_image_free(pixels);
+    texture                     = backend.createTexture(
+          Core::ToSpan(textureAsset.data), VK_FORMAT_R8G8B8A8_UNORM, {textureAsset.width, textureAsset.height});
 
     return Core::Status::Ok();
 }
@@ -300,7 +284,6 @@ void recreateSwapChain(GUI::Window& window, VulkanRendererBackend& backend) {
     }
 
     backend.remakeSwapChain();
-    vkDeviceWaitIdle(backend.getLogicalDevice());
 }
 
 VkCommandBuffer RenderGUI(uint32_t framebufferIndex, VulkanRendererBackend& backend) {

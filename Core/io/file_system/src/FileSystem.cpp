@@ -52,7 +52,7 @@ void WriteBinaryFile(const Path& file, const Core::Array<std::byte>& data) {
     DefaultFileSystem.writeBinaryFile(file, data);
 }
 
-void WatchForChanges(const Path& file, const std::function<bool()>& observer) {
+void WatchForChanges(const Path& file, const std::function<Core::Status()>& observer) {
     DefaultFileSystem.watchForChanges(file, observer);
 }
 
@@ -109,17 +109,17 @@ void FileSystem::writeBinaryFile(const Path& file, std::span<const std::byte> da
     }
 }
 
-void FileSystem::watchForChanges(const Path& file, const std::function<bool()>& observer) const {
+void FileSystem::watchForChanges(const Path& file, const std::function<Core::Status()>& observer) const {
     if(file.type == PathType::Explicit) {
         DefaultMount.watchForChanges(file, observer);
     } else {
         findMountPoint(file, mounts).watchForChanges(file, observer);
     }
 }
-void FileSystem::updateWatchers() const {
-    DefaultMount.updateWatchers();
+Core::Status FileSystem::updateWatchers() const {
+    RETURN_IF_ERROR(DefaultMount.updateWatchers());
     for(auto& mount : mounts) {
-        mount.second->updateWatchers();
+        RETURN_IF_ERROR(mount.second->updateWatchers());
     }
 }
 }    // namespace Core::IO

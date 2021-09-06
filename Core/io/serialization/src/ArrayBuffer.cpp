@@ -11,6 +11,10 @@ const Core::Array<std::byte>& ArrayBuffer::buffer() const {
     return data;
 }
 
+Core::Array<std::byte> ArrayBuffer::takeBuffer() {
+    return std::move(data);
+}
+
 std::streamsize ArrayBuffer::xsputn(const std::byte* s, std::streamsize n) {
     std::streamsize bytesWritten = 0;
     size_t outputOffset          = currentOutputOffset();

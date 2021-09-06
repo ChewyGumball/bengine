@@ -13,10 +13,10 @@ std::unique_ptr<FW::FileWatcher> fileWatcher = std::make_unique<FW::FileWatcher>
 
 class UpdateListener : public FW::FileWatchListener {
 private:
-    Core::HashMap<std::filesystem::path, Core::Array<std::function<bool()>>> watchers;
+    Core::HashMap<std::filesystem::path, Core::Array<std::function<Core::Status()>>> watchers;
     Core::HashSet<std::filesystem::path> watchedDirectories;
 
-    Core::HashSet<std::function<bool()>*> duplicateChanges;
+    Core::HashSet<std::function<Core::Status()>*> deduplicatedObservers;
 
 public:
     void handleFileAction(FW::WatchID watchID, const FW::String& dir, const FW::String& file, FW::Action action) {
@@ -26,25 +26,22 @@ public:
         if(action == FW::Action::Modified) {
             if(watchers.count(fullPath) > 0) {
                 for(auto& observer : watchers[fullPath]) {
-                    duplicateChanges.insert(&observer);
+                    deduplicatedObservers.insert(&observer);
                 }
             }
         }
     }
 
-    void postProcess() {
-        for(auto it = duplicateChanges.begin(); it != duplicateChanges.end();) {
-            std::function<bool()>* observer = *it;
-
-            if((*observer)()) {
-                it = duplicateChanges.erase(it);
-            } else {
-                ++it;
-            }
+    Core::Status postProcess() {
+        for(auto observer : deduplicatedObservers) {
+            RETURN_IF_ERROR((*observer)());
         }
+
+        deduplicatedObservers.clear();
+        return Core::Status::Ok();
     }
 
-    void add(const std::filesystem::path& filename, const std::function<bool()>& observer) {
+    void add(const std::filesystem::path& filename, const std::function<Core::Status()>& observer) {
         watchers[filename].emplace(observer);
         std::filesystem::path directory = filename.parent_path();
         if(watchedDirectories.count(directory) == 0) {
@@ -118,11 +115,11 @@ void BareFileSystemMount::writeBinaryFile(const Path& file, std::span<const std:
     writer.write(data.data(), data.size());
 }
 
-void BareFileSystemMount::watchForChanges(const Path& file, const std::function<bool()>& observer) const {
+void BareFileSystemMount::watchForChanges(const Path& file, const std::function<Core::Status()>& observer) const {
     FileUpdateListener.add(file.path, observer);
 }
-void BareFileSystemMount::updateWatchers() const {
+Core::Status BareFileSystemMount::updateWatchers() const {
     fileWatcher->update();
-    FileUpdateListener.postProcess();
+    return FileUpdateListener.postProcess();
 }
 }    // namespace Core::IO

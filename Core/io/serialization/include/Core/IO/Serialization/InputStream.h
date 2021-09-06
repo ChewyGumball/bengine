@@ -2,6 +2,9 @@
 
 #include "Core/IO/Serialization/BinarySerializable.h"
 
+#include <Core/Containers/Span.h>
+#include <Core/Status/Status.h>
+
 #include <istream>
 #include <memory>
 #include <span>
@@ -34,12 +37,20 @@ public:
         return Deserializer<T>::deserialize(*this);
     }
 
-    void readInto(std::byte* buffer, uint64_t size);
+    uint64_t readInto(std::byte* buffer, uint64_t size);
 
     template <BinarySerializable T>
     void readInto(std::span<T> buffer) {
-        readInto(reinterpret_cast<std::byte*>(buffer.data()), buffer.size() * sizeof(T));
+        uint64_t requiredSize = buffer.size() * sizeof(T);
+        uint64_t actualSize   = readInto(reinterpret_cast<std::byte*>(buffer.data()), requiredSize);
+
+        ASSERT_WITH_MESSAGE(requiredSize == actualSize,
+                            "Expected to read {} bytes from the stream, but only {} were available",
+                            requiredSize,
+                            actualSize);
     }
+
+    Core::Status rewind(uint64_t byteCount);
 };
 
 // Deserialize types which can just be read as bytes
@@ -47,7 +58,15 @@ template <BinarySerializable T>
 struct Deserializer<T> {
     static T deserialize(InputStream& stream) {
         T value;
-        stream.readInto(reinterpret_cast<std::byte*>(&value), sizeof(T));
+
+        uint64_t requiredSize = sizeof(T);
+        uint64_t actualSize   = stream.readInto(reinterpret_cast<std::byte*>(&value), requiredSize);
+
+        ASSERT_WITH_MESSAGE(requiredSize == actualSize,
+                            "Expected to read {} bytes from the stream, but only {} were available",
+                            requiredSize,
+                            actualSize);
+
         return value;
     }
 };
@@ -57,7 +76,8 @@ template <>
 struct Deserializer<std::string> {
     static std::string deserialize(InputStream& stream) {
         std::string value(stream.read<std::string::size_type>(), 0);
-        stream.readInto(reinterpret_cast<std::byte*>(value.data()), value.size());
+        stream.readInto(Core::AsBytes(value));
+
         return value;
     }
 };

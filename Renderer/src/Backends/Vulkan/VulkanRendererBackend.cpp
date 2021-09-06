@@ -109,6 +109,7 @@ void VulkanRendererBackend::remakeSwapChain() {
     }
 
     swapChain = newChain;
+    vkDeviceWaitIdle(logicalDevice);
 }
 
 VulkanBuffer VulkanRendererBackend::createBuffer(std::span<const std::byte> data, VulkanBufferUsageType bufferType) {

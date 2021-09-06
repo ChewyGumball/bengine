@@ -25,7 +25,7 @@ struct FileSystemMount {
     virtual Core::StatusOr<OutputStream> openFileForWrite(const Path& file) const         = 0;
     virtual void writeBinaryFile(const Path& file, std::span<const std::byte> data) const = 0;
 
-    virtual void watchForChanges(const Path& file, const std::function<bool()>& observer) const = 0;
-    virtual void updateWatchers() const                                                         = 0;
+    virtual void watchForChanges(const Path& file, const std::function<Core::Status()>& observer) const = 0;
+    virtual Core::Status updateWatchers() const                                                         = 0;
 };
 }    // namespace Core::IO

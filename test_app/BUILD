@@ -7,12 +7,13 @@ bengine_cc_binary(
     ],
     data = [
         "//content:chalet",
-        "//content:textures",
+        "//content:chalet_texture",
         "//content:triangle",
     ],
     deps = [
-        "//assets/importers:obj_importer",
         "//assets/materials",
+        "//assets/models",
+        "//assets/textures",
         "//core/io/serialization:buffers",
         "//core/time",
         "//gui:window",
@@ -23,6 +24,5 @@ bengine_cc_binary(
         "@imgui",
         "@imgui//:imgui_glfw",
         "@imgui//:imgui_vulkan",
-        "@stb//:stb_image",
     ],
 )

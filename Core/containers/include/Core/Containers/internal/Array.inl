@@ -12,6 +12,13 @@ Array<T>::Array(uint64_t initialCapacity) : capacity(initialCapacity) {
 }
 
 template <typename T>
+template <std::size_t EXTENT>
+Array<T>::Array(std::span<T, EXTENT> elementsToCopy) : capacity(elementsToCopy.size()) {
+    data = reinterpret_cast<T*>(malloc(capacity * ElementSize));
+    insertAll(elementsToCopy);
+}
+
+template <typename T>
 Array<T>::Array(const T& original, uint64_t repeatCount) : Array() {
     ensureCapacity(repeatCount);
     for(uint64_t i = 0; i < repeatCount; i++) {
@@ -191,6 +198,11 @@ void Array<T>::clear() {
 template <typename T>
 uint64_t Array<T>::count() const {
     return elementCount;
+}
+
+template <typename T>
+uint64_t Array<T>::unusedCapacity() const {
+    return capacity - elementCount;
 }
 
 template <typename T>

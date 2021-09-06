@@ -12,6 +12,8 @@ struct ArrayBuffer : public std::basic_streambuf<std::byte> {
 
     const Core::Array<std::byte>& buffer() const;
 
+    [[nodiscard]] Core::Array<std::byte> takeBuffer();
+
 protected:
     virtual std::streamsize xsputn(const std::byte* s, std::streamsize n);
     virtual int_type overflow(int_type c = traits_type::eof());

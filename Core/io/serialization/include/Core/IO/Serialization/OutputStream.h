@@ -28,12 +28,13 @@ public:
     OutputStream(std::unique_ptr<class std::basic_ostream<std::byte>>&& stream);
     OutputStream(OutputStream&& other);
 
+    void write(std::span<const std::byte> data);
+    void write(std::span<std::byte> data);
+
     template <Serializable T>
     void write(const T& value) {
         Serializer<T>::serialize(*this, value);
     }
-
-    void write(std::span<const std::byte> data);
 };
 
 template <typename T>

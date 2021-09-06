@@ -7,7 +7,8 @@ bengine_cc_library(
     srcs = [],
     hdrs = [
         "include/Assets/Catalogs/AssetCatalog.h",
-        "include/Assets/Catalogs/AssetTag.h",
+        "include/Assets/Catalogs/AssetReference.h",
+        "include/Assets/Catalogs/TextureCatalog.h",
     ],
     strip_include_prefix = "include",
     deps = [

@@ -30,8 +30,8 @@ public:
     Core::StatusOr<OutputStream> openFileForWrite(const Path& file) const;
     void writeBinaryFile(const Path& file, std::span<const std::byte> data) const;
 
-    void watchForChanges(const Path& file, const std::function<bool()>& observer) const;
-    void updateWatchers() const;
+    void watchForChanges(const Path& file, const std::function<Core::Status()>& observer) const;
+    Core::Status updateWatchers() const;
 };
 
 extern FileSystem DefaultFileSystem;
@@ -43,5 +43,5 @@ Core::StatusOr<Core::Array<std::byte>> ReadBinaryFile(const Path& file);
 Core::StatusOr<OutputStream> OpenFileForWrite(const Path& file);
 void WriteBinaryFile(const Path& file, const Core::Array<std::byte>& data);
 
-void WatchForChanges(const Path& file, const std::function<bool()>& observer);
+void WatchForChanges(const Path& file, const std::function<Core::Status()>& observer);
 }    // namespace Core::IO

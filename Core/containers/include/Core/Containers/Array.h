@@ -26,6 +26,10 @@ public:
     using ElementType = T;
 
     explicit Array(uint64_t initialCapacity = 4);
+
+    template <std::size_t EXTENT>
+    explicit Array(std::span<T, EXTENT> elementsToCopy);
+
     Array(const T& original, uint64_t repeatCount);
     Array(std::initializer_list<T> initializerList);
     Array(const Array<T>& other);
@@ -61,6 +65,7 @@ public:
     void clear();
 
     [[nodiscard]] uint64_t count() const;
+    [[nodiscard]] uint64_t unusedCapacity() const;
     [[nodiscard]] bool isEmpty() const;
     [[nodiscard]] T* rawData();
     [[nodiscard]] const T* rawData() const;
@@ -110,6 +115,16 @@ std::span<std::byte> AsBytes(Core::Array<T>& array) requires std::is_trivially_c
 
 template <typename T>
 std::span<const std::byte> AsBytes(const Core::Array<T>& array) requires std::is_trivially_copyable_v<T> {
+    return std::as_bytes(ToSpan(array));
+}
+
+template <typename T, uint64_t SIZE>
+std::span<std::byte> AsBytes(Core::FixedArray<T, SIZE>& array) requires std::is_trivially_copyable_v<T> {
+    return std::as_writable_bytes(ToSpan(array));
+}
+
+template <typename T, uint64_t SIZE>
+std::span<const std::byte> AsBytes(const Core::FixedArray<T, SIZE>& array) requires std::is_trivially_copyable_v<T> {
     return std::as_bytes(ToSpan(array));
 }
 
@@ -171,7 +186,7 @@ struct Deserializer<Core::FixedArray<T, SIZE>> {
         Core::FixedArray<T, SIZE> value;
 
         if constexpr(std::is_trivial_v<T>) {
-            stream.readInto(reinterpret_cast<std::byte*>(value.data()), value.size() * sizeof(T));
+            stream.readInto(Core::AsBytes(value));
         } else {
             for(size_t i = 0; i < elementCount; i++) {
                 value[i] = Deserializer<T>::deserialize(stream);

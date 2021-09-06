@@ -9,6 +9,19 @@ bengine_cc_library(
 )
 
 bengine_cc_library(
+    name = "compression",
+    srcs = ["src/Compression.cpp"],
+    hdrs = ["include/Core/IO/Serialization/Compression.h"],
+    strip_include_prefix = "include",
+    deps = [
+        ":buffers",
+        ":streams",
+        "//core/containers:array",
+        "@zlib",
+    ],
+)
+
+bengine_cc_library(
     name = "streams",
     srcs = [
         "src/InputStream.cpp",
@@ -19,7 +32,11 @@ bengine_cc_library(
         "include/Core/IO/Serialization/OutputStream.h",
     ],
     strip_include_prefix = "include",
-    deps = [":concepts"],
+    deps = [
+        ":concepts",
+        "//core/containers:span",
+        "//core/status",
+    ],
 )
 
 bengine_cc_library(
@@ -50,6 +67,18 @@ bengine_cc_test(
     ],
     deps = [
         ":buffers",
+        ":streams",
+    ],
+)
+
+bengine_cc_test(
+    name = "test_compression",
+    srcs = [
+        "test/test_compression.cpp",
+    ],
+    deps = [
+        ":buffers",
+        ":compression",
         ":streams",
     ],
 )

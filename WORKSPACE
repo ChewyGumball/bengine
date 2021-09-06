@@ -208,3 +208,15 @@ http_archive(
     strip_prefix = "json-3.10.1",
     url = "https://github.com/nlohmann/json/archive/refs/tags/v3.10.1.zip",
 )
+
+##############
+# Setup zlib #
+##############
+
+http_archive(
+    name = "zlib",
+    build_file = "@bengine//:third_party/zlib/BUILD",
+    sha256 = "f5cc4ab910db99b2bdbba39ebbdc225ffc2aa04b4057bc2817f1b94b6978cfc3",
+    strip_prefix = "zlib-1.2.11",
+    url = "https://github.com/madler/zlib/archive/refs/tags/v1.2.11.zip",
+)

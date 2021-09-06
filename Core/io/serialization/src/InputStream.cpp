@@ -8,8 +8,19 @@ InputStream::InputStream(std::unique_ptr<class std::basic_istream<std::byte>>&& 
 
 InputStream::InputStream(InputStream&& other) : stream(std::move(other.stream)) {}
 
-void InputStream::readInto(std::byte* buffer, uint64_t size) {
+uint64_t InputStream::readInto(std::byte* buffer, uint64_t size) {
     stream->read(buffer, size);
+    return stream->gcount();
 }
 
+Core::Status InputStream::rewind(uint64_t byteCount) {
+    for(uint64_t i = 0; i < byteCount; i++) {
+        if(!stream->unget()) {
+            return Core::Status::Error(
+                  "Tried to rewind the stream by {} bytes, but failed after {} bytes", byteCount, i);
+        }
+    }
+
+    return Core::Status::Ok();
+}
 }    // namespace Core::IO

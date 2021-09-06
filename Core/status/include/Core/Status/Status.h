@@ -82,7 +82,7 @@ private:
 
 #define ASSERT_IS_OK_IMPL(tempName, status)                                                                    \
     Core::Status tempName(std::move((status)));                                                                \
-    if(tempName.IsError())                                                                                     \
+    if(tempName.isError())                                                                                     \
         [[unlikely]] {                                                                                         \
             Core::AbortWithMessage("Status was expected to be ok, but it is an error: {}\n{} ({}) at {}:{}\n", \
                                    tempName.message(),                                                         \

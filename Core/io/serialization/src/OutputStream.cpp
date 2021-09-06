@@ -13,4 +13,8 @@ OutputStream::OutputStream(OutputStream&& other) : stream(std::move(other.stream
 void OutputStream::write(std::span<const std::byte> data) {
     stream->write(data.data(), data.size());
 }
+void OutputStream::write(std::span<std::byte> data) {
+    stream->write(data.data(), data.size());
+}
+
 }    // namespace Core::IO

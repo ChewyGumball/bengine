@@ -5,12 +5,15 @@
 
 namespace Core {
 
-template <typename T, typename U>
+template <typename T>
+concept IsPointer = std::is_pointer_v<T>;
+
+template <typename T>
 concept Spannable = requires(T a, const T b) {
     { a.data() }
-    ->std::same_as<U*>;
+    ->IsPointer;
     { b.data() }
-    ->std::same_as<const U*>;
+    ->IsPointer;
 
     { a.size() }
     ->std::convertible_to<std::size_t>;
@@ -31,6 +34,16 @@ auto ToSpan(T& a) {
 template <Spannable T>
 auto ToSpan(const T& a) {
     return std::span(a.data(), a.size());
+}
+
+template <Spannable T>
+auto AsBytes(T& a) {
+    return std::as_writable_bytes(ToSpan(a));
+}
+
+template <Spannable T>
+auto AsBytes(const T& a) {
+    return std::as_bytes(ToSpan(a));
 }
 
 template <typename T>
