@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Core/Containers/Array.h>
+
 #include <Renderer/Backends/RendererBackend.h>
 
 #include <Renderer/Backends/Vulkan/VulkanFence.h>
@@ -36,6 +38,21 @@ struct SubmittedCommandBuffers {
     VulkanCommandPool pool;
     Core::Array<VkCommandBuffer> commandBuffers;
     Core::Array<VulkanBuffer> dataBuffers;
+};
+
+struct FrameResources {
+    VulkanSemaphore imageAvailableSemaphore;
+    VulkanSemaphore renderFinishedSemaphore;
+    VulkanFence queueFence;
+
+    // This buffer will be the one submitted to the queue
+    VkCommandBuffer mainCommandBuffer;
+
+    // These command buffers are "sub" buffers, aggregated into the main command buffer
+    Core::Array<VkCommandBuffer> commandBuffers;
+
+    Core::Array<VkDescriptorSet> descriptorSets;
+    Core::Array<VulkanBuffer> buffers;
 };
 
 class VulkanRendererBackend : public RendererBackend {
@@ -110,6 +127,10 @@ private:
     VulkanLogicalDevice logicalDevice;
     VulkanQueues queues;
 
+    Core::FixedArray<FrameResources, 3> frameResources;
+    uint32_t currentFrameResourcesIndex;
+
+    uint8_t commandBufferRecordingThreads;
 
     std::optional<VkSurfaceKHR> surface;
     std::optional<VulkanRenderPass> swapChainRenderPass;

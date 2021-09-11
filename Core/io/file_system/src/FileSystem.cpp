@@ -56,7 +56,6 @@ void WatchForChanges(const Path& file, const std::function<Core::Status()>& obse
     DefaultFileSystem.watchForChanges(file, observer);
 }
 
-
 void FileSystem::addMount(FileSystemMount* mount) {
     mounts.emplace(mount->mountPath, mount);
 }
@@ -121,5 +120,7 @@ Core::Status FileSystem::updateWatchers() const {
     for(auto& mount : mounts) {
         RETURN_IF_ERROR(mount.second->updateWatchers());
     }
+
+    return Core::Status::Ok();
 }
 }    // namespace Core::IO

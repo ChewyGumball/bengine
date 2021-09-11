@@ -17,4 +17,9 @@ void OutputStream::write(std::span<std::byte> data) {
     stream->write(data.data(), data.size());
 }
 
+
+void OutputStream::writeText(const std::string_view text) {
+    write(std::as_bytes(std::span<const char>(text.data(), text.size())));
+}
+
 }    // namespace Core::IO

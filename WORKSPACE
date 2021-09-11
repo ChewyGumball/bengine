@@ -220,3 +220,15 @@ http_archive(
     strip_prefix = "zlib-1.2.11",
     url = "https://github.com/madler/zlib/archive/refs/tags/v1.2.11.zip",
 )
+
+##############
+# Setup zlib #
+##############
+
+http_archive(
+    name = "vulkan_memory_allocator",
+    build_file = "@bengine//:third_party/vulkan_memory_allocator/BUILD",
+    sha256 = "1c222c372e90f1a0d5e765420974842cf2503683ca14c30f8a0df340ba541f02",
+    strip_prefix = "VulkanMemoryAllocator-2.3.0",
+    url = "https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator/archive/refs/tags/v2.3.0.zip",
+)

@@ -5,6 +5,7 @@
 #include <memory>
 #include <span>
 #include <string>
+#include <string_view>
 #include <variant>
 
 namespace Core::IO {
@@ -31,6 +32,8 @@ public:
     void write(std::span<const std::byte> data);
     void write(std::span<std::byte> data);
 
+    void writeText(const std::string_view text);
+
     template <Serializable T>
     void write(const T& value) {
         Serializer<T>::serialize(*this, value);
@@ -47,6 +50,14 @@ requires std::is_trivially_copyable_v<T> struct Serializer<T> {
 template <>
 struct Serializer<std::string> {
     static void serialize(OutputStream& stream, const std::string& value) {
+        stream.write(value.size());
+        stream.write(std::as_bytes(std::span<const char>(value.data(), value.size())));
+    }
+};
+
+template <>
+struct Serializer<std::string_view> {
+    static void serialize(OutputStream& stream, const std::string_view& value) {
         stream.write(value.size());
         stream.write(std::as_bytes(std::span<const char>(value.data(), value.size())));
     }

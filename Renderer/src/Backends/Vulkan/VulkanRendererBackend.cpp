@@ -42,10 +42,23 @@ VulkanRendererBackend::VulkanRendererBackend(VulkanInstance instance,
     logicalDevice(
           VulkanLogicalDevice::Create(physicalDevice.queueIndices, requiredDeviceExtensions, requiredValidationLayers)),
     queues(VulkanQueues::Create(logicalDevice, physicalDevice.queueIndices)),
+    currentFrameResourcesIndex(0),
+    commandBufferRecordingThreads(1),
     surface(surface) {
     if(surface.has_value()) {
         remakeSwapChain();
     }
+
+    for(auto& frameResource : frameResources) {
+        frameResource.imageAvailableSemaphore = VulkanSemaphore::Create(logicalDevice);
+        frameResource.renderFinishedSemaphore = VulkanSemaphore::Create(logicalDevice);
+        frameResource.queueFence              = VulkanFence::Create(logicalDevice, VulkanFenceState::Signaled);
+
+        frameResource.mainCommandBuffer = queues.graphics.pool.allocateBuffers(logicalDevice, 1)[0];
+        frameResource.commandBuffers    = queues.graphics.pool.allocateBuffers(
+              logicalDevice, commandBufferRecordingThreads, VulkanCommandBufferLevel::Secondary);
+    }
+
     Core::Log::Debug(Vulkan, "Backend initialized.");
 }
 
