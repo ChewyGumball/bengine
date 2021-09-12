@@ -255,9 +255,6 @@ Core::Status initVulkanBackend(VulkanRendererBackend& backend) {
     RETURN_IF_ERROR(createVertexBuffer(backend));
     RETURN_IF_ERROR(createTextureImage(backend));
 
-    vkQueueWaitIdle(backend.getQueues().transfer);
-    backend.processFinishedSubmitResources();
-
     createCommandBuffers(backend);
 
     imageAvailableSemaphores.ensureCapacity(MAX_FRAME_IN_FLIGHT);
@@ -268,6 +265,9 @@ Core::Status initVulkanBackend(VulkanRendererBackend& backend) {
         renderFinishedSemaphores.emplace(VulkanSemaphore::Create(backend.getLogicalDevice()));
         queueFences.emplace(VulkanFence::Create(backend.getLogicalDevice(), VulkanFenceState::Signaled));
     }
+
+    vkQueueWaitIdle(backend.getQueues().transfer);
+    backend.processFinishedSubmitResources();
 
     return Core::Status::Ok();
 }

@@ -1,7 +1,6 @@
 #include <Renderer/Backends/Vulkan/VulkanRendererBackend.h>
 
 #include <Renderer/Backends/Vulkan/DiagnosticCheckpoint.h>
-#include <Renderer/Backends/Vulkan/VulkanMemoryAllocator.h>
 #include <Renderer/Backends/Vulkan/VulkanSwapChainDetails.h>
 
 #include <Core/Algorithms/Optional.h>

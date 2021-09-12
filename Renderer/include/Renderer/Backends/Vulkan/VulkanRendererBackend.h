@@ -7,6 +7,7 @@
 #include <Renderer/Backends/Vulkan/VulkanFence.h>
 #include <Renderer/Backends/Vulkan/VulkanInstance.h>
 #include <Renderer/Backends/Vulkan/VulkanLogicalDevice.h>
+#include <Renderer/Backends/Vulkan/VulkanMemoryAllocator.h>
 #include <Renderer/Backends/Vulkan/VulkanPhysicalDevice.h>
 #include <Renderer/Backends/Vulkan/VulkanRenderPass.h>
 #include <Renderer/Backends/Vulkan/VulkanSemaphore.h>
