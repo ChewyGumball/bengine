@@ -411,8 +411,7 @@ int main(int argc, char** argv) {
 
     app.add_flag_callback(
           "--quiet",
-          //[]() { Core::LogManager::SetGlobalMinimumLevel(Core::LogLevel::Error); },
-          []() {},
+          []() { Core::LogManager::SetGlobalMinimumLevel(Core::LogLevel::Error); },
           "Only print error messages");
 
     CLI11_PARSE(app, argc, argv);

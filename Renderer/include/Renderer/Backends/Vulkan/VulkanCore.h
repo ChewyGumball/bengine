@@ -9,7 +9,7 @@ namespace Renderer::Backends::Vulkan {
 
 constexpr Core::LogCategory Vulkan("Vulkan");
 
-enum class VulkanMemoryVisibility { Host, Device };
+enum class VulkanMemoryVisibility { Host, Device, HostToDevice, DeviceToHost };
 
 template <typename T>
 struct VulkanObject {

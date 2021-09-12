@@ -9,6 +9,7 @@
 #include <Renderer/Backends/Vulkan/VulkanLogicalDevice.h>
 #include <Renderer/Backends/Vulkan/VulkanPhysicalDevice.h>
 #include <Renderer/Backends/Vulkan/VulkanRenderPass.h>
+#include <Renderer/Backends/Vulkan/VulkanSemaphore.h>
 #include <Renderer/Backends/Vulkan/VulkanSwapChain.h>
 
 #include <Renderer/Resources/GPUMesh.h>
@@ -71,7 +72,12 @@ public:
 
     void remakeSwapChain();
 
+    VulkanBuffer createBuffer(uint64_t size,
+                              VulkanBufferUsageType usageType,
+                              VulkanBufferTransferType transferType = VulkanBufferTransferType::None,
+                              VulkanMemoryVisibility visibility     = VulkanMemoryVisibility::Host);
     VulkanBuffer createBuffer(std::span<const std::byte> data, VulkanBufferUsageType bufferType);
+
     VulkanImage createImage(std::span<const std::byte> data, VkFormat format, VkExtent2D dimensions);
 
     Renderer::Resources::GPUTexture

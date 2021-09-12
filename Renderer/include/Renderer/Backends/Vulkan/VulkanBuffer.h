@@ -4,6 +4,7 @@
 #include <span>
 
 #include "VulkanCore.h"
+#include <Renderer/Backends/Vulkan/VulkanMemoryAllocator.h>
 
 namespace Renderer::Backends::Vulkan {
 
@@ -11,19 +12,24 @@ enum class VulkanBufferUsageType { Vertex, Index, Uniform, Storage, None };
 enum class VulkanBufferTransferType { Source, Destination, None };
 
 struct VulkanBuffer : public VulkanObject<VkBuffer> {
-    VkDeviceMemory memory;
+    VmaAllocator allocator;
+    VmaAllocation allocation;
+
     uint64_t size;
 
     VulkanBufferUsageType usageType;
     VulkanBufferTransferType transferType;
     VulkanMemoryVisibility visibility;
 
-    std::optional<std::byte*> mappedData;
+    void upload(std::span<const std::byte> data);
 
-    std::byte* map(VkDevice device);
-    void unmap(VkDevice device);
+    static VulkanBuffer Create(VmaAllocator allocator,
+                               uint64_t size,
+                               VulkanBufferUsageType usageType,
+                               VulkanBufferTransferType transferType = VulkanBufferTransferType::None,
+                               VulkanMemoryVisibility visibility     = VulkanMemoryVisibility::Host);
 
-    void upload(VkDevice device, std::span<const std::byte> data);
+    static void Destroy(VulkanBuffer& buffer);
 };
 
 }    // namespace Renderer::Backends::Vulkan

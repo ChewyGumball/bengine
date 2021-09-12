@@ -125,13 +125,13 @@ void cleanupVulkan(VulkanRendererBackend& backend) {
     VulkanSampler::Destroy(device, texture.sampler);
 
     physicalDevice.DestroyImage(device, texture.image);
-    physicalDevice.DestroyBuffer(device, mesh.vertexBuffer);
-    physicalDevice.DestroyBuffer(device, mesh.indexBuffer);
+    VulkanBuffer::Destroy(mesh.vertexBuffer);
+    VulkanBuffer::Destroy(mesh.indexBuffer);
 
     VulkanDescriptorPool::Destroy(device, descriptorPool);
 
     for(size_t i = 0; i < uniformBuffers.count(); i++) {
-        physicalDevice.DestroyBuffer(device, uniformBuffers[i]);
+        VulkanBuffer::Destroy(uniformBuffers[i]);
     }
 
     backend.shutdown();
@@ -213,16 +213,14 @@ void createCommandBuffers(VulkanRendererBackend& backend) {
 
 
     for(uint64_t i = 0; i < commandBuffers.count(); i++) {
-        uniformBuffers.emplace(
-              physicalDevice.createBuffer(device, sizeof(UniformBufferObject), VulkanBufferUsageType::Uniform));
+        uniformBuffers.emplace(backend.createBuffer(sizeof(UniformBufferObject), VulkanBufferUsageType::Uniform));
 
         VulkanDescriptorSetUpdate update;
         update.addBuffer(0, uniformBuffers[i]);
         update.addSampledImage(1, texture.view, texture.sampler);
         update.update(device, uniformBuffersDescriptors[i]);
 
-        instanceBuffers.emplace(
-              physicalDevice.createBuffer(device, sizeof(InstanceBufferObject) * 2, VulkanBufferUsageType::Vertex));
+        instanceBuffers.emplace(backend.createBuffer(sizeof(InstanceBufferObject) * 2, VulkanBufferUsageType::Vertex));
     }
 }
 
@@ -393,8 +391,8 @@ void drawFrame(GUI::Window& window, Core::Clock::Seconds delta, VulkanRendererBa
 
     ASSERT_WITH_MESSAGE(queueFences[currentFrame].waitAndReset(device), "Failed to wait for queue fence!");
 
-    uniformBuffers[currentFrame].upload(device, Core::ToBytes(ubo));
-    instanceBuffers[currentFrame].upload(device, Core::AsBytes(instances));
+    uniformBuffers[currentFrame].upload(Core::ToBytes(ubo));
+    instanceBuffers[currentFrame].upload(Core::AsBytes(instances));
 
     recordCommandBuffers(currentFrame, backend);
     VkCommandBuffer buffer = RenderGUI(currentFrame, backend);

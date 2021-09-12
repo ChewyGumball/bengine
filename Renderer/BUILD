@@ -19,6 +19,7 @@ bengine_cc_library(
         "src/Backends/Vulkan/VulkanImageView.cpp",
         "src/Backends/Vulkan/VulkanInstance.cpp",
         "src/Backends/Vulkan/VulkanLogicalDevice.cpp",
+        "src/Backends/Vulkan/VulkanMemoryAllocator.cpp",
         "src/Backends/Vulkan/VulkanPhysicalDevice.cpp",
         "src/Backends/Vulkan/VulkanPipelineLayout.cpp",
         "src/Backends/Vulkan/VulkanQueue.cpp",
@@ -44,6 +45,7 @@ bengine_cc_library(
         "include/Renderer/Backends/Vulkan/VulkanImageView.h",
         "include/Renderer/Backends/Vulkan/VulkanInstance.h",
         "include/Renderer/Backends/Vulkan/VulkanLogicalDevice.h",
+        "include/Renderer/Backends/Vulkan/VulkanMemoryAllocator.h",
         "include/Renderer/Backends/Vulkan/VulkanPhysicalDevice.h",
         "include/Renderer/Backends/Vulkan/VulkanPipelineLayout.h",
         "include/Renderer/Backends/Vulkan/VulkanPipelineShaderStage.h",
@@ -65,6 +67,7 @@ bengine_cc_library(
         "//core/io/file_system",
         "//core/logging",
         "//core/status",
+        "@vulkan_memory_allocator",
         "@vulkan_sdk_windows//:vulkan",
     ],
 )

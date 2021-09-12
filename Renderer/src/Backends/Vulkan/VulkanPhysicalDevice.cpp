@@ -151,52 +151,6 @@ std::optional<uint32_t> findMemoryType(uint32_t typeFilter,
 
 namespace Renderer::Backends::Vulkan {
 
-VulkanBuffer VulkanPhysicalDevice::createBuffer(VkDevice device,
-                                                uint64_t size,
-                                                VulkanBufferUsageType usageType,
-                                                VulkanBufferTransferType transferType,
-                                                VulkanMemoryVisibility visibility) const {
-    VkBufferCreateInfo bufferInfo = {};
-    bufferInfo.sType              = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size               = size;
-    bufferInfo.usage              = translateBufferType(usageType, transferType);
-    bufferInfo.sharingMode        = VK_SHARING_MODE_EXCLUSIVE;
-
-    VulkanBuffer buffer;
-    buffer.size         = size;
-    buffer.usageType    = usageType;
-    buffer.transferType = transferType;
-    buffer.visibility   = visibility;
-    buffer.mappedData   = std::nullopt;
-    VK_CHECK(vkCreateBuffer(device, &bufferInfo, nullptr, &buffer.object));
-
-    VkMemoryRequirements memoryRequirements;
-    vkGetBufferMemoryRequirements(device, buffer, &memoryRequirements);
-
-    auto memoryType =
-          findMemoryType(memoryRequirements.memoryTypeBits, translateMemoryType(visibility), memoryProperties);
-
-    if(!memoryType) {
-        VK_CHECK(VK_ERROR_OUT_OF_DEVICE_MEMORY);
-    }
-
-    VkMemoryAllocateInfo allocInfo = {};
-    allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize       = memoryRequirements.size;
-    allocInfo.memoryTypeIndex      = *memoryType;
-
-    VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &buffer.memory));
-    VK_CHECK(vkBindBufferMemory(device, buffer, buffer.memory, 0));
-
-    return buffer;
-}
-
-void VulkanPhysicalDevice::DestroyBuffer(VkDevice device, VulkanBuffer& buffer) {
-    buffer.unmap(device);
-    vkFreeMemory(device, buffer.memory, nullptr);
-    vkDestroyBuffer(device, buffer, nullptr);
-}
-
 VulkanImage VulkanPhysicalDevice::createImage(VkDevice device,
                                               VkExtent2D dimensions,
                                               VkFormat format,

@@ -1,7 +1,8 @@
 #include <Renderer/Backends/Vulkan/VulkanRendererBackend.h>
 
-#include "Renderer/Backends/Vulkan/VulkanSwapChainDetails.h"
 #include <Renderer/Backends/Vulkan/DiagnosticCheckpoint.h>
+#include <Renderer/Backends/Vulkan/VulkanMemoryAllocator.h>
+#include <Renderer/Backends/Vulkan/VulkanSwapChainDetails.h>
 
 #include <Core/Algorithms/Optional.h>
 
@@ -16,6 +17,7 @@ const Core::HashSet<std::string> ValidationLayers   = {"VK_LAYER_LUNARG_standard
 const Core::HashSet<std::string> InstanceExtensions = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME};
 const Core::HashSet<std::string> DeviceExtensions   = {VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                                                      VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME};
+VmaAllocator allocator;
 
 Core::Array<std::string> CombineSetsToList(const Core::HashSet<std::string>& setA,
                                            const Core::HashSet<std::string>& setB) {
@@ -29,6 +31,7 @@ Core::Array<std::string> CombineSetsToList(const Core::HashSet<std::string>& set
 
     return list;
 }
+
 
 }    // namespace internal
 
@@ -48,6 +51,14 @@ VulkanRendererBackend::VulkanRendererBackend(VulkanInstance instance,
     if(surface.has_value()) {
         remakeSwapChain();
     }
+
+    VmaAllocatorCreateInfo allocatorInfo = {};
+    allocatorInfo.vulkanApiVersion       = VK_API_VERSION_1_1;
+    allocatorInfo.physicalDevice         = physicalDevice;
+    allocatorInfo.device                 = logicalDevice;
+    allocatorInfo.instance               = instance;
+
+    vmaCreateAllocator(&allocatorInfo, &internal::allocator);
 
     for(auto& frameResource : frameResources) {
         frameResource.imageAvailableSemaphore = VulkanSemaphore::Create(logicalDevice);
@@ -73,6 +84,8 @@ void VulkanRendererBackend::shutdown() {
     if(swapChainRenderPass) {
         VulkanRenderPass::Destroy(logicalDevice, *swapChainRenderPass);
     }
+
+    vmaDestroyAllocator(internal::allocator);
 
     VulkanQueues::Destroy(logicalDevice, queues);
     VulkanLogicalDevice::Destroy(logicalDevice);
@@ -125,20 +138,22 @@ void VulkanRendererBackend::remakeSwapChain() {
     vkDeviceWaitIdle(logicalDevice);
 }
 
+
+VulkanBuffer VulkanRendererBackend::createBuffer(uint64_t size,
+                                                 VulkanBufferUsageType usageType,
+                                                 VulkanBufferTransferType transferType,
+                                                 VulkanMemoryVisibility visibility) {
+    return VulkanBuffer::Create(internal::allocator, size, usageType, transferType, visibility);
+}
+
 VulkanBuffer VulkanRendererBackend::createBuffer(std::span<const std::byte> data, VulkanBufferUsageType bufferType) {
-    VulkanBuffer stagingBuffer = physicalDevice.createBuffer(logicalDevice,
-                                                             data.size(),
-                                                             VulkanBufferUsageType::None,
-                                                             VulkanBufferTransferType::Source,
-                                                             VulkanMemoryVisibility::Host);
+    VulkanBuffer stagingBuffer = createBuffer(
+          data.size(), VulkanBufferUsageType::None, VulkanBufferTransferType::Source, VulkanMemoryVisibility::Host);
 
-    stagingBuffer.upload(logicalDevice, data);
+    stagingBuffer.upload(data);
 
-    VulkanBuffer finalBuffer = physicalDevice.createBuffer(logicalDevice,
-                                                           data.size(),
-                                                           bufferType,
-                                                           VulkanBufferTransferType::Destination,
-                                                           VulkanMemoryVisibility::Device);
+    VulkanBuffer finalBuffer =
+          createBuffer(data.size(), bufferType, VulkanBufferTransferType::Destination, VulkanMemoryVisibility::Device);
 
     VkCommandBuffer copyBuffer = queues.transfer.pool.allocateSingleUseBuffer(logicalDevice);
 
@@ -163,9 +178,9 @@ VulkanBuffer VulkanRendererBackend::createBuffer(std::span<const std::byte> data
 
 VulkanImage
 VulkanRendererBackend::createImage(std::span<const std::byte> data, VkFormat format, VkExtent2D dimensions) {
-    VulkanBuffer transferBuffer = physicalDevice.createBuffer(
-          logicalDevice, data.size(), VulkanBufferUsageType::None, VulkanBufferTransferType::Source);
-    transferBuffer.upload(logicalDevice, data);
+    VulkanBuffer transferBuffer =
+          createBuffer(data.size(), VulkanBufferUsageType::None, VulkanBufferTransferType::Source);
+    transferBuffer.upload(data);
 
     VulkanImage image = physicalDevice.createImage(logicalDevice,
                                                    dimensions,
@@ -242,7 +257,7 @@ void VulkanRendererBackend::processFinishedSubmitResources() {
 
         submittedBuffers.pool.freeBuffers(logicalDevice, submittedBuffers.commandBuffers);
         for(auto& buffer : submittedBuffers.dataBuffers) {
-            physicalDevice.DestroyBuffer(logicalDevice, buffer);
+            VulkanBuffer::Destroy(buffer);
         }
     }
 }
