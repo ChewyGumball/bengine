@@ -124,7 +124,7 @@ void cleanupVulkan(VulkanRendererBackend& backend) {
     VulkanImageView::Destroy(device, texture.view);
     VulkanSampler::Destroy(device, texture.sampler);
 
-    physicalDevice.DestroyImage(device, texture.image);
+    VulkanImage::Destroy(texture.image);
     VulkanBuffer::Destroy(mesh.vertexBuffer);
     VulkanBuffer::Destroy(mesh.indexBuffer);
 

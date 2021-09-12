@@ -17,7 +17,6 @@ const Core::HashSet<std::string> ValidationLayers   = {"VK_LAYER_LUNARG_standard
 const Core::HashSet<std::string> InstanceExtensions = {VK_EXT_DEBUG_UTILS_EXTENSION_NAME};
 const Core::HashSet<std::string> DeviceExtensions   = {VK_KHR_SWAPCHAIN_EXTENSION_NAME,
                                                      VK_NV_DEVICE_DIAGNOSTIC_CHECKPOINTS_EXTENSION_NAME};
-VmaAllocator allocator;
 
 Core::Array<std::string> CombineSetsToList(const Core::HashSet<std::string>& setA,
                                            const Core::HashSet<std::string>& setB) {
@@ -48,17 +47,17 @@ VulkanRendererBackend::VulkanRendererBackend(VulkanInstance instance,
     currentFrameResourcesIndex(0),
     commandBufferRecordingThreads(1),
     surface(surface) {
-    if(surface.has_value()) {
-        remakeSwapChain();
-    }
-
     VmaAllocatorCreateInfo allocatorInfo = {};
     allocatorInfo.vulkanApiVersion       = VK_API_VERSION_1_1;
     allocatorInfo.physicalDevice         = physicalDevice;
     allocatorInfo.device                 = logicalDevice;
     allocatorInfo.instance               = instance;
 
-    vmaCreateAllocator(&allocatorInfo, &internal::allocator);
+    vmaCreateAllocator(&allocatorInfo, &allocator);
+
+    if(surface.has_value()) {
+        remakeSwapChain();
+    }
 
     for(auto& frameResource : frameResources) {
         frameResource.imageAvailableSemaphore = VulkanSemaphore::Create(logicalDevice);
@@ -85,7 +84,7 @@ void VulkanRendererBackend::shutdown() {
         VulkanRenderPass::Destroy(logicalDevice, *swapChainRenderPass);
     }
 
-    vmaDestroyAllocator(internal::allocator);
+    vmaDestroyAllocator(allocator);
 
     VulkanQueues::Destroy(logicalDevice, queues);
     VulkanLogicalDevice::Destroy(logicalDevice);
@@ -128,7 +127,7 @@ void VulkanRendererBackend::remakeSwapChain() {
     Core::Log::Debug(Vulkan, "Creating {}x{} swap chain", details.extent.width, details.extent.height);
 
     VulkanSwapChain newChain = VulkanSwapChain::Create(
-          logicalDevice, physicalDevice, details, queues, *swapChainRenderPass, previousSwapChainHandle);
+          logicalDevice, allocator, details, queues, *swapChainRenderPass, previousSwapChainHandle);
 
     if(swapChain) {
         VulkanSwapChain::Destroy(logicalDevice, *swapChain);
@@ -143,7 +142,7 @@ VulkanBuffer VulkanRendererBackend::createBuffer(uint64_t size,
                                                  VulkanBufferUsageType usageType,
                                                  VulkanBufferTransferType transferType,
                                                  VulkanMemoryVisibility visibility) {
-    return VulkanBuffer::Create(internal::allocator, size, usageType, transferType, visibility);
+    return VulkanBuffer::Create(allocator, size, usageType, transferType, visibility);
 }
 
 VulkanBuffer VulkanRendererBackend::createBuffer(std::span<const std::byte> data, VulkanBufferUsageType bufferType) {
@@ -182,12 +181,12 @@ VulkanRendererBackend::createImage(std::span<const std::byte> data, VkFormat for
           createBuffer(data.size(), VulkanBufferUsageType::None, VulkanBufferTransferType::Source);
     transferBuffer.upload(data);
 
-    VulkanImage image = physicalDevice.createImage(logicalDevice,
-                                                   dimensions,
-                                                   format,
-                                                   VulkanImageUsageType::Sampled,
-                                                   VulkanImageTransferType::Destination,
-                                                   VulkanMemoryVisibility::Device);
+    VulkanImage image = VulkanImage::Create(allocator,
+                                            dimensions,
+                                            format,
+                                            VulkanImageUsageType::Sampled,
+                                            VulkanImageTransferType::Destination,
+                                            VulkanMemoryVisibility::Device);
 
     VkCommandBuffer commandBuffer = queues.transfer.pool.allocateSingleUseBuffer(logicalDevice);
 

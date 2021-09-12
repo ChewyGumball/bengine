@@ -33,7 +33,7 @@ struct VulkanSwapChain : public VulkanObject<VkSwapchainKHR> {
     VulkanImageView depthView;
 
     static VulkanSwapChain Create(VkDevice device,
-                                  const VulkanPhysicalDevice& physicalDevice,
+                                  VmaAllocator allocator,
                                   const VulkanSwapChainDetails& details,
                                   const VulkanQueues& queues,
                                   VkRenderPass renderPass,

@@ -19,82 +19,6 @@ std::string vendorNameFromID(uint32_t vendorID) {
     }
 }
 
-VkBufferUsageFlags translateBufferType(Renderer::Backends::Vulkan::VulkanBufferUsageType usageType,
-                                       Renderer::Backends::Vulkan::VulkanBufferTransferType transferType) {
-    using namespace Renderer::Backends::Vulkan;
-
-    VkBufferUsageFlags flags = 0;
-
-    if(usageType == VulkanBufferUsageType::Vertex) {
-        flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-    }
-    if(usageType == VulkanBufferUsageType::Index) {
-        flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-    }
-    if(usageType == VulkanBufferUsageType::Uniform) {
-        flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-    }
-    if(usageType == VulkanBufferUsageType::Storage) {
-        flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-    }
-
-    if(transferType == VulkanBufferTransferType::Source) {
-        flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-    }
-    if(transferType == VulkanBufferTransferType::Destination) {
-        flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-    }
-
-    return flags;
-}
-
-VkImageUsageFlags translateImageType(Renderer::Backends::Vulkan::VulkanImageUsageType usageType,
-                                     Renderer::Backends::Vulkan::VulkanImageTransferType transferType) {
-    using namespace Renderer::Backends::Vulkan;
-
-    VkImageUsageFlags flags = 0;
-
-    if(transferType == VulkanImageTransferType::Source) {
-        flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-    }
-    if(transferType == VulkanImageTransferType::Destination) {
-        flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-    }
-
-    if(usageType == VulkanImageUsageType::Sampled) {
-        flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
-    }
-    if(usageType == VulkanImageUsageType::Storage) {
-        flags |= VK_IMAGE_USAGE_STORAGE_BIT;
-    }
-    if(usageType == VulkanImageUsageType::Colour) {
-        flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-    }
-    if(usageType == VulkanImageUsageType::Depth) {
-        flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-    }
-    if(usageType == VulkanImageUsageType::Input) {
-        flags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
-    }
-
-    return flags;
-}
-
-VkMemoryPropertyFlags translateMemoryType(Renderer::Backends::Vulkan::VulkanMemoryVisibility visibility) {
-    using namespace Renderer::Backends::Vulkan;
-
-    VkMemoryPropertyFlags flags = 0;
-
-    if(visibility == VulkanMemoryVisibility::Device) {
-        flags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-    }
-    if(visibility == VulkanMemoryVisibility::Host) {
-        flags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-    }
-
-    return flags;
-}
-
 std::string deviceTypeNameFromEnum(VkPhysicalDeviceType type) {
     switch(type) {
         case VkPhysicalDeviceType::VK_PHYSICAL_DEVICE_TYPE_CPU: return "CPU";
@@ -130,87 +54,9 @@ bool deviceSupportsRequiredExtensions(VkPhysicalDevice deviceToCheck,
         return false;
     }
 }
-std::optional<uint32_t> findMemoryType(uint32_t typeFilter,
-                                       VkMemoryPropertyFlags desiredProperties,
-                                       const VkPhysicalDeviceMemoryProperties& deviceMemoryProperties) {
-    for(uint32_t i = 0; i < deviceMemoryProperties.memoryTypeCount; i++) {
-        uint32_t memoryType = (1 << i);
-
-        bool isCorrectType = (typeFilter & memoryType) != 0;
-        bool hasDesiredProperties =
-              (deviceMemoryProperties.memoryTypes[i].propertyFlags & desiredProperties) == desiredProperties;
-
-        if(isCorrectType && hasDesiredProperties) {
-            return i;
-        }
-    }
-
-    return std::nullopt;
-}
 }    // namespace
 
 namespace Renderer::Backends::Vulkan {
-
-VulkanImage VulkanPhysicalDevice::createImage(VkDevice device,
-                                              VkExtent2D dimensions,
-                                              VkFormat format,
-                                              VulkanImageUsageType usageType,
-                                              VulkanImageTransferType transferType,
-                                              VulkanMemoryVisibility visibility) const {
-    VkImageCreateInfo imageInfo = {};
-    imageInfo.sType             = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    imageInfo.imageType         = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width      = dimensions.width;
-    imageInfo.extent.height     = dimensions.height;
-    imageInfo.extent.depth      = 1;
-    imageInfo.mipLevels         = 1;
-    imageInfo.arrayLayers       = 1;
-    imageInfo.format            = format;
-    imageInfo.tiling            = VK_IMAGE_TILING_OPTIMAL;
-    imageInfo.initialLayout     = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageInfo.usage             = translateImageType(usageType, transferType);
-    imageInfo.sharingMode       = VK_SHARING_MODE_EXCLUSIVE;
-    imageInfo.samples           = VK_SAMPLE_COUNT_1_BIT;
-    imageInfo.flags             = 0;    // Optional
-
-    VulkanImage image;
-    image.format        = format;
-    image.size          = dimensions.width * dimensions.height * sizeof(uint32_t);
-    image.extent.width  = dimensions.width;
-    image.extent.height = dimensions.height;
-    image.extent.depth  = 1;
-    image.usageType     = usageType;
-    image.transferType  = transferType;
-    image.visibility    = visibility;
-
-    VK_CHECK(vkCreateImage(device, &imageInfo, nullptr, &image.object));
-
-    VkMemoryRequirements memoryRequirements;
-    vkGetImageMemoryRequirements(device, image, &memoryRequirements);
-    image.size = memoryRequirements.size;
-
-    auto memoryType =
-          findMemoryType(memoryRequirements.memoryTypeBits, translateMemoryType(visibility), memoryProperties);
-
-    if(!memoryType) {
-        VK_CHECK(VK_ERROR_OUT_OF_DEVICE_MEMORY);
-    }
-
-    VkMemoryAllocateInfo allocInfo = {};
-    allocInfo.sType                = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize       = memoryRequirements.size;
-    allocInfo.memoryTypeIndex      = *memoryType;
-
-    VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &image.memory));
-    VK_CHECK(vkBindImageMemory(device, image, image.memory, 0));
-
-    return image;
-}
-
-void VulkanPhysicalDevice::DestroyImage(VkDevice device, VulkanImage& image) {
-    vkFreeMemory(device, image.memory, nullptr);
-    vkDestroyImage(device, image, nullptr);
-}
 
 Core::StatusOr<VulkanPhysicalDevice> VulkanPhysicalDevice::Find(VkInstance instance,
                                                                 VkSurfaceKHR surface,
@@ -243,14 +89,10 @@ Core::StatusOr<VulkanPhysicalDevice> VulkanPhysicalDevice::Find(VkInstance insta
         vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
 
         if(indices && swapChainAdequate && supportedFeatures.samplerAnisotropy) {
-            VkPhysicalDeviceMemoryProperties memoryProperties;
-            vkGetPhysicalDeviceMemoryProperties(device, &memoryProperties);
-
-            VulkanPhysicalDevice physicalDevice{device, *indices, memoryProperties};
+            VulkanPhysicalDevice physicalDevice{device, *indices};
 
             VkPhysicalDeviceProperties deviceProperties;
             vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
-
 
             Core::Log::Debug(Vulkan,
                              "Using {} [Vendor: {}, Type: {}, Driver Version: {}, API Version: {}]",

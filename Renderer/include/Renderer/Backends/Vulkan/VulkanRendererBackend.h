@@ -132,6 +132,7 @@ private:
     VulkanPhysicalDevice physicalDevice;
     VulkanLogicalDevice logicalDevice;
     VulkanQueues queues;
+    VmaAllocator allocator;
 
     Core::FixedArray<FrameResources, 3> frameResources;
     uint32_t currentFrameResourcesIndex;

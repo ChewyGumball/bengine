@@ -3,7 +3,7 @@
 
 namespace Renderer::Backends::Vulkan {
 VulkanSwapChain VulkanSwapChain::Create(VkDevice device,
-                                        const VulkanPhysicalDevice& physicalDevice,
+                                        VmaAllocator allocator,
                                         const VulkanSwapChainDetails& details,
                                         const VulkanQueues& queues,
                                         VkRenderPass renderPass,
@@ -56,12 +56,12 @@ VulkanSwapChain VulkanSwapChain::Create(VkDevice device,
     swapChain.images.resize(imageCount);
     vkGetSwapchainImagesKHR(device, swapChain, &imageCount, swapChain.images.data());
 
-    swapChain.depthImage = physicalDevice.createImage(device,
-                                                      details.extent,
-                                                      details.depthFormat,
-                                                      VulkanImageUsageType::Depth,
-                                                      VulkanImageTransferType::None,
-                                                      VulkanMemoryVisibility::Device);
+    swapChain.depthImage = VulkanImage::Create(allocator,
+                                               details.extent,
+                                               details.depthFormat,
+                                               VulkanImageUsageType::Depth,
+                                               VulkanImageTransferType::None,
+                                               VulkanMemoryVisibility::Device);
     swapChain.depthView  = VulkanImageView::Create(device, swapChain.depthImage, VulkanImageViewAspect::Depth);
 
     VkCommandBuffer commandBuffer = queues.transfer.pool.allocateSingleUseBuffer(device);
@@ -94,7 +94,7 @@ void VulkanSwapChain::Destroy(VkDevice device, VulkanSwapChain& swapChain) {
     }
 
     VulkanImageView::Destroy(device, swapChain.depthView);
-    VulkanPhysicalDevice::DestroyImage(device, swapChain.depthImage);
+    VulkanImage::Destroy(swapChain.depthImage);
 
     vkDestroySwapchainKHR(device, swapChain, nullptr);
 }

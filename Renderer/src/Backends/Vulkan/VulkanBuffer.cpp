@@ -31,17 +31,6 @@ VkBufferUsageFlags TranslateBufferType(Renderer::Backends::Vulkan::VulkanBufferU
     return flags;
 }
 
-
-VmaMemoryUsage TranslateMemoryType(Renderer::Backends::Vulkan::VulkanMemoryVisibility visibility) {
-    using namespace Renderer::Backends::Vulkan;
-
-    switch(visibility) {
-        case VulkanMemoryVisibility::Device: return VMA_MEMORY_USAGE_GPU_ONLY;
-        case VulkanMemoryVisibility::DeviceToHost: return VMA_MEMORY_USAGE_GPU_TO_CPU;
-        case VulkanMemoryVisibility::Host: return VMA_MEMORY_USAGE_CPU_ONLY;
-        case VulkanMemoryVisibility::HostToDevice: return VMA_MEMORY_USAGE_CPU_TO_GPU;
-    }
-}
 }    // namespace internal
 
 
@@ -74,7 +63,7 @@ VulkanBuffer VulkanBuffer::Create(VmaAllocator allocator,
     buffer.visibility   = visibility;
 
     VmaAllocationCreateInfo allocInfo = {};
-    allocInfo.usage                   = internal::TranslateMemoryType(visibility);
+    allocInfo.usage                   = TranslateMemoryType(visibility);
 
     VK_CHECK(vmaCreateBuffer(allocator, &bufferInfo, &allocInfo, &buffer.object, &buffer.allocation, nullptr));
 
