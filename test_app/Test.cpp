@@ -104,7 +104,7 @@ Core::Status createGraphicsPipeline(VulkanRendererBackend& backend, const Assets
     return Core::Status::Ok();
 }
 
-void createCommandBuffers(VulkanRendererBackend& backend) {
+void createDrawDataBuffers(VulkanRendererBackend& backend) {
     VulkanLogicalDevice& device = backend.getLogicalDevice();
     VulkanSwapChain& swapChain  = *backend.getSwapChain();
 
@@ -150,8 +150,7 @@ Core::Status createTextureImage(VulkanRendererBackend& backend) {
 
     auto textureAsset = input.read<Assets::Texture>();
 
-    VulkanLogicalDevice& device = backend.getLogicalDevice();
-    texture                     = backend.createTexture(
+    texture = backend.createTexture(
           Core::ToSpan(textureAsset.data), VK_FORMAT_R8G8B8A8_UNORM, {textureAsset.width, textureAsset.height});
 
     return Core::Status::Ok();
@@ -161,7 +160,7 @@ Core::Status initVulkanBackend(VulkanRendererBackend& backend) {
     RETURN_IF_ERROR(createVertexBuffer(backend));
     RETURN_IF_ERROR(createTextureImage(backend));
 
-    createCommandBuffers(backend);
+    createDrawDataBuffers(backend);
 
     vkQueueWaitIdle(backend.getQueues().transfer);
     backend.processFinishedSubmitResources();
@@ -337,11 +336,11 @@ Core::Status run() {
             timer.reset();
         }
 
-        if(frameCount == 100) {
+        if(frameCount == 1000) {
             Core::Clock::Seconds now = clock.totalElapsedSeconds();
+            auto duration            = now - lastFPSCalculation;
 
-            // Core::Log::Info(Test, "{}ms", (now - lastFPSCalculation).count() /
-            // frameCount);
+            Core::Log::Info(Test, "{}ms ({} fps)", duration.count() / frameCount, frameCount / duration.count());
             frameCount         = 0;
             lastFPSCalculation = now;
         }
