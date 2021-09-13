@@ -5,6 +5,7 @@
 #include <Renderer/Backends/RendererBackend.h>
 
 #include <Renderer/Backends/Vulkan/VulkanFence.h>
+#include <Renderer/Backends/Vulkan/VulkanGraphicsPipeline.h>
 #include <Renderer/Backends/Vulkan/VulkanInstance.h>
 #include <Renderer/Backends/Vulkan/VulkanLogicalDevice.h>
 #include <Renderer/Backends/Vulkan/VulkanMemoryAllocator.h>
@@ -57,6 +58,36 @@ struct FrameResources {
     Core::Array<VulkanBuffer> buffers;
 };
 
+struct VulkanUploadDataCommand {
+    VulkanBuffer* buffer;
+    std::span<const std::byte> data;
+};
+
+struct VulkanDrawMeshCommand {
+    Resources::GPUMesh* mesh;
+    VulkanGraphicsPipeline pipeline;
+    VkDescriptorSet uniformDescriptorSet;
+};
+
+struct VulkanDrawMeshInstancedCommand {
+    Resources::GPUMesh* mesh;
+    VulkanGraphicsPipeline pipeline;
+    VkDescriptorSet uniformDescriptorSet;
+
+    VkBuffer instanceDataBuffer;
+    uint32_t instanceCount;
+    VkDeviceSize instanceDataOffset;
+};
+
+using VulkanCustomDrawCommand = std::function<void(VkCommandBuffer)>;
+
+struct VulkanFrameCommands {
+    Core::Array<VulkanUploadDataCommand> uploadCommands;
+    Core::Array<VulkanDrawMeshCommand> meshCommands;
+    Core::Array<VulkanDrawMeshInstancedCommand> instanceMeshCommands;
+    Core::Array<VulkanCustomDrawCommand> customCommands;
+};
+
 class VulkanRendererBackend : public RendererBackend {
 public:
     VulkanRendererBackend(VulkanInstance instance,
@@ -106,6 +137,8 @@ public:
                       const Core::HashSet<std::string>& requiredInstanceExtensions,
                       const Core::HashSet<std::string>& requiredDeviceExtensions,
                       const Core::HashSet<std::string>& requiredValidationLayers = {});
+
+    Core::Status drawFrame(const Core::Array<VulkanFrameCommands>& commands);
 
     VulkanInstance& getInstance() {
         return instance;

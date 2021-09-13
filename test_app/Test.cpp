@@ -12,9 +12,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <array>
-#include <chrono>
-#include <optional>
 
 #include <Core/IO/FileSystem/FileSystem.h>
 #include <Core/IO/FileSystem/Path.h>
@@ -22,40 +19,17 @@
 #include <Core/Time/SystemClockTicker.h>
 #include <Core/Time/Timer.h>
 
-
-#include <Core/IO/Serialization/BufferView.h>
-
-#include <Assets/Materials/Shader.h>
-
 #include <GUI/Window.h>
-
-#include <iostream>
 
 #include <Renderer/Backends/Vulkan/DiagnosticCheckpoint.h>
 #include <Renderer/Backends/Vulkan/VulkanRendererBackend.h>
 
-#include <Renderer/Backends/Vulkan/VulkanCommandPool.h>
+#include <Renderer/Backends/Vulkan/VulkanBuffer.h>
 #include <Renderer/Backends/Vulkan/VulkanDescriptorPool.h>
-#include <Renderer/Backends/Vulkan/VulkanEnums.h>
-#include <Renderer/Backends/Vulkan/VulkanFence.h>
 #include <Renderer/Backends/Vulkan/VulkanGraphicsPipeline.h>
-#include <Renderer/Backends/Vulkan/VulkanImage.h>
-#include <Renderer/Backends/Vulkan/VulkanInstance.h>
-#include <Renderer/Backends/Vulkan/VulkanLogicalDevice.h>
-#include <Renderer/Backends/Vulkan/VulkanPhysicalDevice.h>
-#include <Renderer/Backends/Vulkan/VulkanPipelineLayout.h>
-#include <Renderer/Backends/Vulkan/VulkanPipelineShaderStage.h>
-#include <Renderer/Backends/Vulkan/VulkanQueue.h>
-#include <Renderer/Backends/Vulkan/VulkanSampler.h>
-#include <Renderer/Backends/Vulkan/VulkanSemaphore.h>
-#include <Renderer/Backends/Vulkan/VulkanShaderModule.h>
-#include <Renderer/Backends/Vulkan/VulkanSwapChain.h>
-
 
 #include <Renderer/Resources/GPUMesh.h>
 #include <Renderer/Resources/GPUTexture.h>
-
-#include <absl/container/flat_hash_map.h>
 
 #include <Assets/Models/Mesh.h>
 #include <Assets/Textures/Texture.h>
@@ -63,9 +37,6 @@
 #include <imgui.h>
 #include <imgui/imgui_impl_glfw.h>
 #include <imgui/imgui_impl_vulkan.h>
-
-#include <atomic>
-#include <sstream>
 
 
 Core::LogCategory Test("Test");
@@ -76,12 +47,6 @@ VulkanGraphicsPipeline graphicsPipeline;
 Core::Array<VkDescriptorSet> uniformBuffersDescriptors;
 Core::Array<VulkanBuffer> uniformBuffers;
 Core::Array<VulkanBuffer> instanceBuffers;
-Core::Array<VkCommandBuffer> commandBuffers;
-Core::Array<VulkanSemaphore> imageAvailableSemaphores;
-Core::Array<VulkanSemaphore> renderFinishedSemaphores;
-Core::Array<VulkanFence> queueFences;
-Core::Array<VkCommandBuffer> mainDrawBuffers;
-Core::Array<VkCommandBuffer> guiDrawBuffers;
 
 Renderer::Resources::GPUMesh mesh;
 Renderer::Resources::GPUTexture texture;
@@ -108,16 +73,6 @@ void cleanupVulkan(VulkanRendererBackend& backend) {
     ImGui_ImplVulkan_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-
-    for(int i = 0; i < MAX_FRAME_IN_FLIGHT; i++) {
-        VulkanSemaphore::Destroy(device, renderFinishedSemaphores[i]);
-        VulkanSemaphore::Destroy(device, imageAvailableSemaphores[i]);
-        VulkanFence::Destroy(device, queueFences[i]);
-    }
-
-    queues.graphics.pool.freeBuffers(device, commandBuffers);
-    queues.graphics.pool.freeBuffers(device, mainDrawBuffers);
-    queues.graphics.pool.freeBuffers(device, guiDrawBuffers);
 
     VulkanGraphicsPipeline::Destroy(device, graphicsPipeline);
 
@@ -149,70 +104,21 @@ Core::Status createGraphicsPipeline(VulkanRendererBackend& backend, const Assets
     return Core::Status::Ok();
 }
 
-void recordCommandBuffers(uint32_t framebufferIndex, VulkanRendererBackend& backend) {
-    VkCommandBuffer commandBuffer = commandBuffers[framebufferIndex];
-
-    VK_CHECK(vkResetCommandBuffer(commandBuffer, 0));
-
-    VulkanSwapChain& swapChain = *backend.getSwapChain();
-
-    VkCommandBufferInheritanceInfo inheritance = {};
-    inheritance.sType                          = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-    inheritance.renderPass                     = *backend.getSwapChainRenderPass();
-    inheritance.subpass                        = 0;
-    inheritance.framebuffer                    = swapChain.framebuffers[framebufferIndex];
-
-    VkCommandBufferBeginInfo beginInfo = {};
-    beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-    beginInfo.pInheritanceInfo         = &inheritance;    // Optional
-
-    VK_CHECK(vkBeginCommandBuffer(commandBuffer, &beginInfo));
-
-    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, graphicsPipeline);
-    vkCmdSetViewport(commandBuffer, 0, 1, &swapChain.viewport);
-    vkCmdSetScissor(commandBuffer, 0, 1, &swapChain.scissor);
-
-    VkBuffer vertexBuffers[] = {mesh.vertexBuffer, instanceBuffers[framebufferIndex]};
-    VkDeviceSize offsets[]   = {mesh.vertexBufferOffset, 0};
-    vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
-
-    vkCmdBindIndexBuffer(commandBuffer, mesh.indexBuffer, mesh.indexBufferOffset, mesh.indexType);
-    vkCmdBindDescriptorSets(commandBuffer,
-                            VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            graphicsPipeline.pipelineLayout,
-                            0,
-                            1,
-                            &uniformBuffersDescriptors[framebufferIndex],
-                            0,
-                            nullptr);
-    vkCmdDrawIndexed(commandBuffer, mesh.indexCount, 2, 0, 0, 0);
-
-    VK_CHECK(vkEndCommandBuffer(commandBuffer));
-}
-
 void createCommandBuffers(VulkanRendererBackend& backend) {
-    VulkanLogicalDevice& device          = backend.getLogicalDevice();
-    VulkanPhysicalDevice& physicalDevice = backend.getPhysicalDevice();
-    VulkanQueues& queues                 = backend.getQueues();
-    VulkanSwapChain& swapChain           = *backend.getSwapChain();
+    VulkanLogicalDevice& device = backend.getLogicalDevice();
+    VulkanSwapChain& swapChain  = *backend.getSwapChain();
 
     uint32_t swapChainCount = swapChain.framebuffers.size();
-
-    commandBuffers  = queues.graphics.pool.allocateBuffers(device, swapChainCount, VulkanCommandBufferLevel::Secondary);
-    mainDrawBuffers = queues.graphics.pool.allocateBuffers(device, swapChainCount);
-    guiDrawBuffers  = queues.graphics.pool.allocateBuffers(device, swapChainCount, VulkanCommandBufferLevel::Secondary);
 
     descriptorPool = VulkanDescriptorPool::Create(
           device, swapChainCount + 1, {VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER});
     uniformBuffersDescriptors =
-          descriptorPool.allocateSets(device, commandBuffers.count(), graphicsPipeline.descriptorSetLayout);
+          descriptorPool.allocateSets(device, swapChainCount, graphicsPipeline.descriptorSetLayout);
 
-    instanceBuffers.ensureCapacity(commandBuffers.count());
-    uniformBuffers.ensureCapacity(commandBuffers.count());
+    instanceBuffers.ensureCapacity(swapChainCount);
+    uniformBuffers.ensureCapacity(swapChainCount);
 
-
-    for(uint64_t i = 0; i < commandBuffers.count(); i++) {
+    for(uint64_t i = 0; i < swapChainCount; i++) {
         uniformBuffers.emplace(backend.createBuffer(sizeof(UniformBufferObject), VulkanBufferUsageType::Uniform));
 
         VulkanDescriptorSetUpdate update;
@@ -257,15 +163,6 @@ Core::Status initVulkanBackend(VulkanRendererBackend& backend) {
 
     createCommandBuffers(backend);
 
-    imageAvailableSemaphores.ensureCapacity(MAX_FRAME_IN_FLIGHT);
-    renderFinishedSemaphores.ensureCapacity(MAX_FRAME_IN_FLIGHT);
-    queueFences.ensureCapacity(MAX_FRAME_IN_FLIGHT);
-    for(int i = 0; i < MAX_FRAME_IN_FLIGHT; i++) {
-        imageAvailableSemaphores.emplace(VulkanSemaphore::Create(backend.getLogicalDevice()));
-        renderFinishedSemaphores.emplace(VulkanSemaphore::Create(backend.getLogicalDevice()));
-        queueFences.emplace(VulkanFence::Create(backend.getLogicalDevice(), VulkanFenceState::Signaled));
-    }
-
     vkQueueWaitIdle(backend.getQueues().transfer);
     backend.processFinishedSubmitResources();
 
@@ -284,71 +181,13 @@ void recreateSwapChain(GUI::Window& window, VulkanRendererBackend& backend) {
     backend.remakeSwapChain();
 }
 
-VkCommandBuffer RenderGUI(uint32_t framebufferIndex, VulkanRendererBackend& backend) {
-    ImGui_ImplVulkan_NewFrame();
-    ImGui_ImplGlfw_NewFrame();
-    ImGui::NewFrame();
-
+void RenderGUI() {
     static bool windowShowned = true;
-
     ImGui::ShowDemoWindow(&windowShowned);
-    VkCommandBuffer MainBuffer = mainDrawBuffers[framebufferIndex];
-    VK_CHECK(vkResetCommandBuffer(MainBuffer, 0));
-
-    VkCommandBuffer GuiCommandBuffer = guiDrawBuffers[framebufferIndex];
-    VK_CHECK(vkResetCommandBuffer(GuiCommandBuffer, 0));
-
-    VulkanSwapChain& swapChain = *backend.getSwapChain();
-
-    VkCommandBufferInheritanceInfo inheritance = {};
-    inheritance.sType                          = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
-    inheritance.renderPass                     = *backend.getSwapChainRenderPass();
-    inheritance.subpass                        = 0;
-    inheritance.framebuffer                    = swapChain.framebuffers[framebufferIndex];
-
-    VkCommandBufferBeginInfo beginInfo = {};
-    beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
-    beginInfo.pInheritanceInfo         = &inheritance;    // Optional
-
-    VK_CHECK(vkBeginCommandBuffer(GuiCommandBuffer, &beginInfo));
-    ImGui::Render();
-    ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), GuiCommandBuffer);
-    VK_CHECK(vkEndCommandBuffer(GuiCommandBuffer));
-
-    VkCommandBufferBeginInfo beginInfo2 = {};
-    beginInfo2.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo2.flags                    = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-    VK_CHECK(vkBeginCommandBuffer(MainBuffer, &beginInfo2));
-
-    VkRenderPassBeginInfo renderPassInfo = {};
-    renderPassInfo.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass            = *backend.getSwapChainRenderPass();
-    renderPassInfo.framebuffer           = swapChain.framebuffers[framebufferIndex];
-    renderPassInfo.renderArea            = swapChain.scissor;
-
-    std::array<VkClearValue, 2> clearValues = {};
-    clearValues[0].color                    = {0.0f, 0.0f, 0.0f, 1.0f};
-    clearValues[1].depthStencil             = {1.0f, 0};
-
-    renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
-    renderPassInfo.pClearValues    = clearValues.data();
-
-    vkCmdBeginRenderPass(MainBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
-    vkCmdExecuteCommands(MainBuffer, 1, &commandBuffers[framebufferIndex]);
-    vkCmdExecuteCommands(MainBuffer, 1, &GuiCommandBuffer);
-    vkCmdEndRenderPass(MainBuffer);
-
-    VK_CHECK(vkEndCommandBuffer(MainBuffer));
-
-    return MainBuffer;
 }
 
-void drawFrame(GUI::Window& window, Core::Clock::Seconds delta, VulkanRendererBackend& backend) {
-    VulkanLogicalDevice& device = backend.getLogicalDevice();
-    VulkanQueues& queues        = backend.getQueues();
-    VulkanSwapChain& swapChain  = *backend.getSwapChain();
+Core::Status drawFrame(GUI::Window& window, Core::Clock::Seconds delta, VulkanRendererBackend& backend) {
+    VulkanSwapChain& swapChain = *backend.getSwapChain();
 
     static UniformBufferObject ubo = {
           glm::lookAt(glm::vec3(2, 2, 2), glm::vec3(0, 0, 0), glm::vec3(0, 0, -1)),
@@ -379,40 +218,31 @@ void drawFrame(GUI::Window& window, Core::Clock::Seconds delta, VulkanRendererBa
                                           10000.0f);
     }
 
-    auto acquisitionResult = swapChain.acquireNextImage(device, imageAvailableSemaphores[currentFrame]);
+    Core::Array<VulkanFrameCommands> commandList;
+    VulkanFrameCommands& commands = commandList.emplace();
 
-    if(acquisitionResult.result == VK_ERROR_OUT_OF_DATE_KHR) {
-        Core::Log::Error(Test, "Out of date swap chain");
-        return;
-    } else if(acquisitionResult.result != VK_SUCCESS && acquisitionResult.result != VK_SUBOPTIMAL_KHR) {
-        Core::Log::Error(Test, "Couldn't acquire swap chain image: {}", acquisitionResult.result);
-        return;
-    }
+    VulkanUploadDataCommand& instanceUpload = commands.uploadCommands.emplace();
+    instanceUpload.buffer                   = &instanceBuffers[currentFrame];
+    instanceUpload.data                     = Core::AsBytes(instances);
 
-    ASSERT_WITH_MESSAGE(queueFences[currentFrame].waitAndReset(device), "Failed to wait for queue fence!");
 
-    uniformBuffers[currentFrame].upload(Core::ToBytes(ubo));
-    instanceBuffers[currentFrame].upload(Core::AsBytes(instances));
+    VulkanUploadDataCommand& uniformUpload = commands.uploadCommands.emplace();
+    uniformUpload.buffer                   = &uniformBuffers[currentFrame];
+    uniformUpload.data                     = Core::ToBytes(ubo);
 
-    recordCommandBuffers(currentFrame, backend);
-    VkCommandBuffer buffer = RenderGUI(currentFrame, backend);
+    VulkanDrawMeshInstancedCommand& draw = commands.instanceMeshCommands.emplace();
+    draw.mesh                            = &mesh;
+    draw.pipeline                        = graphicsPipeline;
+    draw.uniformDescriptorSet            = uniformBuffersDescriptors[currentFrame];
+    draw.instanceDataBuffer              = instanceBuffers[currentFrame];
+    draw.instanceCount                   = 2;
 
-    queues.graphics.submit(buffer,
-                           VulkanQueueSubmitType::Graphics,
-                           imageAvailableSemaphores[currentFrame],
-                           renderFinishedSemaphores[currentFrame],
-                           queueFences[currentFrame]);
+    commands.customCommands.emplace([](VkCommandBuffer commandBuffer) {
+        ImGui::Render();
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
+    });
 
-    VkResult presentResult = queues.present.present(swapChain, renderFinishedSemaphores[currentFrame], currentFrame);
-
-    currentFrame = (currentFrame + 1) % MAX_FRAME_IN_FLIGHT;
-
-    if(presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR) {
-        Core::Log::Info(Test, "Not recreating swap chain");
-        recreateSwapChain(window, backend);
-    } else if(presentResult != VK_SUCCESS) {
-        Core::Log::Error(Test, "Failed to present image: {}", presentResult);
-    }
+    return backend.drawFrame(commandList);
 }
 
 Core::Status run() {
@@ -483,33 +313,39 @@ Core::Status run() {
 
     Core::Clock::Seconds lastFPSCalculation = clock.totalElapsedSeconds();
 
-    std::thread drawThread([&]() {
-        while(!window->shouldClose()) {
-            frameCount++;
-            ticker.tick();
-            drawFrame(*window, clock.tickedTime(), backend);
-
-            // clock.timeScale += changePerSecond * clock2.tickedSeconds().count();
-
-            if(timer.elapsedTime() > period) {
-                changePerSecond *= -1;
-                timer.reset();
-            }
-
-            if(frameCount == 100) {
-                Core::Clock::Seconds now = clock.totalElapsedSeconds();
-
-                // Core::Log::Info(Test, "{}ms", (now - lastFPSCalculation).count() /
-                // frameCount);
-                frameCount         = 0;
-                lastFPSCalculation = now;
-            }
-        }
-    });
     while(!window->shouldClose()) {
         glfwPollEvents();
+
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        frameCount++;
+        ticker.tick();
+
+        RenderGUI();
+
+        Core::Status drawStatus = drawFrame(*window, clock.tickedTime(), backend);
+        if(drawStatus.isError()) {
+            Core::Log::Error(Test, drawStatus.message());
+        }
+
+        // clock.timeScale += changePerSecond * clock2.tickedSeconds().count();
+
+        if(timer.elapsedTime() > period) {
+            changePerSecond *= -1;
+            timer.reset();
+        }
+
+        if(frameCount == 100) {
+            Core::Clock::Seconds now = clock.totalElapsedSeconds();
+
+            // Core::Log::Info(Test, "{}ms", (now - lastFPSCalculation).count() /
+            // frameCount);
+            frameCount         = 0;
+            lastFPSCalculation = now;
+        }
     }
-    drawThread.join();
 
     Core::Clock::Seconds elapsedTime = clock.totalElapsedTime();
     Core::Log::Info(Test, "Elapsed time: {:f}s", elapsedTime.count());

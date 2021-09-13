@@ -75,6 +75,15 @@ void VulkanRendererBackend::shutdown() {
     Core::Log::Info(Backend, "Destroying backend.");
     vkDeviceWaitIdle(logicalDevice);
 
+    for(auto& frameResource : frameResources) {
+        VulkanSemaphore::Destroy(logicalDevice, frameResource.imageAvailableSemaphore);
+        VulkanSemaphore::Destroy(logicalDevice, frameResource.renderFinishedSemaphore);
+        VulkanFence::Destroy(logicalDevice, frameResource.queueFence);
+
+        queues.graphics.pool.freeBuffers(logicalDevice, {frameResource.mainCommandBuffer});
+        queues.graphics.pool.freeBuffers(logicalDevice, frameResource.commandBuffers);
+    }
+
     if(swapChain) {
         VulkanSwapChain::Destroy(logicalDevice, *swapChain);
     }
@@ -283,5 +292,134 @@ VulkanRendererBackend::CreateWithSurface(const std::string& applicationName,
                      VulkanPhysicalDevice::Find(instance, surface, deviceExtensions));
 
     return VulkanRendererBackend(instance, physicalDevice, surface, deviceExtensions, validationLayers);
+}
+
+
+Core::Status VulkanRendererBackend::drawFrame(const Core::Array<VulkanFrameCommands>& commands) {
+    currentFrameResourcesIndex = (currentFrameResourcesIndex + 1) % frameResources.size();
+    FrameResources& resources  = frameResources[currentFrameResourcesIndex];
+
+    auto acquisitionResult = swapChain->acquireNextImage(logicalDevice, resources.imageAvailableSemaphore);
+    if(acquisitionResult.result == VK_ERROR_OUT_OF_DATE_KHR) {
+        return Core::Status::Error("Out of date swap chain");
+    } else if(acquisitionResult.result != VK_SUCCESS && acquisitionResult.result != VK_SUBOPTIMAL_KHR) {
+        return Core::Status::Error("Couldn't acquire swap chain image: {}", acquisitionResult.result);
+    }
+
+    ASSERT_WITH_MESSAGE(resources.queueFence.waitAndReset(logicalDevice), "Failed to wait for queue fence!");
+
+    VkCommandBuffer commandBuffer = resources.commandBuffers[0];
+    VK_CHECK(vkResetCommandBuffer(commandBuffer, 0));
+
+    VkCommandBufferInheritanceInfo inheritance = {};
+    inheritance.sType                          = VK_STRUCTURE_TYPE_COMMAND_BUFFER_INHERITANCE_INFO;
+    inheritance.renderPass                     = *swapChainRenderPass;
+    inheritance.subpass                        = 0;
+    inheritance.framebuffer                    = swapChain->framebuffers[currentFrameResourcesIndex];
+
+    VkCommandBufferBeginInfo beginInfo = {};
+    beginInfo.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags                    = VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;
+    beginInfo.pInheritanceInfo         = &inheritance;    // Optional
+
+    VK_CHECK(vkBeginCommandBuffer(commandBuffer, &beginInfo));
+    for(const auto& commandList : commands) {
+        for(const auto& command : commandList.uploadCommands) {
+            command.buffer->upload(command.data);
+        }
+
+        for(const auto& command : commandList.meshCommands) {
+            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, command.pipeline);
+            vkCmdSetViewport(commandBuffer, 0, 1, &swapChain->viewport);
+            vkCmdSetScissor(commandBuffer, 0, 1, &swapChain->scissor);
+
+            Resources::GPUMesh& mesh = *command.mesh;
+
+            vkCmdBindVertexBuffers(commandBuffer, 0, 1, &mesh.vertexBuffer.object, &mesh.vertexBufferOffset);
+            vkCmdBindIndexBuffer(commandBuffer, mesh.indexBuffer, mesh.indexBufferOffset, mesh.indexType);
+            vkCmdBindDescriptorSets(commandBuffer,
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                    command.pipeline.pipelineLayout,
+                                    0,
+                                    1,
+                                    &command.uniformDescriptorSet,
+                                    0,
+                                    nullptr);
+            vkCmdDrawIndexed(commandBuffer, mesh.indexCount, 1, 0, 0, 0);
+        }
+
+        for(const auto& command : commandList.instanceMeshCommands) {
+            vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, command.pipeline);
+            vkCmdSetViewport(commandBuffer, 0, 1, &swapChain->viewport);
+            vkCmdSetScissor(commandBuffer, 0, 1, &swapChain->scissor);
+
+            Resources::GPUMesh& mesh = *command.mesh;
+
+            VkBuffer vertexBuffers[] = {mesh.vertexBuffer, command.instanceDataBuffer};
+            VkDeviceSize offsets[]   = {mesh.vertexBufferOffset, command.instanceDataOffset};
+            vkCmdBindVertexBuffers(commandBuffer, 0, 2, vertexBuffers, offsets);
+
+            vkCmdBindIndexBuffer(commandBuffer, mesh.indexBuffer, mesh.indexBufferOffset, mesh.indexType);
+            vkCmdBindDescriptorSets(commandBuffer,
+                                    VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                    command.pipeline.pipelineLayout,
+                                    0,
+                                    1,
+                                    &command.uniformDescriptorSet,
+                                    0,
+                                    nullptr);
+            vkCmdDrawIndexed(commandBuffer, mesh.indexCount, command.instanceCount, 0, 0, 0);
+        }
+
+        for(const auto& command : commandList.customCommands) {
+            command(commandBuffer);
+        }
+    }
+
+    VK_CHECK(vkEndCommandBuffer(commandBuffer));
+
+
+    VkCommandBufferBeginInfo beginInfo2 = {};
+    beginInfo2.sType                    = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo2.flags                    = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    VK_CHECK(vkResetCommandBuffer(resources.mainCommandBuffer, 0));
+    VK_CHECK(vkBeginCommandBuffer(resources.mainCommandBuffer, &beginInfo2));
+
+    VkRenderPassBeginInfo renderPassInfo = {};
+    renderPassInfo.sType                 = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass            = *swapChainRenderPass;
+    renderPassInfo.framebuffer           = swapChain->framebuffers[currentFrameResourcesIndex];
+    renderPassInfo.renderArea            = swapChain->scissor;
+
+    std::array<VkClearValue, 2> clearValues = {};
+    clearValues[0].color                    = {0.0f, 0.0f, 0.0f, 1.0f};
+    clearValues[1].depthStencil             = {1.0f, 0};
+
+    renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
+    renderPassInfo.pClearValues    = clearValues.data();
+
+    vkCmdBeginRenderPass(resources.mainCommandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_SECONDARY_COMMAND_BUFFERS);
+    vkCmdExecuteCommands(resources.mainCommandBuffer, 1, &commandBuffer);
+    vkCmdEndRenderPass(resources.mainCommandBuffer);
+
+    VK_CHECK(vkEndCommandBuffer(resources.mainCommandBuffer));
+
+
+    queues.graphics.submit(resources.mainCommandBuffer,
+                           VulkanQueueSubmitType::Graphics,
+                           resources.imageAvailableSemaphore,
+                           resources.renderFinishedSemaphore,
+                           resources.queueFence);
+
+    VkResult presentResult =
+          queues.present.present(*swapChain, resources.renderFinishedSemaphore, currentFrameResourcesIndex);
+
+    if(presentResult == VK_ERROR_OUT_OF_DATE_KHR || presentResult == VK_SUBOPTIMAL_KHR) {
+        return Core::Status::Error("Not recreating swap chain");
+    } else if(presentResult != VK_SUCCESS) {
+        return Core::Status::Error("Failed to present image: {}", presentResult);
+    } else {
+        return Core::Status::Ok();
+    }
 }
 }    // namespace Renderer::Backends::Vulkan
