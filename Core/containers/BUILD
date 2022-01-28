@@ -11,6 +11,7 @@ bengine_cc_library(
     strip_include_prefix = "include",
     deps = [
         ":span",
+        "//core/algorithms:memory",
         "//core/assert",
         "//core/io/serialization:streams",
     ],

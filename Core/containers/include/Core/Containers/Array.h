@@ -77,11 +77,13 @@ public:
     void ensureCapacity(uint64_t requiredCapacity);
 
 protected:
-    void destructElements(uint64_t startIndex, uint64_t elementsToDestruct);
-    void moveElements(uint64_t sourceIndex, uint64_t destinationIndex, uint64_t elementCount);
+    void destructAllElements();
 
     static void CopyElementMemory(T* destination, const T* source, uint64_t elementCount);
     static void MoveElementMemory(T* destination, const T* source, uint64_t elementCount);
+
+    void shiftElementsLeft(uint64_t startIndex, uint64_t distance);
+    void shiftElementsRight(uint64_t startIndex, uint64_t distance);
 
     uint64_t capacity;
     uint64_t elementCount = 0;

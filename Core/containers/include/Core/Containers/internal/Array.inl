@@ -2,6 +2,7 @@
 
 #include <Core/Containers/Array.h>
 
+#include <Core/Algorithms/Memory.h>
 #include <Core/Containers/Span.h>
 
 namespace Core {
@@ -39,9 +40,7 @@ Array<T>::Array(const Array<T>& other)
     if constexpr(std::is_trivially_copyable_v<T>) {
         CopyElementMemory(data, other.data, elementCount);
     } else {
-        for(uint64_t i = 0; i < elementCount; i++) {
-            new(data + i) T(other[i]);
-        }
+        std::uninitialized_copy_n(other.data, elementCount, data);
     }
 }
 
@@ -55,15 +54,13 @@ Array<T>::Array(Array<T>&& other) : capacity(other.capacity), elementCount(other
 template <typename T>
 Array<T>& Array<T>::operator=(const Array<T>& other) {
     if(&other != this) {
-        destructElements(0, elementCount);
+        destructAllElements();
         ensureCapacity(other.elementCount);
 
         if constexpr(std::is_trivially_copyable_v<T>) {
             CopyElementMemory(data, other.data, other.elementCount);
         } else {
-            for(uint64_t i = 0; i < other.elementCount; i++) {
-                new(data + i) T(other[i]);
-            }
+            std::uninitialized_copy_n(other.data, other.elementCount, data);
         }
 
         elementCount = other.elementCount;
@@ -75,7 +72,7 @@ Array<T>& Array<T>::operator=(const Array<T>& other) {
 template <typename T>
 Array<T>& Array<T>::operator=(Array<T>&& other) {
     if(&other != this) {
-        destructElements(0, elementCount);
+        destructAllElements();
         free(data);
 
         capacity     = other.capacity;
@@ -92,7 +89,7 @@ Array<T>& Array<T>::operator=(Array<T>&& other) {
 
 template <typename T>
 Array<T>::~Array() {
-    destructElements(0, elementCount);
+    destructAllElements();
     free(data);
 }
 
@@ -113,13 +110,13 @@ template <typename... ARGS>
 T& Array<T>::emplaceAt(uint64_t index, ARGS&&... args) {
     ASSERT(index <= elementCount);
 
-    ensureCapacity(elementCount + 1);
-
     if(index < elementCount) {
-        moveElements(index, index + 1, elementCount - index);
+        shiftElementsRight(index, 1);
+    } else {
+        ensureCapacity(elementCount + 1);
     }
 
-    T* newElement = new(data + index) T(std::forward<ARGS>(args)...);
+    T* newElement = std::construct_at(data + index, std::forward<ARGS>(args)...);
     elementCount++;
     return *newElement;
 }
@@ -165,9 +162,7 @@ std::span<T, EXTENT> Array<T>::insertAll(std::span<U, EXTENT> elements) {
     if constexpr(std::is_same_v<std::remove_cv_t<U>, T> && std::is_trivially_copyable_v<T>) {
         CopyElementMemory(data + elementCount, elements.data(), elements.size());
     } else {
-        for(uint64_t i = 0; i < elements.size(); i++) {
-            new(data + elementCount + i) T(elements[i]);
-        }
+        std::uninitialized_copy_n(elements.data(), elements.size(), end());
     }
 
     elementCount += elements.size();
@@ -185,13 +180,12 @@ std::span<T> Array<T>::insertUninitialized(uint64_t newElementCount) {
 
 template <typename T>
 void Array<T>::eraseAt(uint64_t index) {
-    moveElements(index + 1, index, elementCount - index - 1);
-    elementCount--;
+    shiftElementsLeft(index + 1, 1);
 }
 
 template <typename T>
 void Array<T>::clear() {
-    destructElements(0, elementCount);
+    destructAllElements();
     elementCount = 0;
 }
 
@@ -253,73 +247,21 @@ void Array<T>::ensureCapacity(uint64_t requiredCapacity) {
     T* newData = reinterpret_cast<T*>(malloc(capacity * ElementSize));
     if constexpr(std::is_trivially_copyable_v<T>) {
         CopyElementMemory(newData, data, elementCount);
+    } else if constexpr(std::is_move_constructible_v<T>) {
+        std::uninitialized_move_n(data, elementCount, newData);
     } else {
-        for(uint64_t i = 0; i < elementCount; i++) {
-            if constexpr(std::is_move_constructible_v<T>) {
-                new(newData + i) T(std::move(*(data + i)));
-            } else {
-                new(newData + i) T(*(data + i));
-            }
-        }
+        std::uninitialized_copy_n(data, elementCount, newData);
     }
 
-    destructElements(0, elementCount);
+    destructAllElements();
 
     free(data);
     data = newData;
 }
 
 template <typename T>
-void Array<T>::destructElements(uint64_t startIndex, uint64_t elementsToDestruct) {
-    if constexpr(std::is_trivially_destructible_v<T>) {
-        return;
-    } else {
-        uint64_t currentIndex = startIndex;
-        while(currentIndex < startIndex + elementsToDestruct) {
-            (data + currentIndex++)->~T();
-        }
-    }
-}
-
-template <typename T>
-void Array<T>::moveElements(uint64_t sourceIndex, uint64_t destinationIndex, uint64_t elementCount) {
-    if(sourceIndex == destinationIndex) {
-        return;
-    }
-
-    if constexpr(std::is_trivially_copyable_v<T> && std::is_trivially_destructible_v<T>) {
-        MoveElementMemory(data + destinationIndex, data + sourceIndex, elementCount);
-    } else {
-        for(uint64_t i = 0; i < elementCount; i++) {
-            uint64_t offset;
-            if(sourceIndex < destinationIndex) {
-                offset = elementCount - i - 1;
-            } else {
-                offset = i;
-            }
-
-            T* sourceElement      = data + sourceIndex + offset;
-            T* destinationElement = data + destinationIndex + offset;
-
-            if constexpr(!std::is_trivially_destructible_v<T>) {
-                destinationElement->~T();
-            }
-
-            if constexpr(std::is_trivially_copyable_v<T>) {
-                CopyElementMemory(destinationElement, sourceElement, 1);
-            } else {
-                if constexpr(std::is_move_constructible_v<T>) {
-                    new(destinationElement) T(std::move(*sourceElement));
-                } else {
-                    new(destinationElement) T(*sourceElement);
-                }
-            }
-
-            if constexpr(!std::is_trivially_destructible_v<T>) {
-                (data + sourceIndex + i)->~T();
-            }
-        }
-    }
+void Array<T>::destructAllElements() {
+    Core::Algorithms::DestroyElements(data, elementCount);
 }
 
 template <typename T>
@@ -330,6 +272,31 @@ void Array<T>::CopyElementMemory(T* destination, const T* source, uint64_t eleme
 template <typename T>
 void Array<T>::MoveElementMemory(T* destination, const T* source, uint64_t elementCount) {
     std::memmove(destination, source, elementCount * ElementSize);
+}
+
+
+template <typename T>
+void Array<T>::shiftElementsLeft(uint64_t startIndex, uint64_t distance) {
+    ASSERT(distance <= startIndex);
+
+    T* source      = data + startIndex;
+    T* destination = source - distance;
+
+    Core::Algorithms::MoveElements(source, destination, elementCount - startIndex);
+
+    elementCount -= distance;
+    Core::Algorithms::DestroyElements(data + elementCount, distance);
+}
+
+template <typename T>
+void Array<T>::shiftElementsRight(uint64_t startIndex, uint64_t distance) {
+    ensureCapacity(elementCount + distance);
+
+    T* source      = data + startIndex;
+    T* destination = source + distance;
+
+    Core::Algorithms::MoveElementsBackwards(source, destination, elementCount - startIndex);
+    Core::Algorithms::DestroyElements(source, distance);
 }
 
 }    // namespace Core

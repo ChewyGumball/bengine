@@ -6,9 +6,7 @@ bengine_cc_library(
     name = "containers",
     hdrs = ["include/Core/Algorithms/Containers.h"],
     strip_include_prefix = "include",
-    deps = [
-        "//core/containers:array",
-    ],
+    deps = ["//core/containers:array"],
 )
 
 bengine_cc_library(
@@ -34,7 +32,12 @@ bengine_cc_library(
     srcs = ["src/Strings.cpp"],
     hdrs = ["include/Core/Algorithms/Strings.h"],
     strip_include_prefix = "include",
-    deps = [
-        "//core/containers:array",
-    ],
+    deps = ["//core/containers:array"],
+)
+
+bengine_cc_library(
+    name = "memory",
+    hdrs = ["include/Core/Algorithms/Memory.h"],
+    strip_include_prefix = "include",
+    deps = ["//core/assert"],
 )
