@@ -295,7 +295,7 @@ VulkanRendererBackend::CreateWithSurface(const std::string& applicationName,
 }
 
 
-Core::Status VulkanRendererBackend::drawFrame(const Core::Array<VulkanFrameCommands>& commands) {
+Core::Status VulkanRendererBackend::submitCommands(const Core::Array<VulkanFrameCommands>& commands) {
     currentFrameResourcesIndex = (currentFrameResourcesIndex + 1) % frameResources.size();
     FrameResources& resources  = frameResources[currentFrameResourcesIndex];
 
@@ -324,10 +324,6 @@ Core::Status VulkanRendererBackend::drawFrame(const Core::Array<VulkanFrameComma
 
     VK_CHECK(vkBeginCommandBuffer(commandBuffer, &beginInfo));
     for(const auto& commandList : commands) {
-        for(const auto& command : commandList.uploadCommands) {
-            command.buffer->upload(command.data);
-        }
-
         for(const auto& command : commandList.meshCommands) {
             vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, command.pipeline);
             vkCmdSetViewport(commandBuffer, 0, 1, &swapChain->viewport);

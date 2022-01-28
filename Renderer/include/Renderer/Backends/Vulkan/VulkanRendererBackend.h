@@ -58,11 +58,6 @@ struct FrameResources {
     Core::Array<VulkanBuffer> buffers;
 };
 
-struct VulkanUploadDataCommand {
-    VulkanBuffer* buffer;
-    std::span<const std::byte> data;
-};
-
 struct VulkanDrawMeshCommand {
     Resources::GPUMesh* mesh;
     VulkanGraphicsPipeline pipeline;
@@ -82,7 +77,6 @@ struct VulkanDrawMeshInstancedCommand {
 using VulkanCustomDrawCommand = std::function<void(VkCommandBuffer)>;
 
 struct VulkanFrameCommands {
-    Core::Array<VulkanUploadDataCommand> uploadCommands;
     Core::Array<VulkanDrawMeshCommand> meshCommands;
     Core::Array<VulkanDrawMeshInstancedCommand> instanceMeshCommands;
     Core::Array<VulkanCustomDrawCommand> customCommands;
@@ -138,7 +132,7 @@ public:
                       const Core::HashSet<std::string>& requiredDeviceExtensions,
                       const Core::HashSet<std::string>& requiredValidationLayers = {});
 
-    Core::Status drawFrame(const Core::Array<VulkanFrameCommands>& commands);
+    Core::Status submitCommands(const Core::Array<VulkanFrameCommands>& commands);
 
     VulkanInstance& getInstance() {
         return instance;

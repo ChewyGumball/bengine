@@ -217,17 +217,11 @@ Core::Status drawFrame(GUI::Window& window, Core::Clock::Seconds delta, VulkanRe
                                           10000.0f);
     }
 
+    instanceBuffers[currentFrame].upload(Core::AsBytes(instances));
+    uniformBuffers[currentFrame].upload(Core::ToBytes(ubo));
+
     Core::Array<VulkanFrameCommands> commandList;
     VulkanFrameCommands& commands = commandList.emplace();
-
-    VulkanUploadDataCommand& instanceUpload = commands.uploadCommands.emplace();
-    instanceUpload.buffer                   = &instanceBuffers[currentFrame];
-    instanceUpload.data                     = Core::AsBytes(instances);
-
-
-    VulkanUploadDataCommand& uniformUpload = commands.uploadCommands.emplace();
-    uniformUpload.buffer                   = &uniformBuffers[currentFrame];
-    uniformUpload.data                     = Core::ToBytes(ubo);
 
     VulkanDrawMeshInstancedCommand& draw = commands.instanceMeshCommands.emplace();
     draw.mesh                            = &mesh;
@@ -241,7 +235,7 @@ Core::Status drawFrame(GUI::Window& window, Core::Clock::Seconds delta, VulkanRe
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), commandBuffer);
     });
 
-    return backend.drawFrame(commandList);
+    return backend.submitCommands(commandList);
 }
 
 Core::Status run() {
