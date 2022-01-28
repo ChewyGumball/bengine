@@ -14,6 +14,11 @@ void MoveElements(T* source, T* destination, uint64_t elementCount) {
         return;
     }
 
+    if constexpr(std::is_trivially_copyable_v<T>) {
+        std::memmove(destination, source, elementCount * sizeof(T));
+        return;
+    }
+
     ASSERT(destination < source || (destination - source) >= elementCount);
 
     T* sourceEnd = source + elementCount;
@@ -39,6 +44,11 @@ void MoveElements(T* source, T* destination, uint64_t elementCount) {
 template <typename T>
 void MoveElementsBackwards(T* source, T* destination, uint64_t elementCount) {
     if(source == destination) {
+        return;
+    }
+
+    if constexpr(std::is_trivially_copyable_v<T>) {
+        std::memmove(destination, source, elementCount * sizeof(T));
         return;
     }
 
