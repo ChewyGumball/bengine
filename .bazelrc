@@ -1,6 +1,9 @@
 startup --windows_enable_symlinks
 build --enable_runfiles
 
+build --cxxopt="-std:c++latest"
+build --cxxopt="-Zc:__cplusplus"
+
 test --test_output=all
 test --test_arg="--reporter console"
 test --test_arg="--durations yes"

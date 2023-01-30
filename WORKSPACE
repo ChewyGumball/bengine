@@ -2,6 +2,23 @@ workspace(name = "bengine")
 
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
+################
+# Setup skylib #
+################
+
+http_archive(
+    name = "bazel_skylib",
+    sha256 = "f24ab666394232f834f74d19e2ff142b0af17466ea0c69a3f4c276ee75f6efce",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/bazel-skylib/releases/download/1.4.0/bazel-skylib-1.4.0.tar.gz",
+        "https://github.com/bazelbuild/bazel-skylib/releases/download/1.4.0/bazel-skylib-1.4.0.tar.gz",
+    ],
+)
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
 #############
 # Setup glm #
 #############
@@ -106,13 +123,9 @@ http_archive(
 
 http_archive(
     name = "com_google_absl",
-    patch_args = ["-p1"],
-    patches = [
-        "@bengine//:third_party/absl/0001-use-invoke_result-instead-of-result_of.patch",
-    ],
-    sha256 = "aabf6c57e3834f8dc3873a927f37eaf69975d4b28117fc7427dfb1c661542a87",
-    strip_prefix = "abseil-cpp-98eb410c93ad059f9bba1bf43f5bb916fc92a5ea",
-    urls = ["https://github.com/abseil/abseil-cpp/archive/98eb410c93ad059f9bba1bf43f5bb916fc92a5ea.zip"],
+    sha256 = "223740fdf1434c885e1014fe0327bb8e8e304414014af1759595a3349301de6a",
+    strip_prefix = "abseil-cpp-lts_2023_01_25",
+    urls = ["https://github.com/abseil/abseil-cpp/archive/refs/heads/lts_2023_01_25.zip"],
 )
 
 #############
@@ -133,14 +146,9 @@ http_archive(
 
 http_archive(
     name = "catch2",
-    patch_args = ["-p1"],
-    patches = [
-        "@bengine//:third_party/catch2/0001-allow-sharded-execution-for-bazel-test-sharding-supp.patch",
-        "@bengine//:third_party/catch2/0002-patch-for-bengine.patch",
-    ],
-    sha256 = "8aec86bc5ccfd963caf3dc4cd137001a7f80bf54d44c69b187cc92b40851399a",
-    strip_prefix = "Catch2-6f21a3609cea360846a0ca93be55877cca14c86d",
-    url = "https://github.com/catchorg/Catch2/archive/6f21a3609cea360846a0ca93be55877cca14c86d.zip",
+    sha256 = "5e5283bf93b2693f6877bba3eaa76d66588955374d0cec5b40117066c044ad5e",
+    strip_prefix = "Catch2-3.3.1",
+    url = "https://github.com/catchorg/Catch2/archive/refs/tags/v3.3.1.zip",
 )
 
 ###############
@@ -149,13 +157,9 @@ http_archive(
 
 http_archive(
     name = "com_github_nelhage_rules_boost",
-    patch_args = ["-p1"],
-    patches = [
-        "@bengine//:third_party/rules_boost/0001-add-patch_cmds_win.patch",
-    ],
-    sha256 = "9a588a62062c8bf352b398a5db3ccc65561d43c40968762f7e05da76ccb5a6c9",
-    strip_prefix = "rules_boost-2613d04ab3d22dfc4543ea0a083d9adeaa0daf09",
-    url = "https://github.com/nelhage/rules_boost/archive/2613d04ab3d22dfc4543ea0a083d9adeaa0daf09.zip",
+    sha256 = "6ae52932cbc21def3fad6772c814150f69bd7a0af9ad7da3bada074ee95b41ce",
+    strip_prefix = "rules_boost-812ba130cd895d142388d9b8fde7a66d9b3da6a5",
+    url = "https://github.com/nelhage/rules_boost/archive/812ba130cd895d142388d9b8fde7a66d9b3da6a5.zip",
 )
 
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
@@ -221,9 +225,9 @@ http_archive(
     url = "https://github.com/madler/zlib/archive/refs/tags/v1.2.11.zip",
 )
 
-##############
-# Setup zlib #
-##############
+#################################
+# Setup vulkan memory allocator #
+#################################
 
 http_archive(
     name = "vulkan_memory_allocator",

@@ -20,12 +20,6 @@ struct Path {
 
 namespace std {
 template <>
-struct hash<filesystem::path> {
-    size_t operator()(const filesystem::path& s) const noexcept {
-        return hash_value(s);
-    }
-};
-template <>
 struct hash<Core::IO::Path> {
     size_t operator()(const Core::IO::Path& value) const noexcept {
         return Core::Algorithms::CombineHashes(value.path, value.type);
