@@ -1,25 +1,25 @@
 #pragma once
 
-#include <Core/Containers/Array.h>
+#include "core/containers/Array.h"
 
-#include <Renderer/Backends/RendererBackend.h>
+#include "renderer/backends/RendererBackend.h"
 
-#include <Renderer/Backends/Vulkan/VulkanFence.h>
-#include <Renderer/Backends/Vulkan/VulkanGraphicsPipeline.h>
-#include <Renderer/Backends/Vulkan/VulkanInstance.h>
-#include <Renderer/Backends/Vulkan/VulkanLogicalDevice.h>
-#include <Renderer/Backends/Vulkan/VulkanMemoryAllocator.h>
-#include <Renderer/Backends/Vulkan/VulkanPhysicalDevice.h>
-#include <Renderer/Backends/Vulkan/VulkanRenderPass.h>
-#include <Renderer/Backends/Vulkan/VulkanSemaphore.h>
-#include <Renderer/Backends/Vulkan/VulkanSwapChain.h>
+#include "renderer/backends/vulkan/VulkanFence.h"
+#include "renderer/backends/vulkan/VulkanGraphicsPipeline.h"
+#include "renderer/backends/vulkan/VulkanInstance.h"
+#include "renderer/backends/vulkan/VulkanLogicalDevice.h"
+#include "renderer/backends/vulkan/VulkanMemoryAllocator.h"
+#include "renderer/backends/vulkan/VulkanPhysicalDevice.h"
+#include "renderer/backends/vulkan/VulkanRenderPass.h"
+#include "renderer/backends/vulkan/VulkanSemaphore.h"
+#include "renderer/backends/vulkan/VulkanSwapChain.h"
 
-#include <Renderer/Resources/GPUMesh.h>
-#include <Renderer/Resources/GPUTexture.h>
+#include "renderer/resources/GPUMesh.h"
+#include "renderer/resources/GPUTexture.h"
 
-#include <Core/Containers/Array.h>
-#include <Core/Containers/HashSet.h>
-#include <Core/Status/StatusOr.h>
+#include "core/containers/Array.h"
+#include "core/containers/HashSet.h"
+#include "core/status/StatusOr.h"
 
 #include <functional>
 #include <optional>
@@ -106,10 +106,12 @@ public:
 
     VulkanImage createImage(std::span<const std::byte> data, VkFormat format, VkExtent2D dimensions);
 
-    Renderer::Resources::GPUTexture
-    createTexture(std::span<const std::byte> data, VkFormat format, VkExtent2D dimensions);
-    Renderer::Resources::GPUMesh
-    createMesh(std::span<const std::byte> vertexData, std::span<const std::byte> indexData, VkIndexType indexType);
+    Renderer::Resources::GPUTexture createTexture(std::span<const std::byte> data,
+                                                  VkFormat format,
+                                                  VkExtent2D dimensions);
+    Renderer::Resources::GPUMesh createMesh(std::span<const std::byte> vertexData,
+                                            std::span<const std::byte> indexData,
+                                            VkIndexType indexType);
 
     void processFinishedSubmitResources();
 

@@ -5,17 +5,16 @@ package(default_visibility = ["//visibility:public"])
 bengine_cc_library(
     name = "geometry",
     srcs = [
-        "src/Plane.cpp",
-        "src/Transform.cpp",
-        "src/ViewFrustum.cpp",
+        "Plane.cpp",
+        "Transform.cpp",
+        "ViewFrustum.cpp",
     ],
     hdrs = [
-        "include/Core/Geometry/BoundingBox.h",
-        "include/Core/Geometry/Plane.h",
-        "include/Core/Geometry/Transform.h",
-        "include/Core/Geometry/ViewFrustum.h",
+        "BoundingBox.h",
+        "Plane.h",
+        "Transform.h",
+        "ViewFrustum.h",
     ],
-    strip_include_prefix = "include",
     deps = [
         "//core/algorithms:containers",
         "//core/containers:array",

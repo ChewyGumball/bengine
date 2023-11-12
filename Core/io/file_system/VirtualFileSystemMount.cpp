@@ -1,4 +1,4 @@
-#include "Core/IO/FileSystem/VirtualFileSystemMount.h"
+#include "core/io/file_system/VirtualFileSystemMount.h"
 
 namespace Core::IO {
 VirtualFileSystemMount::VirtualFileSystemMount(const std::filesystem::path& mount, const std::filesystem::path& root)

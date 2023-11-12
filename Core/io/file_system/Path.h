@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Core/Algorithms/Hashing.h>
+#include "core/algorithms/Hashing.h"
 
 #include <filesystem>
 

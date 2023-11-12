@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Core/Containers/Array.h>
-#include <Core/Containers/HashMap.h>
+#include "core/containers/Array.h"
+#include "core/containers/HashMap.h"
 
-#include <Core/IO/FileSystem/Path.h>
+#include "core/io/file_system/Path.h"
 
 namespace Assets {
 struct TextureInput {

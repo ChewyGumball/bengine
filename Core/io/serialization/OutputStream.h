@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Core/Containers/Span.h"
-#include "Core/IO/Serialization/BinarySerializable.h"
+#include "core/containers/Span.h"
+#include "core/io/serialization/BinarySerializable.h"
 
 #include <memory>
 #include <span>

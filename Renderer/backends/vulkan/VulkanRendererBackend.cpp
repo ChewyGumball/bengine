@@ -1,9 +1,9 @@
-#include <Renderer/Backends/Vulkan/VulkanRendererBackend.h>
+#include "renderer/backends/vulkan/VulkanRendererBackend.h"
 
-#include <Renderer/Backends/Vulkan/DiagnosticCheckpoint.h>
-#include <Renderer/Backends/Vulkan/VulkanSwapChainDetails.h>
+#include "renderer/backends/vulkan/DiagnosticCheckpoint.h"
+#include "renderer/backends/vulkan/VulkanSwapChainDetails.h"
 
-#include <Core/Algorithms/Optional.h>
+#include "core/algorithms/Optional.h"
 
 namespace {
 Core::LogCategory Backend("Vulkan Backend");
@@ -183,8 +183,9 @@ VulkanBuffer VulkanRendererBackend::createBuffer(std::span<const std::byte> data
     return finalBuffer;
 }
 
-VulkanImage
-VulkanRendererBackend::createImage(std::span<const std::byte> data, VkFormat format, VkExtent2D dimensions) {
+VulkanImage VulkanRendererBackend::createImage(std::span<const std::byte> data,
+                                               VkFormat format,
+                                               VkExtent2D dimensions) {
     VulkanBuffer transferBuffer =
           createBuffer(data.size(), VulkanBufferUsageType::None, VulkanBufferTransferType::Source);
     transferBuffer.upload(data);
@@ -232,8 +233,9 @@ VulkanRendererBackend::createImage(std::span<const std::byte> data, VkFormat for
     return image;
 }
 
-Renderer::Resources::GPUTexture
-VulkanRendererBackend::createTexture(std::span<const std::byte> data, VkFormat format, VkExtent2D dimensions) {
+Renderer::Resources::GPUTexture VulkanRendererBackend::createTexture(std::span<const std::byte> data,
+                                                                     VkFormat format,
+                                                                     VkExtent2D dimensions) {
     VulkanImage image = createImage(data, format, dimensions);
     return Renderer::Resources::GPUTexture{
           .image   = image,

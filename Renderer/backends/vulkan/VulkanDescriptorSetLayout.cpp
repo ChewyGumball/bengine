@@ -1,7 +1,7 @@
-#include "Renderer/Backends/Vulkan/VulkanDescriptorSetLayout.h"
+#include "renderer/backends/vulkan/VulkanDescriptorSetLayout.h"
 
-#include <Core/Containers/Array.h>
-#include <Core/Containers/Visitor.h>
+#include "core/containers/Array.h"
+#include "core/containers/Visitor.h"
 
 namespace Renderer::Backends::Vulkan {
 VulkanDescriptorSetLayout VulkanDescriptorSetLayout::Create(VkDevice device, const Assets::Shader& shader) {

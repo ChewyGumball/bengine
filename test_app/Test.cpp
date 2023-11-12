@@ -1,7 +1,7 @@
 // Test.cpp : This file contains the 'main' function. Program execution begins
 // and ends there.
 //
-#include <Core/Logging/Logger.h>
+#include "core/logging/Logger.h"
 
 #define GLFW_INCLUDE_NONE
 #define GLFW_INCLUDE_VULKAN
@@ -13,26 +13,26 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 
-#include <Core/IO/FileSystem/FileSystem.h>
-#include <Core/IO/FileSystem/Path.h>
-#include <Core/IO/FileSystem/VirtualFileSystemMount.h>
-#include <Core/Time/SystemClockTicker.h>
-#include <Core/Time/Timer.h>
+#include "core/io/file_system/FileSystem.h"
+#include "core/io/file_system/Path.h"
+#include "core/io/file_system/VirtualFileSystemMount.h"
+#include "core/time/SystemClockTicker.h"
+#include "core/time/Timer.h"
 
-#include <GUI/Window.h>
+#include "gui/Window.h"
 
-#include <Renderer/Backends/Vulkan/DiagnosticCheckpoint.h>
-#include <Renderer/Backends/Vulkan/VulkanRendererBackend.h>
+#include "renderer/backends/vulkan/DiagnosticCheckpoint.h"
+#include "renderer/backends/vulkan/VulkanRendererBackend.h"
 
-#include <Renderer/Backends/Vulkan/VulkanBuffer.h>
-#include <Renderer/Backends/Vulkan/VulkanDescriptorPool.h>
-#include <Renderer/Backends/Vulkan/VulkanGraphicsPipeline.h>
+#include "renderer/backends/vulkan/VulkanBuffer.h"
+#include "renderer/backends/vulkan/VulkanDescriptorPool.h"
+#include "renderer/backends/vulkan/VulkanGraphicsPipeline.h"
 
-#include <Renderer/Resources/GPUMesh.h>
-#include <Renderer/Resources/GPUTexture.h>
+#include "renderer/resources/GPUMesh.h"
+#include "renderer/resources/GPUTexture.h"
 
-#include <Assets/Models/Mesh.h>
-#include <Assets/Textures/Texture.h>
+#include "assets/models/Mesh.h"
+#include "assets/textures/Texture.h"
 
 #include <imgui.h>
 #include <imgui/imgui_impl_glfw.h>

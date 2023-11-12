@@ -1,10 +1,10 @@
 #pragma once
 
-#include "Core/IO/Serialization/BinarySerializable.h"
+#include "core/io/serialization/BinarySerializable.h"
 
-#include <Core/Assert.h>
+#include "core/assert/Assert.h"
 
-#include <Core/Containers/Array.h>
+#include "core/containers/Array.h"
 
 #include <cstddef>
 #include <stdint.h>

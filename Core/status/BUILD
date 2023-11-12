@@ -5,10 +5,9 @@ package(default_visibility = ["//visibility:public"])
 bengine_cc_library(
     name = "status",
     hdrs = [
-        "include/Core/Status/Status.h",
-        "include/Core/Status/StatusOr.h",
+        "Status.h",
+        "StatusOr.h",
     ],
-    strip_include_prefix = "include",
     deps = [
         "//core/assert",
         "@spdlog",

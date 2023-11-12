@@ -2,15 +2,16 @@
 #include <cstdlib>
 #include <filesystem>
 
-#include <Core/Containers/Array.h>
-#include <Core/Containers/HashMap.h>
+#include "core/containers/Array.h"
+#include "core/containers/HashMap.h"
 
-#include <Core/IO/FileSystem/FileSystem.h>
-#include <Core/IO/Serialization/ArrayBuffer.h>
-#include <Core/IO/Serialization/OutputStream.h>
-#include <Core/Logging/Logger.h>
+#include "core/io/file_system/FileSystem.h"
+#include "core/io/serialization/ArrayBuffer.h"
+#include "core/io/serialization/OutputStream.h"
+#include "core/logging/Logger.h"
 
-#include <Assets/Importers/OBJImporter.h>
+
+#include "assets/importers/obj/OBJImporter.h"
 
 namespace {
 Core::LogCategory Compiler("Model Compiler");

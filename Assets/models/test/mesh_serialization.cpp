@@ -1,9 +1,9 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <Core/IO/Serialization/ArrayBuffer.h>
-#include <Core/IO/Serialization/OutputStream.h>
+#include "core/io/serialization/ArrayBuffer.h"
+#include "core/io/serialization/OutputStream.h"
 
-#include <Assets/Models/VertexFormat.h>
+#include "assets/models/VertexFormat.h"
 
 TEST_CASE("Vertex Format Serialization", "Serialization") {
     using namespace Assets;

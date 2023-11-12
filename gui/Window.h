@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Core/Containers/HashSet.h>
+#include "core/containers/HashSet.h"
 #include <Core/Status/StatusOr.h>
 
 #include <Renderer/Backends/Vulkan/VulkanInstance.h>

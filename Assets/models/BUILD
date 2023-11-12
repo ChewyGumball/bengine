@@ -4,15 +4,12 @@ package(default_visibility = ["//visibility:public"])
 
 bengine_cc_library(
     name = "models",
-    srcs = [
-        "src/Mesh.cpp",
-    ],
+    srcs = ["Mesh.cpp"],
     hdrs = [
-        "include/Assets/Models/Mesh.h",
-        "include/Assets/Models/Model.h",
-        "include/Assets/Models/VertexFormat.h",
+        "Mesh.h",
+        "Model.h",
+        "VertexFormat.h",
     ],
-    strip_include_prefix = "include",
     deps = [
         "//assets/buffers:buffer_layout",
         "//core/containers:array",

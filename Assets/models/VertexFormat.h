@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Assets/Buffers/BufferLayout.h>
+#include "assets/buffers/BufferLayout.h"
 
-#include <Core/Containers/HashMap.h>
-#include <Core/IO/Serialization/InputStream.h>
-#include <Core/IO/Serialization/OutputStream.h>
+#include "core/containers/HashMap.h"
+#include "core/io/serialization/InputStream.h"
+#include "core/io/serialization/OutputStream.h"
 
 namespace Assets {
 

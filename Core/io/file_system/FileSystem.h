@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Core/IO/FileSystem/FileSystemMount.h"
-#include "Core/IO/FileSystem/Path.h"
+#include "core/io/file_system/FileSystemMount.h"
+#include "core/io/file_system/Path.h"
 
-#include <Core/Containers/Array.h>
-#include <Core/Containers/HashMap.h>
-#include <Core/IO/Serialization/InputStream.h>
-#include <Core/IO/Serialization/OutputStream.h>
+#include "core/containers/Array.h"
+#include "core/containers/HashMap.h"
+#include "core/io/serialization/InputStream.h"
+#include "core/io/serialization/OutputStream.h"
 
 
 #include <filesystem>

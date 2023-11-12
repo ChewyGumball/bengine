@@ -1,6 +1,6 @@
-#include "Core/IO/Serialization/BufferView.h"
+#include "core/io/serialization/BufferView.h"
 
-#include <Core/Assert.h>
+#include "core/assert/Assert.h"
 
 namespace Core::IO {
 

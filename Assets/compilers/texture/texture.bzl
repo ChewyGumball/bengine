@@ -42,7 +42,7 @@ bengine_texture = rule(
         "src": attr.label(allow_single_file = [".jpg", ".png", ".tga", ".bmp", ".gif"]),
         "output_prefix_path": attr.string(),
         "_compiler": attr.label(
-            default = Label("//assets/compilers:texture_compiler"),
+            default = Label("//assets/compilers/texture:texture_compiler"),
             allow_single_file = True,
             executable = True,
             cfg = "exec",

@@ -1,6 +1,6 @@
-#include "Renderer/Backends/Vulkan/VulkanSwapChainDetails.h"
+#include "renderer/backends/vulkan/VulkanSwapChainDetails.h"
 
-#include <Core/Algorithms/Containers.h>
+#include "core/algorithms/Containers.h"
 
 namespace {
 

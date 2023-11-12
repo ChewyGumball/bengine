@@ -1,7 +1,7 @@
 #pragma once
 
-#include <Renderer/Backends/Vulkan/VulkanCore.h>
-#include <Renderer/Backends/Vulkan/VulkanInstance.h>
+#include "renderer/backends/vulkan/VulkanCore.h"
+#include "renderer/backends/vulkan/VulkanInstance.h"
 
 #include <string>
 #include <unordered_map>

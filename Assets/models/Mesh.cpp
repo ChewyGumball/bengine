@@ -1,6 +1,6 @@
-#include "Assets/Models/Mesh.h"
+#include "assets/models/Mesh.h"
 
-#include <Core/Containers/Array.h>
+#include "core/containers/Array.h"
 
 #include <algorithm>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Core/IO/Serialization/Compression/StreamingCompressionBuffer.h>
+#include "core/io/serialization/compression/StreamingCompressionBuffer.h"
 
 #include <streambuf>
 

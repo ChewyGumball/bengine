@@ -42,7 +42,7 @@ bengine_obj_mesh = rule(
         "src": attr.label(allow_single_file = [".obj"]),
         "output_prefix_path": attr.string(),
         "_compiler": attr.label(
-            default = Label("//assets/compilers:model_compiler"),
+            default = Label("//assets/compilers/model:model_compiler"),
             allow_single_file = True,
             executable = True,
             cfg = "exec",

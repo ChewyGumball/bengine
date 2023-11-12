@@ -1,7 +1,8 @@
-#include "Renderer/Backends/Vulkan/VulkanPipelineLayout.h"
+#include "renderer/backends/vulkan/VulkanPipelineLayout.h"
 
 namespace Renderer::Backends::Vulkan {
-VulkanPipelineLayout VulkanPipelineLayout::Create(VkDevice device, const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts) {
+VulkanPipelineLayout VulkanPipelineLayout::Create(VkDevice device,
+                                                  const std::vector<VkDescriptorSetLayout>& descriptorSetLayouts) {
     VkPipelineLayoutCreateInfo pipelineLayoutInfo = {};
     pipelineLayoutInfo.sType                      = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     if(!descriptorSetLayouts.empty()) {

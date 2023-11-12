@@ -1,4 +1,4 @@
-#include "Core/Logging/Logger.h"
+#include "core/logging/Logger.h"
 
 #define SPDLOG_FMT_EXTERNAL
 #include <spdlog/spdlog.h>

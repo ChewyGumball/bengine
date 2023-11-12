@@ -86,7 +86,7 @@ bengine_shader = rule(
         "deps": attr.label_list(providers = [ShaderLibraryInfo]),
         "output_prefix_path": attr.string(),
         "_compiler": attr.label(
-            default = Label("//assets/compilers:shader_compiler"),
+            default = Label("//assets/compilers/shader:shader_compiler"),
             allow_single_file = True,
             executable = True,
             cfg = "exec",

@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Core/Time/Clock.h"
+#include "core/time/Clock.h"
 
-#include <Core/Containers/Array.h>
+#include "core/containers/Array.h"
 
 #include <chrono>
 

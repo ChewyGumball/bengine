@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Core/Geometry/Plane.h"
-#include "Core/Geometry/Transform.h"
+#include "core/geometry/Plane.h"
+#include "core/geometry/Transform.h"
 
-#include <Core/Containers/Array.h>
+#include "core/containers/Array.h"
 
 #include <glm/mat4x4.hpp>
 

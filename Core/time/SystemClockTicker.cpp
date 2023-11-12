@@ -1,4 +1,4 @@
-#include "Core/Time/SystemClockTicker.h"
+#include "core/time/SystemClockTicker.h"
 
 namespace Core {
 

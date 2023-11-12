@@ -1,4 +1,4 @@
-#include "Core/Geometry/Plane.h"
+#include "core/geometry/Plane.h"
 
 #include <glm/geometric.hpp>
 

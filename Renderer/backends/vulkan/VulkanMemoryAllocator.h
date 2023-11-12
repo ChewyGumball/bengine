@@ -2,8 +2,8 @@
 
 #include "VulkanCore.h"
 
-#include <Core/Assert.h>
-#include <Core/Logging/Logger.h>
+#include "core/assert/Assert.h"
+#include "core/logging/Logger.h"
 
 #include <fmt/printf.h>
 

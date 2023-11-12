@@ -1,9 +1,9 @@
-#include "Assets/Importers/OBJImporter.h"
+#include "assets/importers/obj/OBJImporter.h"
 
-#include <Core/Containers/Span.h>
+#include "core/containers/Span.h"
 
-#include <Core/Algorithms/Strings.h>
-#include <Core/IO/FileSystem/FileSystem.h>
+#include "core/algorithms/Strings.h"
+#include "core/io/file_system/FileSystem.h"
 
 #include <optional>
 

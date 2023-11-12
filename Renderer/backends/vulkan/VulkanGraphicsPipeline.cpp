@@ -1,7 +1,8 @@
-#include "Renderer/Backends/Vulkan/VulkanGraphicsPipeline.h"
+#include "renderer/backends/vulkan/VulkanGraphicsPipeline.h"
 
-#include "Renderer/Backends/Vulkan/VulkanShaderModule.h"
-#include <Renderer/Backends/Vulkan/VulkanEnums.h>
+#include "renderer/backends/vulkan/VulkanEnums.h"
+#include "renderer/backends/vulkan/VulkanShaderModule.h"
+
 
 namespace Renderer::Backends::Vulkan {
 VulkanGraphicsPipelineInfo::VulkanGraphicsPipelineInfo()

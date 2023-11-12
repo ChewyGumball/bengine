@@ -1,6 +1,6 @@
 #pragma once
 
-#include <Assets/Catalogs/AssetCatalog.h>
+#include "assets/catalogs/AssetCatalog.h"
 
 
 namespace Assets {

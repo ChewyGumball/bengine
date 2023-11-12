@@ -2,8 +2,8 @@
 
 #include <unordered_map>
 
-#include "Core/IO/Serialization/InputStream.h"
-#include "Core/IO/Serialization/OutputStream.h"
+#include "core/io/serialization/InputStream.h"
+#include "core/io/serialization/OutputStream.h"
 
 namespace Core {
 template <typename KEY, typename VALUE>

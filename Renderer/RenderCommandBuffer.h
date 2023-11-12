@@ -1,11 +1,11 @@
 #pragma once
 
-#include <Renderer/Camera.h>
+#include "renderer/Camera.h>
 
-#include <Renderer/Resources/GPUMesh.h>
-#include <Renderer/Resources/GPUTexture.h>
+#include "renderer/resources/GPUMesh.h>
+#include "renderer/resources/GPUTexture.h>
 
-#include <Renderer/Backends/Vulkan/VulkanGraphicsPipeline.h>
+#include "renderer/backends/vulkan/VulkanGraphicsPipeline.h"
 
 namespace Renderer {
 

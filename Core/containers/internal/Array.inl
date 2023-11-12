@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Core/Containers/Array.h>
+#include "core/containers/Array.h"
 
-#include <Core/Algorithms/Memory.h>
-#include <Core/Containers/Span.h>
+#include "core/algorithms/Memory.h"
+#include "core/containers/Span.h"
 
 namespace Core {
 

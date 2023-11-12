@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Core/Containers/Array.h>
-#include <Core/Status/StatusOr.h>
+#include "core/containers/Array.h"
+#include "core/status/StatusOr.h"
 
-#include <Core/IO/Serialization/InputStream.h>
-#include <Core/IO/Serialization/OutputStream.h>
+#include "core/io/serialization/InputStream.h"
+#include "core/io/serialization/OutputStream.h"
 
 #include <optional>
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/IO/FileSystem/BareFileSystemMount.h"
+#include "core/io/file_system/BareFileSystemMount.h"
 
 namespace Core::IO {
 struct VirtualFileSystemMount : public BareFileSystemMount {

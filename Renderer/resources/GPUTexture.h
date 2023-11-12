@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Renderer/Backends/Vulkan/VulkanImage.h>
-#include <Renderer/Backends/Vulkan/VulkanImageView.h>
-#include <Renderer/Backends/Vulkan/VulkanSampler.h>
+#include "renderer/backends/vulkan/VulkanImage.h"
+#include "renderer/backends/vulkan/VulkanImageView.h"
+#include "renderer/backends/vulkan/VulkanSampler.h"
 
 namespace Renderer::Resources {
 

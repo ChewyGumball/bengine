@@ -1,7 +1,7 @@
 
-#include <Assets/Compilers/ModelCompiler.h>
+#include "assets/compilers/model/ModelCompiler.h"
 
-#include <Core/Logging/Logger.h>
+#include "core/logging/Logger.h"
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>

@@ -1,7 +1,7 @@
 
-#include <Assets/Compilers/TextureCompiler.h>
+#include "assets/compilers/texture/TextureCompiler.h"
 
-#include <Core/Logging/Logger.h>
+#include "core/logging/Logger.h"
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>

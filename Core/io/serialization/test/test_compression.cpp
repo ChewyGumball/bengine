@@ -2,7 +2,7 @@
 #include <catch2/matchers/catch_matchers.hpp>
 #include <catch2/matchers/catch_matchers_range_equals.hpp>
 
-#include <Core/IO/Serialization/Compression.h>
+#include "core/io/serialization/compression/Compression.h"
 
 
 TEST_CASE("ZStd") {

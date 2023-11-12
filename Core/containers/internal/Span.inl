@@ -1,8 +1,8 @@
 #pragma once
 
-#include <Core/Containers/Span.h>
+#include "core/containers/Span.h"
 
-#include <Core/Assert.h>
+#include "core/assert/Assert.h"
 
 namespace Core {
 

@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Core/IO/Serialization/BinarySerializable.h"
+#include "core/io/serialization/BinarySerializable.h"
 
-#include <Core/Containers/Span.h>
-#include <Core/Status/Status.h>
+#include "core/containers/Span.h"
+#include "core/status/Status.h"
 
 #include <istream>
 #include <memory>

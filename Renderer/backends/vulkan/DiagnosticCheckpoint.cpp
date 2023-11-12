@@ -1,6 +1,6 @@
-#include <Renderer/Backends/Vulkan/DiagnosticCheckpoint.h>
+#include "renderer/backends/vulkan/DiagnosticCheckpoint.h"
 
-#include <Renderer/Backends/Vulkan/VulkanQueue.h>
+#include "renderer/backends/vulkan/VulkanQueue.h"
 
 namespace {
 PFN_vkCmdSetCheckpointNV vkCmdSetCheckpointNV_FN             = nullptr;

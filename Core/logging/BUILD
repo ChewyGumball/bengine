@@ -4,12 +4,11 @@ package(default_visibility = ["//visibility:public"])
 
 bengine_cc_library(
     name = "logging",
-    srcs = ["src/Logger.cpp"],
+    srcs = ["Logger.cpp"],
     hdrs = [
-        "include/Core/Logging/LogCategory.h",
-        "include/Core/Logging/Logger.h",
+        "LogCategory.h",
+        "Logger.h",
     ],
-    strip_include_prefix = "include",
     deps = [
         "@fmt",
         "@spdlog",

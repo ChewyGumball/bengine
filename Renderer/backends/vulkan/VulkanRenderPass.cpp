@@ -1,8 +1,9 @@
-#include "Renderer/Backends/Vulkan/VulkanRenderPass.h"
+#include "renderer/backends/vulkan/VulkanRenderPass.h"
 
 namespace Renderer::Backends::Vulkan {
-VulkanRenderPass
-VulkanRenderPass::Create(const VkDevice device, const VkFormat colourFormat, const VkFormat depthFormat) {
+VulkanRenderPass VulkanRenderPass::Create(const VkDevice device,
+                                          const VkFormat colourFormat,
+                                          const VkFormat depthFormat) {
     VkAttachmentDescription colorAttachment = {};
     colorAttachment.format                  = colourFormat;
     colorAttachment.samples                 = VK_SAMPLE_COUNT_1_BIT;

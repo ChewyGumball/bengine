@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Core/Algorithms/Hashing.h>
-#include <Core/Containers/HashMap.h>
-#include <Core/IO/Serialization/InputStream.h>
-#include <Core/IO/Serialization/OutputStream.h>
+#include "core/algorithms/Hashing.h"
+#include "core/containers/HashMap.h"
+#include "core/io/serialization/InputStream.h"
+#include "core/io/serialization/OutputStream.h"
 
 namespace Assets {
 

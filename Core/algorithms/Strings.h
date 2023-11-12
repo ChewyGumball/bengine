@@ -2,7 +2,7 @@
 
 #include <string_view>
 
-#include "Core/Containers/Array.h"
+#include "core/containers/Array.h"
 
 namespace Core::Algorithms::String {
 
@@ -19,8 +19,9 @@ void SplitIntoBuffer(const std::string_view string,
                      const std::string_view delimiters,
                      Core::Array<std::string_view>& buffer,
                      Filter filter = Filter::None);
-Core::Array<std::string_view>
-Split(const std::string_view string, std::string_view delimiters, Filter filter = Filter::None);
+Core::Array<std::string_view> Split(const std::string_view string,
+                                    std::string_view delimiters,
+                                    Filter filter = Filter::None);
 
 
 Core::Array<std::string_view> SplitLines(const std::string_view string, Filter filter = Filter::None);

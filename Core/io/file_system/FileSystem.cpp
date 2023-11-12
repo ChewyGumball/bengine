@@ -1,6 +1,6 @@
-#include "Core/IO/FileSystem/FileSystem.h"
+#include "core/io/file_system/FileSystem.h"
 
-#include "Core/IO/FileSystem/BareFileSystemMount.h"
+#include "core/io/file_system/BareFileSystemMount.h"
 
 namespace {
 Core::IO::BareFileSystemMount DefaultMount("");

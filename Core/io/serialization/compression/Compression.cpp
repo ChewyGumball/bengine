@@ -1,8 +1,8 @@
-#include <Core/IO/Serialization/Compression.h>
+#include "core/io/serialization/compression/Compression.h"
 
-#include <Core/IO/Serialization/Compression/ZStdCompression.h>
-#include <Core/IO/Serialization/Compression/ZStdCompressionBuffer.h>
-#include <Core/IO/Serialization/Compression/ZStdDecompressionBuffer.h>
+#include "core/io/serialization/compression/ZStdCompression.h"
+#include "core/io/serialization/compression/ZStdCompressionBuffer.h"
+#include "core/io/serialization/compression/ZStdDecompressionBuffer.h"
 
 namespace {}    // namespace
 
@@ -120,8 +120,8 @@ CompressionHeader ReadCompressionHeader(Core::IO::InputStream& stream) {
 }    // namespace Core::IO::Compression
 
 /*
-#include <Core/IO/Serialization/ArrayBuffer.h>
-#include <Core/IO/Serialization/MemoryBuffer.h>
+#include "core/io/serialization/ArrayBuffer.h"
+#include "core/io/serialization/MemoryBuffer.h"
 
 #include <zlib/zlib.h>
 

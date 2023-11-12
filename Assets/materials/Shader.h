@@ -1,12 +1,12 @@
 #pragma once
 
-#include <Assets/Buffers/BufferLayout.h>
-#include <Assets/Models/VertexFormat.h>
+#include "assets/buffers/BufferLayout.h"
+#include "assets/models/VertexFormat.h"
 
-#include <Core/Containers/Array.h>
-#include <Core/Containers/HashMap.h>
-#include <Core/IO/Serialization/InputStream.h>
-#include <Core/IO/Serialization/OutputStream.h>
+#include "core/containers/Array.h"
+#include "core/containers/HashMap.h"
+#include "core/io/serialization/InputStream.h"
+#include "core/io/serialization/OutputStream.h"
 
 #include <filesystem>
 #include <variant>

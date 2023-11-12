@@ -1,4 +1,4 @@
-#include "Core/IO/Serialization/MemoryBuffer.h"
+#include "core/io/serialization/MemoryBuffer.h"
 
 namespace Core::IO {
 

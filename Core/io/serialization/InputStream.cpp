@@ -1,4 +1,4 @@
-#include "Core/IO/Serialization/InputStream.h"
+#include "core/io/serialization/InputStream.h"
 
 namespace Core::IO {
 InputStream::InputStream(std::basic_streambuf<std::byte>* stream)

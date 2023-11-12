@@ -1,7 +1,10 @@
-#include "Renderer/Backends/Vulkan/VulkanFramebuffer.h"
+#include "renderer/backends/vulkan/VulkanFramebuffer.h"
 
 namespace Renderer::Backends::Vulkan {
-VulkanFramebuffer VulkanFramebuffer::Create(VkDevice device, VkRenderPass renderPass, VkExtent2D extent, const std::vector<VkImageView>& attachments) {
+VulkanFramebuffer VulkanFramebuffer::Create(VkDevice device,
+                                            VkRenderPass renderPass,
+                                            VkExtent2D extent,
+                                            const std::vector<VkImageView>& attachments) {
     VkFramebufferCreateInfo framebufferInfo = {};
     framebufferInfo.sType                   = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
     framebufferInfo.renderPass              = renderPass;

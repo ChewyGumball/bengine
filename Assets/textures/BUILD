@@ -4,14 +4,11 @@ package(default_visibility = ["//visibility:public"])
 
 bengine_cc_library(
     name = "textures",
-    hdrs = [
-        "include/Assets/Textures/Texture.h",
-    ],
-    strip_include_prefix = "include",
+    hdrs = ["Texture.h"],
     deps = [
         "//core/containers:array",
-        "//core/io/serialization:compression",
         "//core/io/serialization:streams",
+        "//core/io/serialization/compression",
         "//core/logging",
     ],
 )

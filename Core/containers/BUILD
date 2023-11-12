@@ -5,10 +5,9 @@ package(default_visibility = ["//visibility:public"])
 bengine_cc_library(
     name = "array",
     hdrs = [
-        "include/Core/Containers/Array.h",
-        "include/Core/Containers/internal/Array.inl",
+        "Array.h",
+        "internal/Array.inl",
     ],
-    strip_include_prefix = "include",
     deps = [
         ":span",
         "//core/algorithms:memory",
@@ -19,50 +18,41 @@ bengine_cc_library(
 
 bengine_cc_library(
     name = "hash_map",
-    hdrs = ["include/Core/Containers/HashMap.h"],
-    strip_include_prefix = "include",
-    deps = [
-        "//core/io/serialization:streams",
-    ],
+    hdrs = ["HashMap.h"],
+    deps = ["//core/io/serialization:streams"],
 )
 
 bengine_cc_library(
     name = "hash_set",
-    hdrs = ["include/Core/Containers/HashSet.h"],
-    strip_include_prefix = "include",
+    hdrs = ["HashSet.h"],
 )
 
 bengine_cc_library(
     name = "opaque_id",
-    hdrs = ["include/Core/Containers/OpaqueID.h"],
-    strip_include_prefix = "include",
+    hdrs = ["OpaqueID.h"],
 )
 
 bengine_cc_library(
     name = "ordered_map",
-    hdrs = ["include/Core/Containers/OrderedMap.h"],
-    strip_include_prefix = "include",
+    hdrs = ["OrderedMap.h"],
 )
 
 bengine_cc_library(
     name = "queue",
-    hdrs = ["include/Core/Containers/Queue.h"],
-    strip_include_prefix = "include",
+    hdrs = ["Queue.h"],
 )
 
 bengine_cc_library(
     name = "span",
     hdrs = [
-        "include/Core/Containers/Span.h",
-        "include/Core/Containers/internal/Span.inl",
+        "Span.h",
+        "internal/Span.inl",
     ],
-    strip_include_prefix = "include",
 )
 
 bengine_cc_library(
     name = "index_span",
-    hdrs = ["include/Core/Containers/IndexSpan.h"],
-    strip_include_prefix = "include",
+    hdrs = ["IndexSpan.h"],
     deps = [
         "//core/assert",
         "//core/io/serialization:streams",
@@ -71,15 +61,12 @@ bengine_cc_library(
 
 bengine_cc_library(
     name = "visitor",
-    hdrs = ["include/Core/Containers/Visitor.h"],
-    strip_include_prefix = "include",
+    hdrs = ["Visitor.h"],
 )
 
 bengine_cc_test(
     name = "test_array",
-    srcs = [
-        "test/test_array.cpp",
-    ],
+    srcs = ["test/test_array.cpp"],
     shard_count = 5,
     deps = [
         ":array",

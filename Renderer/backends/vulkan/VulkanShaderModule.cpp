@@ -1,6 +1,6 @@
-#include "Renderer/Backends/Vulkan/VulkanShaderModule.h"
+#include "renderer/backends/vulkan/VulkanShaderModule.h"
 
-#include <Core/IO/FileSystem/FileSystem.h>
+#include "core/io/file_system/FileSystem.h"
 
 namespace Renderer::Backends::Vulkan {
 

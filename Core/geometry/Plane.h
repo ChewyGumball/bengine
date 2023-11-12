@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Geometry/Transform.h"
+#include "core/geometry/Transform.h"
 
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>

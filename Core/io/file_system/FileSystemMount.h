@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Core/IO/FileSystem/Path.h"
+#include "Core/io/file_system/Path.h"
 
-#include <Core/Containers/Array.h>
-#include <Core/IO/Serialization/InputStream.h>
-#include <Core/IO/Serialization/OutputStream.h>
-#include <Core/Status/StatusOr.h>
+#include "core/containers/Array.h"
+#include "core/io/serialization/InputStream.h"
+#include "core/io/serialization/OutputStream.h"
+#include "core/status/StatusOr.h"
 
 #include <filesystem>
 #include <functional>

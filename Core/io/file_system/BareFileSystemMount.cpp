@@ -1,8 +1,8 @@
-#include "Core/IO/FileSystem/BareFileSystemMount.h"
+#include "core/io/file_system/BareFileSystemMount.h"
 
-#include <Core/Assert.h>
-#include <Core/Containers/HashMap.h>
-#include <Core/Containers/HashSet.h>
+#include "core/assert/Assert.h"
+#include "core/containers/HashMap.h"
+#include "core/containers/HashSet.h"
 
 #include <FileWatcher/FileWatcher.h>
 

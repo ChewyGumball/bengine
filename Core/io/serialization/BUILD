@@ -4,47 +4,19 @@ package(default_visibility = ["//visibility:public"])
 
 bengine_cc_library(
     name = "concepts",
-    hdrs = ["include/Core/IO/Serialization/BinarySerializable.h"],
-    strip_include_prefix = "include",
-)
-
-bengine_cc_library(
-    name = "compression",
-    srcs = [
-        "src/Compression.cpp",
-        "src/ZStdCompression.cpp",
-        "src/ZStdCompressionBuffer.cpp",
-        "src/ZStdDecompressionBuffer.cpp",
-    ],
-    hdrs = [
-        "include/Core/IO/Serialization/Compression.h",
-        "include/Core/IO/Serialization/Compression/StreamingCompressionBuffer.h",
-        "include/Core/IO/Serialization/Compression/StreamingDecompressionBuffer.h",
-        "include/Core/IO/Serialization/Compression/ZStdCompression.h",
-        "include/Core/IO/Serialization/Compression/ZStdCompressionBuffer.h",
-        "include/Core/IO/Serialization/Compression/ZStdDecompressionBuffer.h",
-    ],
-    strip_include_prefix = "include",
-    deps = [
-        ":buffers",
-        ":streams",
-        "//core/containers:array",
-        "@zlib",
-        "@zstd",
-    ],
+    hdrs = ["BinarySerializable.h"],
 )
 
 bengine_cc_library(
     name = "streams",
     srcs = [
-        "src/InputStream.cpp",
-        "src/OutputStream.cpp",
+        "InputStream.cpp",
+        "OutputStream.cpp",
     ],
     hdrs = [
-        "include/Core/IO/Serialization/InputStream.h",
-        "include/Core/IO/Serialization/OutputStream.h",
+        "InputStream.h",
+        "OutputStream.h",
     ],
-    strip_include_prefix = "include",
     deps = [
         ":concepts",
         "//core/containers:span",
@@ -55,16 +27,15 @@ bengine_cc_library(
 bengine_cc_library(
     name = "buffers",
     srcs = [
-        "src/ArrayBuffer.cpp",
-        "src/BufferView.cpp",
-        "src/MemoryBuffer.cpp",
+        "ArrayBuffer.cpp",
+        "BufferView.cpp",
+        "MemoryBuffer.cpp",
     ],
     hdrs = [
-        "include/Core/IO/Serialization/ArrayBuffer.h",
-        "include/Core/IO/Serialization/BufferView.h",
-        "include/Core/IO/Serialization/MemoryBuffer.h",
+        "ArrayBuffer.h",
+        "BufferView.h",
+        "MemoryBuffer.h",
     ],
-    strip_include_prefix = "include",
     deps = [
         ":concepts",
         "//core/assert",
@@ -75,9 +46,7 @@ bengine_cc_library(
 
 bengine_cc_test(
     name = "test_output_stream",
-    srcs = [
-        "test/test_output_stream.cpp",
-    ],
+    srcs = ["test/test_output_stream.cpp"],
     deps = [
         ":buffers",
         ":streams",
@@ -86,9 +55,7 @@ bengine_cc_test(
 
 bengine_cc_test(
     name = "test_compression",
-    srcs = [
-        "test/test_compression.cpp",
-    ],
+    srcs = ["test/test_compression.cpp"],
     deps = [
         ":buffers",
         ":compression",

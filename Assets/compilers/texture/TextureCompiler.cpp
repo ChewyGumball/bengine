@@ -1,10 +1,10 @@
 
-#include <Assets/Compilers/TextureCompiler.h>
+#include "assets/compilers/texture/TextureCompiler.h"
 
-#include <Assets/Textures/Texture.h>
-#include <Core/Containers/Array.h>
-#include <Core/IO/FileSystem/FileSystem.h>
-#include <Core/Logging/Logger.h>
+#include "assets/textures/Texture.h"
+#include "core/containers/Array.h"
+#include "core/io/file_system/FileSystem.h"
+#include "core/logging/Logger.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>

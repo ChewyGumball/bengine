@@ -1,11 +1,13 @@
 #pragma once
 
-#include <Core/Containers/Array.h>
-#include <Core/Containers/HashMap.h>
-#include <Core/Containers/OpaqueID.h>
-#include <Core/IO/FileSystem/FileSystem.h>
-#include <Core/IO/Serialization/InputStream.h>
-#include <Core/Status/Status.h>
+#include "core/containers/Array.h"
+#include "core/containers/HashMap.h"
+#include "core/containers/OpaqueID.h"
+#include "core/io/file_system/FileSystem.h"
+#include "core/io/serialization/InputStream.h"
+#include "core/status/Status.h"
+
+
 
 #include "AssetsReference.h"
 

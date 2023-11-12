@@ -6,10 +6,10 @@
 #include "VulkanRenderPass.h"
 
 
-#include <Core/Containers/Array.h>
+#include "core/containers/Array.h"
 
-#include <Assets/Materials/Shader.h>
-#include <Assets/Models/VertexFormat.h>
+#include "assets/materials/Shader.h"
+#include "assets/models/VertexFormat.h"
 
 
 #include "VulkanCore.h"

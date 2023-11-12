@@ -1,13 +1,13 @@
-#include <Core/Algorithms/Strings.h>
-#include <Core/Containers/Array.h>
-#include <Core/Containers/HashMap.h>
-#include <Core/Containers/Span.h>
-#include <Core/IO/FileSystem/FileSystem.h>
-#include <Core/IO/Serialization/ArrayBuffer.h>
-#include <Core/IO/Serialization/OutputStream.h>
-#include <Core/Logging/Logger.h>
+#include "core/algorithms/Strings.h"
+#include "core/containers/Array.h"
+#include "core/containers/HashMap.h"
+#include "core/containers/Span.h"
+#include "core/io/file_system/FileSystem.h"
+#include "core/io/serialization/ArrayBuffer.h"
+#include "core/io/serialization/OutputStream.h"
+#include "core/logging/Logger.h"
 
-#include <Assets/Materials/Shader.h>
+#include "assets/materials/Shader.h"
 
 #include <CLI/App.hpp>
 #include <CLI/Config.hpp>

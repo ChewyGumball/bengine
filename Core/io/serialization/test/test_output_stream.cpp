@@ -1,8 +1,8 @@
 #include <catch2/catch_test_macros.hpp>
 
-#include <Core/IO/Serialization/ArrayBuffer.h>
-#include <Core/IO/Serialization/InputStream.h>
-#include <Core/IO/Serialization/OutputStream.h>
+#include "core/io/serialization/ArrayBuffer.h"
+#include "core/io/serialization/InputStream.h"
+#include "core/io/serialization/OutputStream.h"
 
 
 TEST_CASE("Output integers") {

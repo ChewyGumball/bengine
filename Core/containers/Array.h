@@ -1,9 +1,9 @@
 #pragma once
 
-#include <Core/Assert.h>
+#include "core/assert/Assert.h"
 
-#include "Core/IO/Serialization/InputStream.h"
-#include "Core/IO/Serialization/OutputStream.h"
+#include "core/io/serialization/InputStream.h"
+#include "core/io/serialization/OutputStream.h"
 
 #include <algorithm>
 #include <array>
@@ -201,4 +201,4 @@ struct Deserializer<Core::FixedArray<T, SIZE>> {
 
 }    // namespace Core::IO
 
-#include <Core/Containers/internal/Array.inl>
+#include "core/containers/internal/Array.inl"

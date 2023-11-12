@@ -4,13 +4,8 @@ package(default_visibility = ["//visibility:public"])
 
 bengine_cc_library(
     name = "obj_importer",
-    srcs = [
-        "src/OBJImporter.cpp",
-    ],
-    hdrs = [
-        "include/Assets/Importers/OBJImporter.h",
-    ],
-    strip_include_prefix = "include",
+    srcs = ["OBJImporter.cpp"],
+    hdrs = ["OBJImporter.h"],
     deps = [
         "//assets/models",
         "//core/algorithms:strings",

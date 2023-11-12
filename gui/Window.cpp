@@ -1,6 +1,6 @@
 #include <GUI/Window.h>
 
-#include <Core/Containers/HashMap.h>
+#include "core/containers/HashMap.h"
 #include <Core/Logging/Logger.h>
 
 #define GLFW_INCLUDE_VULKAN

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/Time/Clock.h"
+#include "core/time/Clock.h"
 
 namespace Core {
 class SystemTimer {

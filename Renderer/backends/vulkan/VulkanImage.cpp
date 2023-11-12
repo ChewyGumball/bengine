@@ -1,4 +1,4 @@
-#include "Renderer/Backends/Vulkan/VulkanImage.h"
+#include "renderer/backends/vulkan/VulkanImage.h"
 
 namespace internal {
 VkImageUsageFlags TranslateImageType(Renderer::Backends::Vulkan::VulkanImageUsageType usageType,

@@ -1,4 +1,4 @@
-#include "Renderer/Backends/Vulkan/VulkanImageView.h"
+#include "renderer/backends/vulkan/VulkanImageView.h"
 
 namespace {
 VkImageAspectFlags translateAspect(Renderer::Backends::Vulkan::VulkanImageViewAspect aspect) {

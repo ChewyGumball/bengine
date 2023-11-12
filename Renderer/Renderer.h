@@ -1,10 +1,10 @@
 #pragma once
 
-#include <Renderer/Backends/RendererBackend.h>
+#include "renderer/backends/RendererBackend.h"
 
+#include "assets/materials/Shader.h"
+#include "assets/models/Mesh.h"
 #include "core/containers/OpaqueID.h"
-#include <Assets/Materials/Shader.h>
-#include <Assets/Models/Mesh.h>
 
 #include <memory>
 

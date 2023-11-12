@@ -6,11 +6,10 @@ bengine_cc_library(
     name = "catalogs",
     srcs = [],
     hdrs = [
-        "include/Assets/Catalogs/AssetCatalog.h",
-        "include/Assets/Catalogs/AssetReference.h",
-        "include/Assets/Catalogs/TextureCatalog.h",
+        "AssetCatalog.h",
+        "AssetReference.h",
+        "TextureCatalog.h",
     ],
-    strip_include_prefix = "include",
     deps = [
         "//core/containers:array",
         "//core/containers:hash_map",

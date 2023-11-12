@@ -4,17 +4,14 @@ package(default_visibility = ["//visibility:public"])
 
 bengine_cc_library(
     name = "window",
-    srcs = [
-        "src/Window.cpp",
-    ],
-    hdrs = ["include/GUI/Window.h"],
-    strip_include_prefix = "include",
+    srcs = ["Window.cpp"],
+    hdrs = ["Window.h"],
     deps = [
         "//core/assert",
         "//core/containers:hash_set",
         "//core/logging",
         "//core/status",
-        "//renderer:vulkan",
+        "//renderer/backends/vulkan",
         "@glfw",
     ],
 )

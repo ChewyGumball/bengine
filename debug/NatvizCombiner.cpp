@@ -1,6 +1,6 @@
-#include <Core/Algorithms/Strings.h>
-#include <Core/IO/FileSystem/FileSystem.h>
-#include <Core/IO/Serialization/OutputStream.h>
+#include "core/algorithms/Strings.h"
+#include "core/io/file_system/FileSystem.h"
+#include "core/io/serialization/OutputStream.h"
 #include <Core/Logging/Logger.h>
 #include <Core/Status/Status.h>
 

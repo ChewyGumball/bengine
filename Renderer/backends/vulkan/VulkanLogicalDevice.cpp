@@ -1,9 +1,9 @@
-#include "Renderer/Backends/Vulkan/VulkanLogicalDevice.h"
+#include "renderer/backends/vulkan/VulkanLogicalDevice.h"
 
 #include <set>
 
-#include <Core/Algorithms/Containers.h>
-#include <Core/Algorithms/Mappers.h>
+#include "core/algorithms/Containers.h"
+#include "core/algorithms/Mappers.h"
 
 
 namespace Renderer::Backends::Vulkan {

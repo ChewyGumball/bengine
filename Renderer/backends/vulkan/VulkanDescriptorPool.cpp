@@ -1,6 +1,6 @@
-#include "Renderer/Backends/Vulkan/VulkanDescriptorPool.h"
+#include "renderer/backends/vulkan/VulkanDescriptorPool.h"
 
-#include <Core/Algorithms/Containers.h>
+#include "core/algorithms/Containers.h"
 
 
 namespace Renderer::Backends::Vulkan {

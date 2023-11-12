@@ -1,7 +1,7 @@
-#include "Renderer/Backends/Vulkan/VulkanInstance.h"
+#include "renderer/backends/vulkan/VulkanInstance.h"
 
-#include <Core/Algorithms/Containers.h>
-#include <Core/Algorithms/Mappers.h>
+#include "core/algorithms/Containers.h"
+#include "core/algorithms/Mappers.h"
 
 namespace {
 void DebugPrintAvailableExtensions() {

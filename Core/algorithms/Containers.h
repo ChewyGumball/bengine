@@ -6,8 +6,8 @@
 #include <set>
 #include <unordered_set>
 
-#include <Core/Containers/Array.h>
-#include <Core/Status/StatusOr.h>
+#include "core/containers/Array.h"
+#include "core/status/StatusOr.h"
 
 namespace Core::Algorithms {
 template <typename T, typename U = typename T::value_type>

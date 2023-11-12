@@ -4,40 +4,34 @@ package(default_visibility = ["//visibility:public"])
 
 bengine_cc_library(
     name = "containers",
-    hdrs = ["include/Core/Algorithms/Containers.h"],
-    strip_include_prefix = "include",
+    hdrs = ["Containers.h"],
     deps = ["//core/containers:array"],
 )
 
 bengine_cc_library(
     name = "hashing",
-    hdrs = ["include/Core/Algorithms/Hashing.h"],
-    strip_include_prefix = "include",
+    hdrs = ["Hashing.h"],
 )
 
 bengine_cc_library(
     name = "mappers",
-    hdrs = ["include/Core/Algorithms/Mappers.h"],
-    strip_include_prefix = "include",
+    hdrs = ["Mappers.h"],
 )
 
 bengine_cc_library(
     name = "optional",
-    hdrs = ["include/Core/Algorithms/Optional.h"],
-    strip_include_prefix = "include",
+    hdrs = ["Optional.h"],
 )
 
 bengine_cc_library(
     name = "strings",
-    srcs = ["src/Strings.cpp"],
-    hdrs = ["include/Core/Algorithms/Strings.h"],
-    strip_include_prefix = "include",
+    srcs = ["Strings.cpp"],
+    hdrs = ["Strings.h"],
     deps = ["//core/containers:array"],
 )
 
 bengine_cc_library(
     name = "memory",
-    hdrs = ["include/Core/Algorithms/Memory.h"],
-    strip_include_prefix = "include",
+    hdrs = ["Memory.h"],
     deps = ["//core/assert"],
 )

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Assets/Models/VertexFormat.h"
+#include "assets/models/VertexFormat.h"
 
-#include <Core/Containers/Array.h>
-#include <Core/Containers/IndexSpan.h>
-#include <Core/IO/Serialization/InputStream.h>
-#include <Core/IO/Serialization/OutputStream.h>
+#include "core/containers/Array.h"
+#include "core/containers/IndexSpan.h"
+#include "core/io/serialization/InputStream.h"
+#include "core/io/serialization/OutputStream.h"
 
 namespace Assets {
 

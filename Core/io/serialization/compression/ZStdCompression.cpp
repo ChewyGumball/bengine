@@ -1,7 +1,7 @@
-#include <Core/IO/Serialization/Compression/ZStdCompression.h>
+#include "core/io/serialization/compression/ZStdCompression.h"
 
-#include <Core/IO/Serialization/ArrayBuffer.h>
-#include <Core/IO/Serialization/MemoryBuffer.h>
+#include "core/io/serialization/ArrayBuffer.h"
+#include "core/io/serialization/MemoryBuffer.h"
 
 #include <zstd.h>
 

@@ -1,6 +1,6 @@
-#include "Core/Geometry/ViewFrustum.h"
+#include "core/geometry/ViewFrustum.h"
 
-#include <Core/Algorithms/Containers.h>
+#include "core/algorithms/Containers.h"
 
 namespace Core::Geometry {
 

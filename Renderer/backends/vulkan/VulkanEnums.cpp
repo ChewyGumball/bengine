@@ -1,7 +1,7 @@
-#include <Renderer/Backends/Vulkan/VulkanEnums.h>
+#include "renderer/backends/vulkan/VulkanEnums.h"
 
-#include <Core/Assert.h>
-#include <Core/Containers/HashMap.h>
+#include "core/assert/Assert.h"
+#include "core/containers/HashMap.h"
 
 namespace Renderer::Backends::Vulkan {
 VkShaderStageFlagBits ToVulkanShaderStage(Assets::PipelineStageType stage) {
