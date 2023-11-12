@@ -48,6 +48,10 @@ Core::Status Compile(const std::filesystem::path& inputFile, const std::filesyst
                          Assets::PropertyType::AsString(property.property.type),
                          property.byteOffset);
     }
+    Core::Log::Debug(Compiler, "Parts:");
+    for(auto& part : mesh.meshParts) {
+        Core::Log::Debug(Compiler, "\t{}: {} offset, {} indices", part.name, part.indices.start, part.indices.count);
+    }
 
     return Core::Status::Ok();
 }

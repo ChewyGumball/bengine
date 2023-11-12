@@ -42,8 +42,9 @@ void printLog(const char* log, Core::LogLevel level) {
     }
 }
 
-Core::StatusOr<std::unique_ptr<glslang::TShader>>
-compileShader(EShLanguage stage, const std::filesystem::path& sourceFile, DirStackFileIncluder& includer) {
+Core::StatusOr<std::unique_ptr<glslang::TShader>> compileShader(EShLanguage stage,
+                                                                const std::filesystem::path& sourceFile,
+                                                                DirStackFileIncluder& includer) {
     ASSIGN_OR_RETURN(std::string sourceText, Core::IO::ReadTextFile(sourceFile));
 
     std::unique_ptr<glslang::TShader> shader = std::make_unique<glslang::TShader>(stage);
@@ -89,12 +90,9 @@ Core::Array<std::byte> dumpShader(const glslang::TProgram& program, EShLanguage 
         Core::Log::Info(Glslang, line);
     }
 
-    std::span<std::byte> spirvSpan = std::as_writable_bytes(std::span(spirv.data(), spirv.size()));
+    Core::Span<std::byte> spirvSpan = Core::AsWritableBytes(Core::ToSpan(spirv));
 
-    Core::Array<std::byte> byteCode;
-    byteCode.insertAll(spirvSpan);
-
-    return byteCode;
+    return Core::Array<std::byte>(spirvSpan);
 }
 
 Core::StatusOr<Assets::PropertyTypeName> ToPropertyTypeName(const glslang::TBasicType basicType) {
@@ -145,8 +143,9 @@ uint32_t ToBinding(const glslang::TType& type) {
     return qualifier.hasBinding() ? qualifier.layoutBinding : 0;
 }
 
-Core::StatusOr<Assets::VertexInput>
-ToVertexInput(const glslang::TType& type, Assets::VertexUsageName usage, Assets::VertexInputRateType rate) {
+Core::StatusOr<Assets::VertexInput> ToVertexInput(const glslang::TType& type,
+                                                  Assets::VertexUsageName usage,
+                                                  Assets::VertexInputRateType rate) {
     const glslang::TQualifier& qualifier = type.getQualifier();
 
     uint32_t location = qualifier.layoutLocation;

@@ -36,7 +36,7 @@ bool deviceSupportsRequiredExtensions(VkPhysicalDevice deviceToCheck,
 
     Core::Array<VkExtensionProperties> availableExtensions;
     vkEnumerateDeviceExtensionProperties(
-          deviceToCheck, nullptr, &extensionCount, availableExtensions.insertUninitialized(extensionCount).data());
+          deviceToCheck, nullptr, &extensionCount, availableExtensions.insertUninitialized(extensionCount).rawData());
 
     std::set<std::string> extensions(requiredExtensions.begin(), requiredExtensions.end());
 
@@ -68,7 +68,7 @@ Core::StatusOr<VulkanPhysicalDevice> VulkanPhysicalDevice::Find(VkInstance insta
     }
 
     Core::Array<VkPhysicalDevice> devices;
-    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.insertUninitialized(deviceCount).data());
+    vkEnumeratePhysicalDevices(instance, &deviceCount, devices.insertUninitialized(deviceCount).rawData());
 
     for(auto device : devices) {
         bool extensionsSupported = deviceSupportsRequiredExtensions(device, requiredExtensions);

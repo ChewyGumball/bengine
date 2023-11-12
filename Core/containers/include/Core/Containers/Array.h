@@ -27,16 +27,15 @@ public:
 
     explicit Array(uint64_t initialCapacity = 4);
 
-    template <std::size_t EXTENT>
-    explicit Array(std::span<T, EXTENT> elementsToCopy);
+    explicit Array(Core::Span<T> elementsToCopy);
 
     Array(const T& original, uint64_t repeatCount);
     Array(std::initializer_list<T> initializerList);
     Array(const Array<T>& other);
     Array(Array<T>&& other);
 
-    Array& operator=(const Array<T>& other);
-    Array& operator=(Array<T>&& other);
+    Array<T>& operator=(const Array<T>& other);
+    Array<T>& operator=(Array<T>&& other);
 
     ~Array();
 
@@ -55,16 +54,17 @@ public:
     T& insert(const T& elementToInsert);
     T& insert(T&& elementToInsert);
 
-    template <typename U, std::size_t EXTENT>
-    std::span<T, EXTENT> insertAll(std::span<U, EXTENT> elements);
+    template <typename U>
+    Core::Span<T> insertAll(Core::Span<U> elements);
 
-    [[nodiscard]] std::span<T> insertUninitialized(uint64_t newElementCount);
+    [[nodiscard]] Core::Span<T> insertUninitialized(uint64_t newElementCount);
 
-    void eraseAt(uint64_t index);
+    void eraseAt(uint64_t index, uint64_t elementsToErase = 1);
 
     void clear();
 
     [[nodiscard]] uint64_t count() const;
+    [[nodiscard]] uint64_t totalCapacity() const;
     [[nodiscard]] uint64_t unusedCapacity() const;
     [[nodiscard]] bool isEmpty() const;
     [[nodiscard]] T* rawData();
@@ -91,43 +91,43 @@ protected:
 };
 
 template <typename T>
-std::span<T> ToSpan(Core::Array<T>& array) {
-    return std::span<T>(array.rawData(), array.count());
+Core::Span<T> ToSpan(Core::Array<T>& array) {
+    return Core::Span<T>(array.rawData(), array.count());
 }
 
 template <typename T>
-std::span<const T> ToSpan(const Core::Array<T>& array) {
-    return std::span<const T>(array.rawData(), array.count());
+Core::Span<const T> ToSpan(const Core::Array<T>& array) {
+    return Core::Span<const T>(array.rawData(), array.count());
 }
 
 template <typename T, uint64_t SIZE>
-std::span<T, SIZE> ToSpan(Core::FixedArray<T, SIZE>& array) {
-    return std::span<T>(array.data(), SIZE);
+Core::Span<T> ToSpan(Core::FixedArray<T, SIZE>& array) {
+    return Core::Span<T>(array.data(), SIZE);
 }
 
 template <typename T, uint64_t SIZE>
-std::span<const T, SIZE> ToSpan(const Core::FixedArray<T, SIZE>& array) {
-    return std::span<T>(array.data(), SIZE);
+Core::Span<const T> ToSpan(const Core::FixedArray<T, SIZE>& array) {
+    return Core::Span<T>(array.data(), SIZE);
 }
 
 template <typename T>
-std::span<std::byte> AsBytes(Core::Array<T>& array) requires std::is_trivially_copyable_v<T> {
-    return std::as_writable_bytes(ToSpan(array));
+Core::Span<std::byte> AsBytes(Core::Array<T>& array) requires std::is_trivially_copyable_v<T> {
+    return Core::AsWritableBytes(ToSpan(array));
 }
 
 template <typename T>
-std::span<const std::byte> AsBytes(const Core::Array<T>& array) requires std::is_trivially_copyable_v<T> {
-    return std::as_bytes(ToSpan(array));
+Core::Span<const std::byte> AsBytes(const Core::Array<T>& array) requires std::is_trivially_copyable_v<T> {
+    return Core::AsBytes(ToSpan(array));
 }
 
 template <typename T, uint64_t SIZE>
-std::span<std::byte> AsBytes(Core::FixedArray<T, SIZE>& array) requires std::is_trivially_copyable_v<T> {
-    return std::as_writable_bytes(ToSpan(array));
+Core::Span<std::byte> AsBytes(Core::FixedArray<T, SIZE>& array) requires std::is_trivially_copyable_v<T> {
+    return Core::AsWritableBytes(ToSpan(array));
 }
 
 template <typename T, uint64_t SIZE>
-std::span<const std::byte> AsBytes(const Core::FixedArray<T, SIZE>& array) requires std::is_trivially_copyable_v<T> {
-    return std::as_bytes(ToSpan(array));
+Core::Span<const std::byte> AsBytes(const Core::FixedArray<T, SIZE>& array) requires std::is_trivially_copyable_v<T> {
+    return Core::AsBytes(ToSpan(array));
 }
 
 }    // namespace Core
@@ -139,7 +139,7 @@ struct Serializer<Core::Array<T>> {
     static void serialize(OutputStream& stream, const Core::Array<T>& values) {
         stream.write(values.count());
         if constexpr(BinarySerializable<T>) {
-            stream.write(std::as_bytes(Core::ToSpan(values)));
+            stream.write(Core::AsBytes(Core::ToSpan(values)));
         } else {
             for(const T& value : values) {
                 Serializer<T>::serialize(stream, value);

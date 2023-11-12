@@ -442,10 +442,10 @@ TEST_CASE("Insert Uninitialized") {
 
     Core::Array<double> array;
 
-    std::span<double> elements = array.insertUninitialized(INSERT_COUNT);
+    Core::Span<double> elements = array.insertUninitialized(INSERT_COUNT);
 
     REQUIRE(array.count() == INSERT_COUNT);
-    REQUIRE(elements.size() == INSERT_COUNT);
+    REQUIRE(elements.count() == INSERT_COUNT);
 }
 
 TEST_CASE("Is Empty") {

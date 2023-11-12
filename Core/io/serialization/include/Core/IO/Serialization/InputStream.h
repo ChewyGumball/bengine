@@ -40,9 +40,9 @@ public:
     uint64_t readInto(std::byte* buffer, uint64_t size);
 
     template <BinarySerializable T>
-    void readInto(std::span<T> buffer) {
-        uint64_t requiredSize = buffer.size() * sizeof(T);
-        uint64_t actualSize   = readInto(reinterpret_cast<std::byte*>(buffer.data()), requiredSize);
+    void readInto(Core::Span<T> buffer) {
+        uint64_t requiredSize = buffer.count() * sizeof(T);
+        uint64_t actualSize   = readInto(reinterpret_cast<std::byte*>(buffer.rawData()), requiredSize);
 
         ASSERT_WITH_MESSAGE(requiredSize == actualSize,
                             "Expected to read {} bytes from the stream, but only {} were available",
@@ -76,7 +76,7 @@ template <>
 struct Deserializer<std::string> {
     static std::string deserialize(InputStream& stream) {
         std::string value(stream.read<std::string::size_type>(), 0);
-        stream.readInto(Core::AsBytes(value));
+        stream.readInto(Core::AsWritableBytes(Core::ToSpan(value)));
 
         return value;
     }

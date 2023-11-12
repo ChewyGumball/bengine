@@ -10,14 +10,27 @@ bengine_cc_library(
 
 bengine_cc_library(
     name = "compression",
-    srcs = ["src/Compression.cpp"],
-    hdrs = ["include/Core/IO/Serialization/Compression.h"],
+    srcs = [
+        "src/Compression.cpp",
+        "src/ZStdCompression.cpp",
+        "src/ZStdCompressionBuffer.cpp",
+        "src/ZStdDecompressionBuffer.cpp",
+    ],
+    hdrs = [
+        "include/Core/IO/Serialization/Compression.h",
+        "include/Core/IO/Serialization/Compression/StreamingCompressionBuffer.h",
+        "include/Core/IO/Serialization/Compression/StreamingDecompressionBuffer.h",
+        "include/Core/IO/Serialization/Compression/ZStdCompression.h",
+        "include/Core/IO/Serialization/Compression/ZStdCompressionBuffer.h",
+        "include/Core/IO/Serialization/Compression/ZStdDecompressionBuffer.h",
+    ],
     strip_include_prefix = "include",
     deps = [
         ":buffers",
         ":streams",
         "//core/containers:array",
         "@zlib",
+        "@zstd",
     ],
 )
 

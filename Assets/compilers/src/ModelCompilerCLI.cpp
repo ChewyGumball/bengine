@@ -8,7 +8,7 @@
 #include <CLI/Formatter.hpp>
 
 int main(int argc, char** argv) {
-    Core::LogManager::SetGlobalMinimumLevel(Core::LogLevel::Info);
+    Core::LogManager::SetGlobalMinimumLevel(Core::LogLevel::Debug);
 
     CLI::App app("Bengine Model Compiler");
 

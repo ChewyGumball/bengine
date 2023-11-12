@@ -52,7 +52,10 @@ bengine_cc_library(
 
 bengine_cc_library(
     name = "span",
-    hdrs = ["include/Core/Containers/Span.h"],
+    hdrs = [
+        "include/Core/Containers/Span.h",
+        "include/Core/Containers/internal/Span.inl",
+    ],
     strip_include_prefix = "include",
 )
 

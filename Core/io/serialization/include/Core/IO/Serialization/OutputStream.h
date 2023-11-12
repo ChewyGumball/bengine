@@ -1,5 +1,6 @@
 #pragma once
 
+#include "Core/Containers/Span.h"
 #include "Core/IO/Serialization/BinarySerializable.h"
 
 #include <memory>
@@ -29,8 +30,8 @@ public:
     OutputStream(std::unique_ptr<class std::basic_ostream<std::byte>>&& stream);
     OutputStream(OutputStream&& other);
 
-    void write(std::span<const std::byte> data);
-    void write(std::span<std::byte> data);
+    void write(Core::Span<const std::byte> data);
+    void write(Core::Span<std::byte> data);
 
     void writeText(const std::string_view text);
 
@@ -43,7 +44,7 @@ public:
 template <typename T>
 requires std::is_trivially_copyable_v<T> struct Serializer<T> {
     static void serialize(OutputStream& stream, const T& value) {
-        stream.write(std::as_bytes(std::span<const T>(&value, 1)));
+        stream.write(Core::AsBytes(Core::Span<const T>(&value, 1)));
     }
 };
 
@@ -51,7 +52,7 @@ template <>
 struct Serializer<std::string> {
     static void serialize(OutputStream& stream, const std::string& value) {
         stream.write(value.size());
-        stream.write(std::as_bytes(std::span<const char>(value.data(), value.size())));
+        stream.write(Core::AsBytes(ToSpan(value)));
     }
 };
 
@@ -59,7 +60,7 @@ template <>
 struct Serializer<std::string_view> {
     static void serialize(OutputStream& stream, const std::string_view& value) {
         stream.write(value.size());
-        stream.write(std::as_bytes(std::span<const char>(value.data(), value.size())));
+        stream.write(Core::AsBytes(ToSpan(value)));
     }
 };
 

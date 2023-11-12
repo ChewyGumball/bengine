@@ -26,7 +26,7 @@ inline Core::Status combine(const std::vector<std::filesystem::path>& inputFiles
         // Skip the first two lines, and the last line because those are the xml version specification,
         // and root AutoVisualizer node tags. These lines are duplicated in every input file, and we only
         // can have them once in the output file.
-        std::span<std::string_view> lineSpan = Core::ToSpan(lines).subspan(2, lines.count() - 3);
+        Core::Span<std::string_view> lineSpan = Core::ToSpan(lines).subspan(2, lines.count() - 3);
         for(auto line : lineSpan) {
             out.writeText(line);
             out.writeText("\n"sv);

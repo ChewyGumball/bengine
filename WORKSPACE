@@ -225,6 +225,18 @@ http_archive(
     url = "https://github.com/madler/zlib/archive/refs/tags/v1.2.11.zip",
 )
 
+##############
+# Setup zstd #
+##############
+
+http_archive(
+    name = "zstd",
+    build_file = "@bengine//:third_party/zstd/BUILD",
+    sha256 = "c5c8daa1d40dabc51790c62a5b86af2b36dfc4e1a738ff10dc4a46ea4e68ee51",
+    strip_prefix = "zstd-1.5.5",
+    url = "https://github.com/facebook/zstd/archive/refs/tags/v1.5.5.zip",
+)
+
 #################################
 # Setup vulkan memory allocator #
 #################################

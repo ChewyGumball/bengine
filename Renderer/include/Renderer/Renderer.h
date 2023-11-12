@@ -2,6 +2,7 @@
 
 #include <Renderer/Backends/RendererBackend.h>
 
+#include "core/containers/OpaqueID.h"
 #include <Assets/Materials/Shader.h>
 #include <Assets/Models/Mesh.h>
 
@@ -9,13 +10,19 @@
 
 namespace Renderer {
 
+using MeshID    = Core::OpaqueID<struct GPUMesh, uint32_t>;
+using TextureID = Core::OpaqueID<struct GPUTexture, uint32_t>;
+
 class Renderer {
 public:
     Renderer(std::unique_ptr<Backends::RendererBackend> backend) : backend(std::move(backend)) {}
 
-    void void drawMesh(const Assets::Mesh& mesh);
+    void drawMesh(const Assets::Mesh& mesh);
 
     void present();
+
+    void setDefaultMesh(MeshID meshID);
+    void setDefaultTexture(TextureID textureID);
 
 private:
     std::unique_ptr<Backends::RendererBackend> backend;

@@ -8,19 +8,19 @@ namespace {
 
 struct VertexProxy {
     size_t index;
-    std::span<std::byte> data;
+    Core::Span<std::byte> data;
 
     void appendDataTo(Core::Array<std::byte>& vertexData) const {
         vertexData.insertAll(data);
     }
 
     uint32_t firstNotEqualIndex(const VertexProxy& other) const {
-        for(uint32_t i = 0; i < data.size(); i++) {
+        for(uint32_t i = 0; i < data.count(); i++) {
             if(data[i] != other.data[i]) {
                 return i;
             }
         }
-        return data.size();
+        return data.count();
     }
 };
 }    // namespace
@@ -37,7 +37,7 @@ void Mesh::deduplicateVertices() {
     for(size_t i = 0; i < vertexCount; i++) {
         proxies.insert(VertexProxy{
               .index = i,
-              .data  = std::span(&vertexData[i * vertexSize], vertexSize),
+              .data  = Core::Span(&vertexData[i * vertexSize], vertexSize),
         });
     }
 

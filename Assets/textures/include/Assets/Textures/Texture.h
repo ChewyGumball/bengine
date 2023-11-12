@@ -35,8 +35,7 @@ struct Serializer<Assets::Texture> {
         stream.write(value.width);
         stream.write(value.format);
 
-        stream.write(value.data.count());
-        ASSERT_IS_OK(ZLibCompressToStream(value.data, stream));
+        ASSERT_IS_OK(Compression::CompressToStream(ToSpan(value.data), stream));
     }
 };
 
@@ -47,8 +46,7 @@ struct Deserializer<Assets::Texture> {
         auto width  = stream.read<uint32_t>();
         auto format = stream.read<Assets::TextureFormatType>();
 
-        auto uncompressedCount = stream.read<uint64_t>();
-        ASSIGN_OR_ASSERT(auto data, ZLibDecompressFromStream(stream, uncompressedCount));
+        ASSIGN_OR_ASSERT(auto data, Compression::DecompressFromStream(stream, std::nullopt));
 
 
         return Assets::Texture{.height = height, .width = width, .format = format, .data = std::move(data)};

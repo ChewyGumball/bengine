@@ -10,16 +10,16 @@ OutputStream::OutputStream(std::unique_ptr<std::basic_ostream<std::byte>>&& stre
 
 OutputStream::OutputStream(OutputStream&& other) : stream(std::move(other.stream)) {}
 
-void OutputStream::write(std::span<const std::byte> data) {
-    stream->write(data.data(), data.size());
+void OutputStream::write(Core::Span<const std::byte> data) {
+    stream->write(data.rawData(), data.count());
 }
 
-void OutputStream::write(std::span<std::byte> data) {
-    stream->write(data.data(), data.size());
+void OutputStream::write(Core::Span<std::byte> data) {
+    stream->write(data.rawData(), data.count());
 }
 
 void OutputStream::writeText(const std::string_view text) {
-    write(std::as_bytes(std::span<const char>(text.data(), text.size())));
+    write(Core::AsBytes(Core::ToSpan(text)));
 }
 
 }    // namespace Core::IO

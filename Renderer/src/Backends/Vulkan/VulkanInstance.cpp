@@ -10,7 +10,7 @@ void DebugPrintAvailableExtensions() {
     Core::Array<VkExtensionProperties> availableExtensions;
 
     vkEnumerateInstanceExtensionProperties(
-          nullptr, &extensionCount, availableExtensions.insertUninitialized(extensionCount).data());
+          nullptr, &extensionCount, availableExtensions.insertUninitialized(extensionCount).rawData());
 
     Core::Log::Debug(Renderer::Backends::Vulkan::Vulkan, "Vulkan Extension Count: {}", extensionCount);
     for(const auto& extension : availableExtensions) {
@@ -31,7 +31,7 @@ Core::Array<std::string> FilterValidationLayers(const Core::Array<std::string>& 
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
 
     Core::Array<VkLayerProperties> availableLayers;
-    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.insertUninitialized(layerCount).data());
+    vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.insertUninitialized(layerCount).rawData());
 
     Core::Array<std::string> availableLayerNames =
           Core::Algorithms::Map(availableLayers, [](const auto& layer) { return std::string(layer.layerName); });

@@ -13,8 +13,7 @@ Array<T>::Array(uint64_t initialCapacity) : capacity(initialCapacity) {
 }
 
 template <typename T>
-template <std::size_t EXTENT>
-Array<T>::Array(std::span<T, EXTENT> elementsToCopy) : capacity(elementsToCopy.size()) {
+Array<T>::Array(Core::Span<T> elementsToCopy) : capacity(elementsToCopy.count()) {
     data = reinterpret_cast<T*>(malloc(capacity * ElementSize));
     insertAll(elementsToCopy);
 }
@@ -101,7 +100,7 @@ T& Array<T>::operator[](uint64_t i) {
 
 template <typename T>
 const T& Array<T>::operator[](uint64_t i) const {
-    ASSERT(i < elementCount);
+    ASSERT_WITH_MESSAGE(i < elementCount, "Index: {}, Count: {}", i, elementCount);
     return *(data + i);
 }
 
@@ -156,31 +155,31 @@ T& Array<T>::insert(T&& elementToInsert) {
 }
 
 template <typename T>
-template <typename U, std::size_t EXTENT>
-std::span<T, EXTENT> Array<T>::insertAll(std::span<U, EXTENT> elements) {
-    ensureCapacity(elementCount + elements.size());
+template <typename U>
+Core::Span<T> Array<T>::insertAll(Core::Span<U> elements) {
+    ensureCapacity(elementCount + elements.count());
     if constexpr(std::is_same_v<std::remove_cv_t<U>, T> && std::is_trivially_copyable_v<T>) {
-        CopyElementMemory(data + elementCount, elements.data(), elements.size());
+        CopyElementMemory(data + elementCount, elements.rawData(), elements.count());
     } else {
-        std::uninitialized_copy_n(elements.data(), elements.size(), end());
+        std::uninitialized_copy_n(elements.rawData(), elements.count(), end());
     }
 
-    elementCount += elements.size();
+    elementCount += elements.count();
 
-    return std::span<T, EXTENT>(data + elementCount - elements.size(), elements.size());
+    return Core::Span<T>(data + elementCount - elements.count(), elements.count());
 }
 
 template <typename T>
-std::span<T> Array<T>::insertUninitialized(uint64_t newElementCount) {
+Core::Span<T> Array<T>::insertUninitialized(uint64_t newElementCount) {
     ensureCapacity(elementCount + newElementCount);
     elementCount += newElementCount;
 
-    return std::span<T>(data + elementCount - newElementCount, newElementCount);
+    return Core::Span<T>(data + elementCount - newElementCount, newElementCount);
 }
 
 template <typename T>
-void Array<T>::eraseAt(uint64_t index) {
-    shiftElementsLeft(index + 1, 1);
+void Array<T>::eraseAt(uint64_t index, uint64_t elementsToErase) {
+    shiftElementsLeft(index + elementsToErase, elementsToErase);
 }
 
 template <typename T>
@@ -192,6 +191,11 @@ void Array<T>::clear() {
 template <typename T>
 uint64_t Array<T>::count() const {
     return elementCount;
+}
+
+template <typename T>
+uint64_t Array<T>::totalCapacity() const {
+    return capacity;
 }
 
 template <typename T>

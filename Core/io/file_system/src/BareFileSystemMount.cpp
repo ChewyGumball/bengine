@@ -92,9 +92,9 @@ Core::StatusOr<Core::Array<std::byte>> BareFileSystemMount::readBinaryFile(const
     uint64_t fileSize = std::filesystem::file_size(file.path);
 
     Core::Array<std::byte> contents;
-    std::span<std::byte> data = contents.insertUninitialized(fileSize);
+    Core::Span<std::byte> data = contents.insertUninitialized(fileSize);
 
-    reader.read(data.data(), data.size());
+    reader.read(data.rawData(), data.count());
     return contents;
 }
 

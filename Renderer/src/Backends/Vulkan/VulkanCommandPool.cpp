@@ -4,8 +4,9 @@
 namespace Renderer::Backends::Vulkan {
 
 
-Core::Array<VkCommandBuffer>
-VulkanCommandPool::allocateBuffers(const VkDevice device, uint32_t count, VulkanCommandBufferLevel level) const {
+Core::Array<VkCommandBuffer> VulkanCommandPool::allocateBuffers(const VkDevice device,
+                                                                uint32_t count,
+                                                                VulkanCommandBufferLevel level) const {
     Core::Array<VkCommandBuffer> buffers;
 
     VkCommandBufferAllocateInfo allocInfo = {};
@@ -15,7 +16,7 @@ VulkanCommandPool::allocateBuffers(const VkDevice device, uint32_t count, Vulkan
                                                                    VK_COMMAND_BUFFER_LEVEL_SECONDARY;
     allocInfo.commandBufferCount = count;
 
-    VK_CHECK(vkAllocateCommandBuffers(device, &allocInfo, buffers.insertUninitialized(count).data()));
+    VK_CHECK(vkAllocateCommandBuffers(device, &allocInfo, buffers.insertUninitialized(count).rawData()));
 
     return buffers;
 }

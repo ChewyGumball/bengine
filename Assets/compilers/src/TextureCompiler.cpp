@@ -28,7 +28,7 @@ Core::Status Compile(const std::filesystem::path& inputFile, const std::filesyst
         return Core::Status::Error("Failed to load texture '{}'", inputFile);
     }
 
-    std::span<std::byte> data(reinterpret_cast<std::byte*>(pixels), texWidth * texHeight * 4);
+    Core::Span<std::byte> data(reinterpret_cast<std::byte*>(pixels), texWidth * texHeight * 4);
 
     Texture texture{
           .height = static_cast<uint32_t>(texHeight),

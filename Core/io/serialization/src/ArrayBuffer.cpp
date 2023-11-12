@@ -2,9 +2,9 @@
 
 namespace Core::IO {
 
-ArrayBuffer::ArrayBuffer(size_t initialSize) : ArrayBuffer(Core::Array<std::byte>(std::byte{0}, initialSize)) {}
+ArrayBuffer::ArrayBuffer(size_t initialSize) : ArrayBuffer(Core::Array<std::byte>(initialSize)) {}
 ArrayBuffer::ArrayBuffer(Core::Array<std::byte>&& initialData) : data(std::move(initialData)) {
-    updatePointers(0, 0);
+    updatePointers(0, data.count());
 }
 
 const Core::Array<std::byte>& ArrayBuffer::buffer() const {
@@ -31,18 +31,6 @@ std::streamsize ArrayBuffer::xsputn(const std::byte* s, std::streamsize n) {
     updatePointers(currentInputOffset(), outputOffset);
     return bytesWritten;
 }
-std::basic_streambuf<std::byte>::int_type ArrayBuffer::overflow(std::basic_streambuf<std::byte>::int_type c) {
-    if(c != traits_type::eof()) {
-        data.emplace(static_cast<std::byte>(c));
-        updatePointers(currentInputOffset(), data.count());
-    }
-
-    return c;
-}
-
-std::streamsize ArrayBuffer::showmanyc() {
-    return data.count() - currentInputOffset();
-}
 
 std::streamsize ArrayBuffer::xsgetn(std::byte* s, std::streamsize n) {
     std::streamsize bytesRead = 0;
@@ -58,7 +46,7 @@ std::streamsize ArrayBuffer::xsgetn(std::byte* s, std::streamsize n) {
 
 void ArrayBuffer::updatePointers(size_t inputOffset, size_t outputOffset) {
     setg(data.begin(), data.begin(), data.end());
-    setp(data.begin(), data.begin(), data.end());
+    setp(data.begin(), data.begin(), data.begin() + data.totalCapacity());
     gbump(static_cast<int>(inputOffset));
     pbump(static_cast<int>(outputOffset));
 }

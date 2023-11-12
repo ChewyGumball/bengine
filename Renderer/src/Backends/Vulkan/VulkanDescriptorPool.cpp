@@ -53,8 +53,9 @@ void VulkanDescriptorSetUpdate::update(VkDevice device, VkDescriptorSet descript
 }
 
 
-Core::Array<VkDescriptorSet>
-VulkanDescriptorPool::allocateSets(VkDevice device, uint32_t count, VkDescriptorSetLayout layout) {
+Core::Array<VkDescriptorSet> VulkanDescriptorPool::allocateSets(VkDevice device,
+                                                                uint32_t count,
+                                                                VkDescriptorSetLayout layout) {
     currentlyAllocated += count;
 
     ASSERT(currentlyAllocated <= size);
@@ -67,7 +68,7 @@ VulkanDescriptorPool::allocateSets(VkDevice device, uint32_t count, VkDescriptor
     allocInfo.pSetLayouts                 = layouts.rawData();
 
     Core::Array<VkDescriptorSet> sets;
-    VK_CHECK(vkAllocateDescriptorSets(device, &allocInfo, sets.insertUninitialized(count).data()));
+    VK_CHECK(vkAllocateDescriptorSets(device, &allocInfo, sets.insertUninitialized(count).rawData()));
 
     return sets;
 }
@@ -76,8 +77,9 @@ void VulkanDescriptorPool::freeSets(VkDevice device, const Core::Array<VkDescrip
 }
 
 
-VulkanDescriptorPool
-VulkanDescriptorPool::Create(VkDevice device, uint32_t poolSize, Core::Array<VkDescriptorType> poolTypes) {
+VulkanDescriptorPool VulkanDescriptorPool::Create(VkDevice device,
+                                                  uint32_t poolSize,
+                                                  Core::Array<VkDescriptorType> poolTypes) {
     Core::Array<VkDescriptorPoolSize> poolSizes = Core::Algorithms::Map(poolTypes, [=](auto& poolType) {
         VkDescriptorPoolSize descriptorPoolSize = {};
         descriptorPoolSize.type                 = poolType;

@@ -1,5 +1,125 @@
 #include <Core/IO/Serialization/Compression.h>
 
+#include <Core/IO/Serialization/Compression/ZStdCompression.h>
+#include <Core/IO/Serialization/Compression/ZStdCompressionBuffer.h>
+#include <Core/IO/Serialization/Compression/ZStdDecompressionBuffer.h>
+
+namespace {}    // namespace
+
+namespace Core::IO::Compression {
+
+Core::StatusOr<Core::Array<std::byte>> Compress(Core::Span<const std::byte> bytes, CompressionFlags flags) {
+    switch(flags.format) {
+        case CompressionFormat::ZSTD: return ZStdCompress(bytes, flags);
+        default: return Core::Status::Error("Decompression is not supported for compression format {}", flags.format);
+    }
+}
+
+Core::StatusOr<Core::Array<std::byte>> Decompress(Core::Span<const std::byte> bytes,
+                                                  std::optional<uint64_t> uncompressedBytes,
+                                                  CompressionFlags flags) {
+    switch(flags.format) {
+        case CompressionFormat::ZSTD: return ZStdDecompress(bytes, uncompressedBytes, flags);
+        default: return Core::Status::Error("Decompression is not supported for compression format {}", flags.format);
+    }
+}
+
+Core::Status CompressToStream(Core::Span<const std::byte> bytes,
+                              Core::IO::OutputStream& stream,
+                              CompressionFlags flags) {
+    ASSIGN_OR_RETURN(Core::Array<std::byte> compressedData, Compress(bytes, flags));
+    stream.write(Core::ToSpan(compressedData));
+
+    return Core::Status::Ok();
+}
+
+Core::StatusOr<Core::Array<std::byte>> DecompressFromStream(Core::IO::InputStream& stream,
+                                                            std::optional<uint64_t> uncompressedBytes,
+                                                            CompressionFlags flags) {
+    uint64_t decompressedSize = 0;
+    if(uncompressedBytes.has_value()) {
+        decompressedSize = uncompressedBytes.value();
+    } else if(flags.header == CompressionHeader::WITH_HEADER) {
+        internal::CompressionHeader header = internal::ReadCompressionHeader(stream);
+
+        decompressedSize = header.uncompressedBytes;
+    } else {
+        return Core::Status::Error(
+              "Decompressing data without a header requires a decompressed byte count, but none was supplied.");
+    }
+
+    std::unique_ptr<StreamingDecompressionBuffer> decompressor = CreateStreamingDecompressionBuffer(stream, flags);
+    Core::IO::InputStream decompressedStream(decompressor.get());
+
+    Core::Array<std::byte> decompressedData(decompressedSize);
+    Core::Span<std::byte> buffer = decompressedData.insertUninitialized(decompressedSize);
+
+    uint64_t readSize = decompressedStream.readInto(buffer.rawData(), buffer.count());
+    ASSERT_WITH_MESSAGE(readSize == decompressedSize,
+                        "Invalid zstd decompression: decompressed to a different number of bytes than were compressed "
+                        "(got {}, expected {})!",
+                        readSize,
+                        decompressedSize);
+
+    return std::move(decompressedData);
+}
+
+std::unique_ptr<StreamingCompressionBuffer> CreateStreamingCompressionBuffer(Core::IO::OutputStream& stream,
+                                                                             CompressionFlags flags) {
+    switch(flags.format) {
+        case CompressionFormat::ZSTD: {
+            uint32_t level = ZStdLevelFromCompressionGoal(flags.goal);
+            return std::make_unique<ZStdCompressionBuffer>(stream, level);
+        }
+        default:
+            Core::AbortWithMessage("Streaming decompression is not supported for compression format {}", flags.format);
+    }
+}
+
+std::unique_ptr<StreamingDecompressionBuffer> CreateStreamingDecompressionBuffer(Core::IO::InputStream& stream,
+                                                                                 CompressionFlags flags) {
+    switch(flags.format) {
+        case CompressionFormat::ZSTD: return std::make_unique<ZStdDecompressionBuffer>(stream);
+        default:
+            Core::AbortWithMessage("Streaming decompression is not supported for compression format {}", flags.format);
+    }
+}
+
+namespace internal {
+
+void WriteCompressionHeader(const CompressionHeader& header, Core::IO::OutputStream& stream) {
+    uint32_t formatAsInt = 0;
+    switch(header.format) {
+        case CompressionFormat::LZ4: formatAsInt = 1; break;
+        case CompressionFormat::ZLIB: formatAsInt = 2; break;
+        case CompressionFormat::ZSTD: formatAsInt = 3; break;
+    }
+
+    stream.write(formatAsInt);
+    stream.write(header.uncompressedBytes);
+}
+
+CompressionHeader ReadCompressionHeader(Core::IO::InputStream& stream) {
+    CompressionHeader header;
+
+    uint32_t formatAsInt = stream.read<uint32_t>();
+    switch(formatAsInt) {
+        case 1: header.format = CompressionFormat::LZ4; break;
+        case 2: header.format = CompressionFormat::ZLIB; break;
+        case 3: header.format = CompressionFormat::ZSTD; break;
+        default: Core::AbortWithMessage("Unknown compression format: {}", formatAsInt);
+    }
+
+    header.uncompressedBytes = stream.read<uint64_t>();
+
+    return header;
+}
+
+}    // namespace internal
+
+}    // namespace Core::IO::Compression
+
+/*
 #include <Core/IO/Serialization/ArrayBuffer.h>
 #include <Core/IO/Serialization/MemoryBuffer.h>
 
@@ -127,3 +247,4 @@ Core::StatusOr<Core::Array<std::byte>> ZLibDecompressFromStream(Core::IO::InputS
 
 
 }    // namespace Core::IO
+*/
