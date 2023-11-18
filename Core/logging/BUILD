@@ -10,6 +10,7 @@ bengine_cc_library(
         "Logger.h",
     ],
     deps = [
+        "//core:types",
         "@fmt",
         "@spdlog",
     ],

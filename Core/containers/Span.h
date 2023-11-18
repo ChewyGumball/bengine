@@ -4,6 +4,8 @@
 #include <span>
 #include <type_traits>
 
+#include "core/Types.h"
+
 namespace Core {
 
 
@@ -12,7 +14,7 @@ class Span {
 public:
     using ElementType = T;
 
-    Span(T* elements, uint64_t count);
+    Span(T* elements, u64 count);
     Span(const Span<T>& other) = default;
 
     template <size_t EXTENT>
@@ -26,17 +28,17 @@ public:
     template <typename U, typename = std::enable_if_t<std::is_same_v<const U, T> && !std::is_same_v<U, T>>>
     Span<T>& operator=(Span<U> other);
 
-    [[nodiscard]] T& operator[](uint64_t i);
-    [[nodiscard]] const T& operator[](uint64_t i) const;
+    [[nodiscard]] T& operator[](u64 i);
+    [[nodiscard]] const T& operator[](u64 i) const;
 
-    void truncateFront(uint64_t count);
-    void truncateBack(uint64_t count);
+    void truncateFront(u64 count);
+    void truncateBack(u64 count);
 
-    Span<T> first(uint64_t count);
-    Span<T> last(uint64_t count);
-    Span<T> subspan(uint64_t offset, uint64_t count) const;
+    Span<T> first(u64 count);
+    Span<T> last(u64 count);
+    Span<T> subspan(u64 offset, u64 count) const;
 
-    [[nodiscard]] uint64_t count() const;
+    [[nodiscard]] u64 count() const;
     [[nodiscard]] bool isEmpty() const;
     [[nodiscard]] T* rawData();
     [[nodiscard]] const T* rawData() const;
@@ -46,18 +48,18 @@ public:
     [[nodiscard]] const T* end() const;
 
 private:
-    uint64_t elementCount = 0;
-    T* data               = nullptr;
+    u64 elementCount = 0;
+    T* data          = nullptr;
 };
 
 template <typename T>
-Span<const std::byte> AsBytes(Span<T> span) {
-    return Span<const std::byte>(reinterpret_cast<const std::byte*>(span.rawData()), span.count() * sizeof(T));
+Span<const byte> AsBytes(Span<T> span) {
+    return Span<const byte>(reinterpret_cast<const byte*>(span.rawData()), span.count() * sizeof(T));
 }
 
 template <typename T>
-Span<std::byte> AsWritableBytes(Span<T> span) {
-    return Span<std::byte>(reinterpret_cast<std::byte*>(span.rawData()), span.count() * sizeof(T));
+Span<byte> AsWritableBytes(Span<T> span) {
+    return Span<byte>(reinterpret_cast<byte*>(span.rawData()), span.count() * sizeof(T));
 }
 
 template <typename T>
@@ -66,7 +68,7 @@ Core::Span<const T> ToSpan(std::initializer_list<T>& list) {
 }
 
 template <typename T>
-Core::Span<const std::byte> ToBytes(const T& value) requires std::is_trivially_copyable_v<T> {
+Core::Span<const byte> ToBytes(const T& value) requires std::is_trivially_copyable_v<T> {
     return AsBytes(Span<const T>(&value, 1));
 }
 
@@ -81,9 +83,9 @@ concept Spannable = requires(T a, const T b) {
     ->IsPointer;
 
     { a.size() }
-    ->std::convertible_to<uint64_t>;
+    ->std::convertible_to<u64>;
     { b.size() }
-    ->std::convertible_to<uint64_t>;
+    ->std::convertible_to<u64>;
 };
 
 template <Spannable T>

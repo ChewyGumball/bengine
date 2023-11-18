@@ -1,6 +1,7 @@
 #include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 
+#include "core/Types.h"
 #include "core/containers/Array.h"
 #include "core/io/serialization/ArrayBuffer.h"
 #include "core/io/serialization/InputStream.h"
@@ -9,10 +10,10 @@
 #include <type_traits>
 
 struct Movable {
-    int id;
+    i32 id;
     bool movedFrom;
     bool movedTo;
-    Movable(int id) : id(id), movedFrom(false), movedTo(false) {}
+    Movable(i32 id) : id(id), movedFrom(false), movedTo(false) {}
     Movable(Movable&& other) : id(other.id), movedFrom(false), movedTo(true) {
         other.id        = -1;
         other.movedFrom = true;
@@ -29,10 +30,10 @@ std::ostream& operator<<(std::ostream& stream, const Movable& i) {
 }
 
 struct Copyable {
-    int id;
+    i32 id;
     bool copiedFrom;
     bool copiedTo;
-    Copyable(int id) : id(id), copiedFrom(false), copiedTo(false) {}
+    Copyable(i32 id) : id(id), copiedFrom(false), copiedTo(false) {}
     Copyable(Copyable&& other) = delete;
     Copyable(Copyable& other) : id(other.id), copiedFrom(false), copiedTo(true) {
         other.copiedFrom = true;
@@ -48,10 +49,10 @@ std::ostream& operator<<(std::ostream& stream, const Copyable& i) {
 }
 
 struct ConstCopyable {
-    int id;
+    i32 id;
     mutable bool copiedFrom;
     bool copiedTo;
-    ConstCopyable(int id) : id(id), copiedFrom(false), copiedTo(false) {}
+    ConstCopyable(i32 id) : id(id), copiedFrom(false), copiedTo(false) {}
     ConstCopyable(const ConstCopyable& other) : id(other.id), copiedFrom(false), copiedTo(true) {
         other.copiedFrom = true;
     }
@@ -67,12 +68,12 @@ std::ostream& operator<<(std::ostream& stream, const ConstCopyable& i) {
 }
 
 struct CopyMovable {
-    int id;
+    i32 id;
     bool movedFrom;
     bool movedTo;
     bool copiedFrom;
     bool copiedTo;
-    CopyMovable(int id) : id(id), movedFrom(false), movedTo(false), copiedFrom(false), copiedTo(false) {}
+    CopyMovable(i32 id) : id(id), movedFrom(false), movedTo(false), copiedFrom(false), copiedTo(false) {}
     CopyMovable(CopyMovable&& other)
       : id(other.id), movedFrom(false), movedTo(true), copiedFrom(false), copiedTo(false) {
         other.id        = -1;
@@ -93,12 +94,12 @@ std::ostream& operator<<(std::ostream& stream, const CopyMovable& i) {
 }
 
 struct ConstCopyMovable {
-    int id;
+    i32 id;
     bool movedFrom;
     bool movedTo;
     mutable bool copiedFrom;
     bool copiedTo;
-    ConstCopyMovable(int id) : id(id), movedFrom(false), movedTo(false), copiedFrom(false), copiedTo(false) {}
+    ConstCopyMovable(i32 id) : id(id), movedFrom(false), movedTo(false), copiedFrom(false), copiedTo(false) {}
     ConstCopyMovable(ConstCopyMovable&& other)
       : id(other.id), movedFrom(false), movedTo(true), copiedFrom(false), copiedTo(false) {
         other.id        = -1;
@@ -207,9 +208,9 @@ TEMPLATE_TEST_CASE("Resize Move", "", Movable, CopyMovable, ConstCopyMovable) {
 
     array.emplace(TestType(0));
 
-    TestType* firstElementPointer = array.begin();
+    TestType* firstElementPoi32er = array.begin();
 
-    while(array.begin() == firstElementPointer) {
+    while(array.begin() == firstElementPoi32er) {
         array.emplace(TestType(array.count()));
     }
 
@@ -223,9 +224,9 @@ TEMPLATE_TEST_CASE("Resize Copy", "", Copyable, ConstCopyable) {
 
     array.insert(TestType(0));
 
-    TestType* firstElementPointer = array.begin();
+    TestType* firstElementPoi32er = array.begin();
 
-    while(array.begin() == firstElementPointer) {
+    while(array.begin() == firstElementPoi32er) {
         array.insert(TestType(array.count()));
     }
 
@@ -235,28 +236,28 @@ TEMPLATE_TEST_CASE("Resize Copy", "", Copyable, ConstCopyable) {
 }
 
 TEST_CASE("No Arg Constructor") {
-    Core::Array<uint64_t> array;
+    Core::Array<u64> array;
     REQUIRE(array.count() == 0);
 }
 
 TEST_CASE("Initial Capacity Constructor") {
-    Core::Array<uint64_t> array(39);
+    Core::Array<u64> array(39);
     REQUIRE(array.count() == 0);
 }
 
-TEMPLATE_TEST_CASE("Repeating Constructor", "", uint64_t, ConstCopyable, ConstCopyMovable) {
-    constexpr uint64_t REPEAT_COUNT = 9;
+TEMPLATE_TEST_CASE("Repeating Constructor", "", u64, ConstCopyable, ConstCopyMovable) {
+    constexpr u64 REPEAT_COUNT = 9;
     TestType VALUE(1);
     Core::Array<TestType> array(VALUE, REPEAT_COUNT);
 
     REQUIRE(array.count() == REPEAT_COUNT);
-    for(uint64_t i = 0; i < REPEAT_COUNT; i++) {
+    for(u64 i = 0; i < REPEAT_COUNT; i++) {
         REQUIRE(array[i] == VALUE);
     }
 }
 
 TEST_CASE("Initializer List") {
-    Core::Array<uint64_t> array{1, 2, 3, 4, 5};
+    Core::Array<u64> array{1, 2, 3, 4, 5};
 
     REQUIRE(array.count() == 5);
     REQUIRE(array[0] == 1);
@@ -266,7 +267,7 @@ TEST_CASE("Initializer List") {
     REQUIRE(array[4] == 5);
 }
 
-TEMPLATE_TEST_CASE("Copy Constructor", "", uint64_t, ConstCopyable, ConstCopyMovable) {
+TEMPLATE_TEST_CASE("Copy Constructor", "", u64, ConstCopyable, ConstCopyMovable) {
     Core::Array<TestType> array;
 
     array.insert(TestType(1));
@@ -284,12 +285,12 @@ TEMPLATE_TEST_CASE("Copy Constructor", "", uint64_t, ConstCopyable, ConstCopyMov
     REQUIRE(array.count() == 8);
     REQUIRE(copy.count() == 5);
 
-    for(uint64_t i = 0; i < copy.count(); i++) {
+    for(u64 i = 0; i < copy.count(); i++) {
         REQUIRE(array[i] == copy[i]);
     }
 }
 
-TEMPLATE_TEST_CASE("Move Constructor", "", uint64_t, Movable, Copyable, CopyMovable, ConstCopyable, ConstCopyMovable) {
+TEMPLATE_TEST_CASE("Move Constructor", "", u64, Movable, Copyable, CopyMovable, ConstCopyable, ConstCopyMovable) {
     Core::Array<TestType> array;
 
     array.insert(TestType(1));
@@ -309,12 +310,12 @@ TEMPLATE_TEST_CASE("Move Constructor", "", uint64_t, Movable, Copyable, CopyMova
     REQUIRE(array.count() == 3);
     REQUIRE(copy.count() == 5);
 
-    for(uint64_t i = 0; i < copy.count(); i++) {
+    for(u64 i = 0; i < copy.count(); i++) {
         REQUIRE(copy[i] == TestType(i + 1));
     }
 }
 
-TEMPLATE_TEST_CASE("Copy Assignment", "", uint64_t, ConstCopyable, ConstCopyMovable) {
+TEMPLATE_TEST_CASE("Copy Assignment", "", u64, ConstCopyable, ConstCopyMovable) {
     Core::Array<TestType> array;
 
     array.insert(TestType(1));
@@ -333,12 +334,12 @@ TEMPLATE_TEST_CASE("Copy Assignment", "", uint64_t, ConstCopyable, ConstCopyMova
     REQUIRE(array.count() == 8);
     REQUIRE(copy.count() == 5);
 
-    for(uint64_t i = 0; i < copy.count(); i++) {
+    for(u64 i = 0; i < copy.count(); i++) {
         REQUIRE(array[i] == copy[i]);
     }
 }
 
-TEMPLATE_TEST_CASE("Move Assigmnet", "", uint64_t, Movable, Copyable, CopyMovable, ConstCopyable, ConstCopyMovable) {
+TEMPLATE_TEST_CASE("Move Assigmnet", "", u64, Movable, Copyable, CopyMovable, ConstCopyable, ConstCopyMovable) {
     Core::Array<TestType> array;
 
     array.insert(TestType(1));
@@ -359,12 +360,12 @@ TEMPLATE_TEST_CASE("Move Assigmnet", "", uint64_t, Movable, Copyable, CopyMovabl
     REQUIRE(array.count() == 3);
     REQUIRE(copy.count() == 5);
 
-    for(uint64_t i = 0; i < copy.count(); i++) {
+    for(u64 i = 0; i < copy.count(); i++) {
         REQUIRE(copy[i] == TestType(i + 1));
     }
 }
 
-TEMPLATE_TEST_CASE("Insert At", "", uint64_t, Movable, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
+TEMPLATE_TEST_CASE("Insert At", "", u64, Movable, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
     Core::Array<TestType> array;
 
     array.insert(TestType(0));
@@ -383,7 +384,7 @@ TEMPLATE_TEST_CASE("Insert At", "", uint64_t, Movable, Copyable, ConstCopyable, 
     REQUIRE(array[4] == TestType(3));
 }
 
-TEMPLATE_TEST_CASE("Emplace At", "", uint64_t, Movable, ConstCopyMovable) {
+TEMPLATE_TEST_CASE("Emplace At", "", u64, Movable, ConstCopyMovable) {
     Core::Array<TestType> array;
 
     array.emplace(TestType(0));
@@ -402,7 +403,7 @@ TEMPLATE_TEST_CASE("Emplace At", "", uint64_t, Movable, ConstCopyMovable) {
     REQUIRE(array[4] == TestType(3));
 }
 
-TEMPLATE_TEST_CASE("Erase At", "", uint64_t, Movable, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
+TEMPLATE_TEST_CASE("Erase At", "", u64, Movable, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
     Core::Array<TestType> array;
 
     array.insert(TestType(0));
@@ -420,7 +421,7 @@ TEMPLATE_TEST_CASE("Erase At", "", uint64_t, Movable, Copyable, ConstCopyable, C
 }
 
 
-TEMPLATE_TEST_CASE("Clear", "", uint64_t, Movable, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
+TEMPLATE_TEST_CASE("Clear", "", u64, Movable, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
     Core::Array<TestType> array;
 
     array.insert(TestType(0));
@@ -438,7 +439,7 @@ TEMPLATE_TEST_CASE("Clear", "", uint64_t, Movable, Copyable, ConstCopyable, Copy
 }
 
 TEST_CASE("Insert Uninitialized") {
-    constexpr uint64_t INSERT_COUNT = 8240;
+    constexpr u64 INSERT_COUNT = 8240;
 
     Core::Array<double> array;
 
@@ -456,8 +457,8 @@ TEST_CASE("Is Empty") {
     REQUIRE(!array.isEmpty());
 }
 
-TEMPLATE_TEST_CASE("Ensure Capacity", "", uint64_t, Movable, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
-    constexpr uint64_t ENSURED_CAPACITY = 637;
+TEMPLATE_TEST_CASE("Ensure Capacity", "", u64, Movable, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
+    constexpr u64 ENSURED_CAPACITY = 637;
 
     Core::Array<TestType> array;
 
@@ -465,16 +466,16 @@ TEMPLATE_TEST_CASE("Ensure Capacity", "", uint64_t, Movable, Copyable, ConstCopy
 
     array.insert(TestType(0));
 
-    TestType* firstElementPointer = array.begin();
+    TestType* firstElementPoi32er = array.begin();
 
-    while(array.begin() == firstElementPointer) {
+    while(array.begin() == firstElementPoi32er) {
         array.insert(TestType(array.count()));
     }
 
     REQUIRE(array.count() > ENSURED_CAPACITY);
 }
 
-TEMPLATE_TEST_CASE("Insert All", "", uint64_t, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
+TEMPLATE_TEST_CASE("Insert All", "", u64, Copyable, ConstCopyable, CopyMovable, ConstCopyMovable) {
     Core::Array<TestType> array;
 
     array.insert(TestType(0));
@@ -497,17 +498,17 @@ TEMPLATE_TEST_CASE("Insert All", "", uint64_t, Copyable, ConstCopyable, CopyMova
     REQUIRE(array.count() == 8);
     REQUIRE(array2.count() == 4);
 
-    for(uint64_t i = 0; i < array.count(); i++) {
+    for(u64 i = 0; i < array.count(); i++) {
         REQUIRE(array[i] == TestType(i));
     }
 }
 
 struct Trivial {
-    int a;
-    int b;
+    i32 a;
+    i32 b;
 
     Trivial() = default;
-    Trivial(int a, int b) : a(a), b(b) {}
+    Trivial(i32 a, i32 b) : a(a), b(b) {}
     bool operator==(const Trivial& other) const {
         return other.a == a && other.b == b;
     }
@@ -518,7 +519,7 @@ struct NonTrivial {
     Trivial b;
 
     NonTrivial() = default;
-    NonTrivial(int a, int b) : a(a, b), b(b, a) {}
+    NonTrivial(i32 a, i32 b) : a(a, b), b(b, a) {}
     NonTrivial(Trivial a, Trivial b) : a(a), b(b) {}
     NonTrivial(const NonTrivial& other) : a(other.a), b(other.b) {}
 
@@ -561,11 +562,11 @@ TEMPLATE_TEST_CASE("Serialize", "", Trivial, NonTrivial) {
     Core::Array<TestType> result = in.read<Core::Array<TestType>>();
 
     REQUIRE(result.count() == array.count());
-    for(uint64_t i = 0; i < array.count(); i++) {
+    for(u64 i = 0; i < array.count(); i++) {
         REQUIRE(result[i] == array[i]);
     }
 }
 
 TEST_CASE("No Implicit Integer Conversions") {
-    REQUIRE(!std::is_convertible_v<uint64_t, Core::Array<uint64_t>>);
+    REQUIRE(!std::is_convertible_v<u64, Core::Array<u64>>);
 }

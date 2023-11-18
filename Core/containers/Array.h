@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Types.h"
 #include "core/assert/Assert.h"
 
 #include "core/io/serialization/InputStream.h"
@@ -13,23 +14,23 @@
 
 namespace Core {
 
-template <typename T, uint64_t SIZE>
+template <typename T, u64 SIZE>
 using FixedArray = std::array<T, SIZE>;
 
 template <typename T>
 class Array {
 public:
-    constexpr static uint64_t MinimumCapacity = 4;
-    constexpr static uint64_t ElementSize     = sizeof(T);
-    constexpr static float GrowthFactor       = 1.5f;
+    constexpr static u64 MinimumCapacity = 4;
+    constexpr static u64 ElementSize     = sizeof(T);
+    constexpr static f32 GrowthFactor    = 1.5f;
 
     using ElementType = T;
 
-    explicit Array(uint64_t initialCapacity = 4);
+    explicit Array(u64 initialCapacity = 4);
 
     explicit Array(Core::Span<T> elementsToCopy);
 
-    Array(const T& original, uint64_t repeatCount);
+    Array(const T& original, u64 repeatCount);
     Array(std::initializer_list<T> initializerList);
     Array(const Array<T>& other);
     Array(Array<T>&& other);
@@ -39,17 +40,17 @@ public:
 
     ~Array();
 
-    [[nodiscard]] T& operator[](uint64_t i);
-    [[nodiscard]] const T& operator[](uint64_t i) const;
+    [[nodiscard]] T& operator[](u64 i);
+    [[nodiscard]] const T& operator[](u64 i) const;
 
     template <typename... ARGS>
-    T& emplaceAt(uint64_t index, ARGS&&... args);
+    T& emplaceAt(u64 index, ARGS&&... args);
 
     template <typename... ARGS>
     T& emplace(ARGS&&... args);
 
-    T& insertAt(uint64_t index, const T& elementToInsert);
-    T& insertAt(uint64_t index, T&& elementToInsert);
+    T& insertAt(u64 index, const T& elementToInsert);
+    T& insertAt(u64 index, T&& elementToInsert);
 
     T& insert(const T& elementToInsert);
     T& insert(T&& elementToInsert);
@@ -57,15 +58,15 @@ public:
     template <typename U>
     Core::Span<T> insertAll(Core::Span<U> elements);
 
-    [[nodiscard]] Core::Span<T> insertUninitialized(uint64_t newElementCount);
+    [[nodiscard]] Core::Span<T> insertUninitialized(u64 newElementCount);
 
-    void eraseAt(uint64_t index, uint64_t elementsToErase = 1);
+    void eraseAt(u64 index, u64 elementsToErase = 1);
 
     void clear();
 
-    [[nodiscard]] uint64_t count() const;
-    [[nodiscard]] uint64_t totalCapacity() const;
-    [[nodiscard]] uint64_t unusedCapacity() const;
+    [[nodiscard]] u64 count() const;
+    [[nodiscard]] u64 totalCapacity() const;
+    [[nodiscard]] u64 unusedCapacity() const;
     [[nodiscard]] bool isEmpty() const;
     [[nodiscard]] T* rawData();
     [[nodiscard]] const T* rawData() const;
@@ -74,20 +75,20 @@ public:
     [[nodiscard]] T* end();
     [[nodiscard]] const T* end() const;
 
-    void ensureCapacity(uint64_t requiredCapacity);
+    void ensureCapacity(u64 requiredCapacity);
 
 protected:
     void destructAllElements();
 
-    static void CopyElementMemory(T* destination, const T* source, uint64_t elementCount);
-    static void MoveElementMemory(T* destination, const T* source, uint64_t elementCount);
+    static void CopyElementMemory(T* destination, const T* source, u64 elementCount);
+    static void MoveElementMemory(T* destination, const T* source, u64 elementCount);
 
-    void shiftElementsLeft(uint64_t startIndex, uint64_t distance);
-    void shiftElementsRight(uint64_t startIndex, uint64_t distance);
+    void shiftElementsLeft(u64 startIndex, u64 distance);
+    void shiftElementsRight(u64 startIndex, u64 distance);
 
-    uint64_t capacity;
-    uint64_t elementCount = 0;
-    T* data               = nullptr;
+    u64 capacity;
+    u64 elementCount = 0;
+    T* data          = nullptr;
 };
 
 template <typename T>
@@ -100,12 +101,12 @@ Core::Span<const T> ToSpan(const Core::Array<T>& array) {
     return Core::Span<const T>(array.rawData(), array.count());
 }
 
-template <typename T, uint64_t SIZE>
+template <typename T, u64 SIZE>
 Core::Span<T> ToSpan(Core::FixedArray<T, SIZE>& array) {
     return Core::Span<T>(array.data(), SIZE);
 }
 
-template <typename T, uint64_t SIZE>
+template <typename T, u64 SIZE>
 Core::Span<const T> ToSpan(const Core::FixedArray<T, SIZE>& array) {
     return Core::Span<T>(array.data(), SIZE);
 }
@@ -120,12 +121,12 @@ Core::Span<const std::byte> AsBytes(const Core::Array<T>& array) requires std::i
     return Core::AsBytes(ToSpan(array));
 }
 
-template <typename T, uint64_t SIZE>
+template <typename T, u64 SIZE>
 Core::Span<std::byte> AsBytes(Core::FixedArray<T, SIZE>& array) requires std::is_trivially_copyable_v<T> {
     return Core::AsWritableBytes(ToSpan(array));
 }
 
-template <typename T, uint64_t SIZE>
+template <typename T, u64 SIZE>
 Core::Span<const std::byte> AsBytes(const Core::FixedArray<T, SIZE>& array) requires std::is_trivially_copyable_v<T> {
     return Core::AsBytes(ToSpan(array));
 }
@@ -148,7 +149,7 @@ struct Serializer<Core::Array<T>> {
     }
 };
 
-template <typename T, uint64_t SIZE>
+template <typename T, u64 SIZE>
 struct Serializer<Core::FixedArray<T, SIZE>> {
     static void serialize(OutputStream& stream, const Core::FixedArray<T, SIZE>& values) {
         stream.write(values.size());
@@ -165,7 +166,7 @@ struct Serializer<Core::FixedArray<T, SIZE>> {
 template <typename T>
 struct Deserializer<Core::Array<T>> {
     static Core::Array<T> deserialize(InputStream& stream) {
-        uint64_t elementCount = stream.read<uint64_t>();
+        u64 elementCount = stream.read<u64>();
         Core::Array<T> value;
 
         if constexpr(BinarySerializable<T>) {
@@ -179,7 +180,7 @@ struct Deserializer<Core::Array<T>> {
     }
 };
 
-template <typename T, uint64_t SIZE>
+template <typename T, u64 SIZE>
 struct Deserializer<Core::FixedArray<T, SIZE>> {
     static Core::FixedArray<T, SIZE> deserialize(InputStream& stream) {
         size_t elementCount = stream.read<Core::FixedArray<T, SIZE>::size_type>();
