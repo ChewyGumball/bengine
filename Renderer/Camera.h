@@ -7,15 +7,15 @@ namespace Renderer {
 struct Camera {
     glm::mat4 projection;
 
-    Camera(glm::mat4 projection) : project(projection) {}
+    Camera(glm::mat4 projection) : projection(projection) {}
 
     static Camera
-    Perspective(glm::radians fieldOfView, float aspectRatio, float nearPlaneDistance, float farPlaneDistance) {
-        return Camera(glm::perspective(fieldOfView, aspectRatio, nearPlaneDistance, farPlaneDistance));
+    Perspective(float fieldOfViewRadians, float aspectRatio, float nearPlaneDistance, float farPlaneDistance) {
+        return Camera(glm::perspective(fieldOfViewRadians, aspectRatio, nearPlaneDistance, farPlaneDistance));
     }
     static Camera
     Othographic(float left, float right, float bottom, float top, float nearPlaneDistance, float farPlaneDistance) {
-        return Camera(glm::orthographic(left, right, top, bottom, nearPlaneDistance, farPlaneDistance));
+        return Camera(glm::ortho(left, right, top, bottom, nearPlaneDistance, farPlaneDistance));
     }
 };
 }    // namespace Renderer

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/io/file_system/Path.h"
+#include "core/io/file_system/Path.h"
 
 #include "core/containers/Array.h"
 #include "core/io/serialization/InputStream.h"
