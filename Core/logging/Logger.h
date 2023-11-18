@@ -5,12 +5,13 @@
 #include <spdlog/common.h>
 #include <spdlog/logger.h>
 
+#include "core/Types.h"
 
 #include "LogCategory.h"
 
 namespace Core {
 
-enum class LogLevel : uint8_t { Trace = 0, Debug = 1, Info = 2, Warning = 3, Error = 4, Critical = 5, Always = 6 };
+enum class LogLevel : u8 { Trace = 0, Debug = 1, Info = 2, Warning = 3, Error = 4, Critical = 5, Always = 6 };
 
 namespace LogManager {
 void SetGlobalMinimumLevel(LogLevel minimumLevel);

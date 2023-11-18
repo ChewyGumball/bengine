@@ -4,9 +4,11 @@
 #include <ostream>
 #include <type_traits>
 
+#include "core/Types.h"
+
 namespace Core {
 
-template <typename LABEL, typename BASE_TYPE = uint64_t>
+template <typename LABEL, typename BASE_TYPE = u64>
 class OpaqueID {
     static_assert(std::is_integral_v<BASE_TYPE>());
 

@@ -8,7 +8,7 @@
 namespace Core {
 
 template <typename T>
-Array<T>::Array(uint64_t initialCapacity) : capacity(initialCapacity) {
+Array<T>::Array(u64 initialCapacity) : capacity(initialCapacity) {
     data = reinterpret_cast<T*>(malloc(capacity * ElementSize));
 }
 
@@ -19,9 +19,9 @@ Array<T>::Array(Core::Span<T> elementsToCopy) : capacity(elementsToCopy.count())
 }
 
 template <typename T>
-Array<T>::Array(const T& original, uint64_t repeatCount) : Array() {
+Array<T>::Array(const T& original, u64 repeatCount) : Array() {
     ensureCapacity(repeatCount);
-    for(uint64_t i = 0; i < repeatCount; i++) {
+    for(u64 i = 0; i < repeatCount; i++) {
         emplace(original);
     }
 }
@@ -93,20 +93,20 @@ Array<T>::~Array() {
 }
 
 template <typename T>
-T& Array<T>::operator[](uint64_t i) {
+T& Array<T>::operator[](u64 i) {
     ASSERT_WITH_MESSAGE(i < elementCount, "Index: {}, Count: {}", i, elementCount);
     return *(data + i);
 }
 
 template <typename T>
-const T& Array<T>::operator[](uint64_t i) const {
+const T& Array<T>::operator[](u64 i) const {
     ASSERT_WITH_MESSAGE(i < elementCount, "Index: {}, Count: {}", i, elementCount);
     return *(data + i);
 }
 
 template <typename T>
 template <typename... ARGS>
-T& Array<T>::emplaceAt(uint64_t index, ARGS&&... args) {
+T& Array<T>::emplaceAt(u64 index, ARGS&&... args) {
     ASSERT(index <= elementCount);
 
     if(index < elementCount) {
@@ -127,12 +127,12 @@ T& Array<T>::emplace(ARGS&&... args) {
 }
 
 template <typename T>
-T& Array<T>::insertAt(uint64_t index, const T& elementToInsert) {
+T& Array<T>::insertAt(u64 index, const T& elementToInsert) {
     return emplaceAt(index, elementToInsert);
 }
 
 template <typename T>
-T& Array<T>::insertAt(uint64_t index, T&& elementToInsert) {
+T& Array<T>::insertAt(u64 index, T&& elementToInsert) {
     if constexpr(std::is_move_constructible_v<T>) {
         return emplaceAt(index, std::move(elementToInsert));
     } else {
@@ -170,7 +170,7 @@ Core::Span<T> Array<T>::insertAll(Core::Span<U> elements) {
 }
 
 template <typename T>
-Core::Span<T> Array<T>::insertUninitialized(uint64_t newElementCount) {
+Core::Span<T> Array<T>::insertUninitialized(u64 newElementCount) {
     ensureCapacity(elementCount + newElementCount);
     elementCount += newElementCount;
 
@@ -178,7 +178,7 @@ Core::Span<T> Array<T>::insertUninitialized(uint64_t newElementCount) {
 }
 
 template <typename T>
-void Array<T>::eraseAt(uint64_t index, uint64_t elementsToErase) {
+void Array<T>::eraseAt(u64 index, u64 elementsToErase) {
     shiftElementsLeft(index + elementsToErase, elementsToErase);
 }
 
@@ -189,17 +189,17 @@ void Array<T>::clear() {
 }
 
 template <typename T>
-uint64_t Array<T>::count() const {
+u64 Array<T>::count() const {
     return elementCount;
 }
 
 template <typename T>
-uint64_t Array<T>::totalCapacity() const {
+u64 Array<T>::totalCapacity() const {
     return capacity;
 }
 
 template <typename T>
-uint64_t Array<T>::unusedCapacity() const {
+u64 Array<T>::unusedCapacity() const {
     return capacity - elementCount;
 }
 
@@ -239,13 +239,13 @@ const T* Array<T>::end() const {
 }
 
 template <typename T>
-void Array<T>::ensureCapacity(uint64_t requiredCapacity) {
+void Array<T>::ensureCapacity(u64 requiredCapacity) {
     if(requiredCapacity <= capacity) {
         return;
     }
 
     while(capacity < requiredCapacity) {
-        capacity = std::max(static_cast<uint64_t>(capacity * GrowthFactor), MinimumCapacity);
+        capacity = std::max(static_cast<u64>(capacity * GrowthFactor), MinimumCapacity);
     }
 
     T* newData = reinterpret_cast<T*>(malloc(capacity * ElementSize));
@@ -269,18 +269,18 @@ void Array<T>::destructAllElements() {
 }
 
 template <typename T>
-void Array<T>::CopyElementMemory(T* destination, const T* source, uint64_t elementCount) {
+void Array<T>::CopyElementMemory(T* destination, const T* source, u64 elementCount) {
     std::memcpy(destination, source, elementCount * ElementSize);
 }
 
 template <typename T>
-void Array<T>::MoveElementMemory(T* destination, const T* source, uint64_t elementCount) {
+void Array<T>::MoveElementMemory(T* destination, const T* source, u64 elementCount) {
     std::memmove(destination, source, elementCount * ElementSize);
 }
 
 
 template <typename T>
-void Array<T>::shiftElementsLeft(uint64_t startIndex, uint64_t distance) {
+void Array<T>::shiftElementsLeft(u64 startIndex, u64 distance) {
     ASSERT(distance <= startIndex);
 
     T* source      = data + startIndex;
@@ -293,7 +293,7 @@ void Array<T>::shiftElementsLeft(uint64_t startIndex, uint64_t distance) {
 }
 
 template <typename T>
-void Array<T>::shiftElementsRight(uint64_t startIndex, uint64_t distance) {
+void Array<T>::shiftElementsRight(u64 startIndex, u64 distance) {
     ensureCapacity(elementCount + distance);
 
     T* source      = data + startIndex;

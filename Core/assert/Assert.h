@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Types.h"
 #include "core/logging/Logger.h"
 
 #include <fmt/format.h>
@@ -11,9 +12,9 @@ namespace internal {
 extern LogCategory AssertLog;
 }
 
-// The default skip of three frames (2 for boost functions, one for this functions) will give a stack trace pointing to
+// The default skip of three frames (2 for std functions, one for this functions) will give a stack trace pointing to
 // the caller of this function.
-std::string GetBacktraceAsString(uint32_t framesToSkip = 3);
+std::string GetBacktraceAsString(u32 framesToSkip = 3);
 
 [[noreturn]] void Abort();
 

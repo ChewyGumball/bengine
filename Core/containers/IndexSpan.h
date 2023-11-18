@@ -1,5 +1,6 @@
 #pragma once
 
+#include "core/Types.h"
 #include "core/assert/Assert.h"
 #include "core/containers/Array.h"
 #include "core/io/serialization/InputStream.h"
@@ -9,18 +10,18 @@
 namespace Core {
 
 struct IndexSpan {
-    uint64_t start;
-    uint64_t count;
+    u64 start;
+    u64 count;
 
-    IndexSpan(uint64_t count) : IndexSpan(0, count) {}
-    IndexSpan(uint64_t start, uint64_t count) : start(start), count(count) {}
+    IndexSpan(u64 count) : IndexSpan(0, count) {}
+    IndexSpan(u64 start, u64 count) : start(start), count(count) {}
 
-    uint64_t operator[](uint64_t index) const {
+    u64 operator[](u64 index) const {
         ASSERT(index < count);
         return start + index;
     }
 
-    IndexSpan slice(uint64_t offset, uint64_t count) {
+    IndexSpan slice(u64 offset, u64 count) {
         ASSERT(count + offset < this->count);
         return IndexSpan(start + offset, count);
     }
@@ -39,8 +40,8 @@ struct Serializer<Core::IndexSpan> {
 template <>
 struct Deserializer<Core::IndexSpan> {
     static Core::IndexSpan deserialize(InputStream& stream) {
-        uint64_t start = stream.read<uint64_t>();
-        uint64_t count = stream.read<uint64_t>();
+        u64 start = stream.read<u64>();
+        u64 count = stream.read<u64>();
         return Core::IndexSpan(start, count);
     }
 };

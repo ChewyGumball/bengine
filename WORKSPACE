@@ -151,21 +151,6 @@ http_archive(
     url = "https://github.com/catchorg/Catch2/archive/refs/tags/v3.3.1.zip",
 )
 
-###############
-# Setup boost #
-###############
-
-http_archive(
-    name = "com_github_nelhage_rules_boost",
-    sha256 = "6ae52932cbc21def3fad6772c814150f69bd7a0af9ad7da3bada074ee95b41ce",
-    strip_prefix = "rules_boost-812ba130cd895d142388d9b8fde7a66d9b3da6a5",
-    url = "https://github.com/nelhage/rules_boost/archive/812ba130cd895d142388d9b8fde7a66d9b3da6a5.zip",
-)
-
-load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
-
-boost_deps()
-
 #############
 # Setup fmt #
 #############

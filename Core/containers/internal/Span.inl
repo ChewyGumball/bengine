@@ -7,7 +7,7 @@
 namespace Core {
 
 template <typename T>
-Span<T>::Span(T* elements, uint64_t count) : elementCount(count), data(elements) {}
+Span<T>::Span(T* elements, u64 count) : elementCount(count), data(elements) {}
 
 template <typename T>
 template <typename U, typename>
@@ -25,18 +25,18 @@ Span<T>& Span<T>::operator=(Span<U> other) {
 }
 
 template <typename T>
-T& Span<T>::operator[](uint64_t i) {
+T& Span<T>::operator[](u64 i) {
     ASSERT_WITH_MESSAGE(i < elementCount, "Index: {}, Count: {}", i, elementCount);
     return *(data + i);
 }
 template <typename T>
-const T& Span<T>::operator[](uint64_t i) const {
+const T& Span<T>::operator[](u64 i) const {
     ASSERT_WITH_MESSAGE(i < elementCount, "Index: {}, Count: {}", i, elementCount);
     return *(data + i);
 }
 
 template <typename T>
-void Span<T>::truncateFront(uint64_t count) {
+void Span<T>::truncateFront(u64 count) {
     ASSERT_WITH_MESSAGE(count <= elementCount,
                         "Tried to truncate more than the span holds! Elements: {}, Truncate Amount: {}",
                         elementCount,
@@ -46,7 +46,7 @@ void Span<T>::truncateFront(uint64_t count) {
     elementCount -= count;
 }
 template <typename T>
-void Span<T>::truncateBack(uint64_t count) {
+void Span<T>::truncateBack(u64 count) {
     ASSERT_WITH_MESSAGE(count <= elementCount,
                         "Tried to truncate more than the span holds! Elements: {}, Truncate Amount: {}",
                         elementCount,
@@ -55,7 +55,7 @@ void Span<T>::truncateBack(uint64_t count) {
 }
 
 template <typename T>
-Span<T> Span<T>::first(uint64_t count) {
+Span<T> Span<T>::first(u64 count) {
     ASSERT_WITH_MESSAGE(count <= elementCount,
                         "Tried to get a subspan larger than the span! Elements: {}, Asked Count: {}",
                         elementCount,
@@ -63,7 +63,7 @@ Span<T> Span<T>::first(uint64_t count) {
     return Span(data, count);
 }
 template <typename T>
-Span<T> Span<T>::last(uint64_t count) {
+Span<T> Span<T>::last(u64 count) {
     ASSERT_WITH_MESSAGE(count <= elementCount,
                         "Tried to get a subspan larger than the span! Elements: {}, Asked Count: {}",
                         elementCount,
@@ -71,7 +71,7 @@ Span<T> Span<T>::last(uint64_t count) {
     return Span(data + elementCount - count, count);
 }
 template <typename T>
-Span<T> Span<T>::subspan(uint64_t offset, uint64_t count) const {
+Span<T> Span<T>::subspan(u64 offset, u64 count) const {
     ASSERT_WITH_MESSAGE(offset + count <= elementCount,
                         "Tried to get a subspan larger than the span! Elements: {}, Asked Offset: {}, Asked Count: {}",
                         elementCount,
@@ -81,7 +81,7 @@ Span<T> Span<T>::subspan(uint64_t offset, uint64_t count) const {
 }
 
 template <typename T>
-uint64_t Span<T>::count() const {
+u64 Span<T>::count() const {
     return elementCount;
 }
 template <typename T>
